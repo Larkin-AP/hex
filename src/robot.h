@@ -40,6 +40,53 @@ namespace robot
 		};
 	};
 
+	//-------------------每个电机简单性能测试（梯形曲线移动）-------------------//
+		class MoveJointAll :public aris::core::CloneObject<MoveJointAll, aris::plan::Plan>
+	{
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int;
+		auto virtual collectNrt()->void;
+
+		virtual ~MoveJointAll();
+		explicit MoveJointAll(const std::string& name = "moveJA");
+	private:
+		double cef_;
+		
+	};
+
+	//-------------------每个电机简单性能测试（梯形曲线移动）-------------------//
+	class MoveJointAllCos :public aris::core::CloneObject<MoveJointAllCos, aris::plan::Plan>
+	{
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int;
+		auto virtual collectNrt()->void;
+
+		virtual ~MoveJointAllCos();
+		explicit MoveJointAllCos(const std::string& name = "moveJAC");
+	private:
+		double cef_;
+
+	};
+
+
+	//-------------------单电机简单性能测试（梯形曲线移动）-------------------//
+	class MoveJointSingle :public aris::core::CloneObject<MoveJointSingle, aris::plan::Plan>
+	{
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int;
+		auto virtual collectNrt()->void;
+
+		virtual ~MoveJointSingle();
+		explicit MoveJointSingle(const std::string& name = "moveJS");
+	private:
+		double cef_[18];
+	};
+
+
+
 	class HexRead :public aris::core::CloneObject<HexRead, aris::plan::Plan>
 	{
 	public:

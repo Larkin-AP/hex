@@ -30,12 +30,12 @@ namespace robot
     }
     auto ReadCurrentPos::executeRT()->int
     {
-        double current_angle[18] = { 0 };
+        double current_pos[18] = { 0 };
         for (int i = 0; i < 18; ++i) {
-            this->master()->logFileRawName("CurrentAngle");
-            current_angle[i] = controller()->motionPool()[i].actualPos();
-            mout() << current_angle[i] << std::endl;
-            lout() << current_angle[i] << std::endl;
+            this->master()->logFileRawName("CurrentPos");
+            current_pos[i] = controller()->motionPool()[i].actualPos();
+            mout() << current_pos[i] << std::endl;
+            lout() << current_pos[i] << std::endl;
         }
         
         return 0;
@@ -59,6 +59,10 @@ namespace robot
     }
     auto Prepare::executeRT()->int
     {
+        
+        TCurve s1(1, 1);
+        s1.getCurveParam();
+
         static double begin_angle[18];
         if (count() == 1) {
             for (int i = 0; i < 18; ++i) {
@@ -92,6 +96,247 @@ namespace robot
     Prepare::~Prepare() = default;
     
 
+    //---------------------每个电机简单性能测试（梯形曲线移动）--------------------//
+    auto MoveJointAll::prepareNrt()->void
+    {
+        cef_ = doubleParam("coefficient");
+        for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+    }
+    auto MoveJointAll::executeRT()->int
+    {
+        static double begin_angle[18] = { 0 };
+        if (count() == 1) {
+            for (int i = 0; i < 18; ++i) {
+                begin_angle[i] = controller()->motionPool()[i].actualPos();
+            }
+        }
+
+        TCurve s1(2, 5);
+        s1.getCurveParam();
+        int time = s1.getTc() * 1000;
+
+        double angle[18] = { 0 };
+        for (int i = 0; i < 18; ++i) {
+            angle[i] = begin_angle[i] + cef_ * 3.0 * s1.getTCurve(count());
+            controller()->motionPool()[i].setTargetPos(angle[i]);
+        }
+        int ret = time - count();
+        std::cout << "ret = " << ret << std::endl;
+        return ret;
+    }
+
+
+    auto MoveJointAll::collectNrt()->void {}
+    MoveJointAll::MoveJointAll(const std::string& name)
+    {
+        aris::core::fromXmlString(command(),
+            "<Command name=\"moveJA\">"
+            "<Param name=\"coefficient\" default=\"1.0\" abbreviation=\"c\"/>"
+            "</Command>");
+    }
+    MoveJointAll::~MoveJointAll() = default;
+
+    //---------------------每个电机简单性能测试（cos曲线移动）--------------------//
+    struct MoveJSParam
+    {
+        double amplitude;
+        double time;
+        uint32_t timenum;
+    };
+    auto MoveJointAllCos::prepareNrt()->void
+    {
+        MoveJSParam param;
+
+        param.amplitude = 0.0;
+        param.time = 0.0;
+        param.timenum = 0;
+
+        for (auto& p : cmdParams())
+        {
+            if (p.first == "amplitude")
+            {
+                param.amplitude = doubleParam(p.first);
+            }
+            else if (p.first == "time")
+            {
+                param.time = doubleParam(p.first);
+            }
+            else if (p.first == "timenum")
+            {
+                param.timenum = int32Param(p.first);
+            }
+        }
+        this->param() = param;
+        std::vector<std::pair<std::string, std::any>> ret_value;
+        for (auto& option : motorOptions())	option |= NOT_CHECK_POS_CONTINUOUS_SECOND_ORDER | NOT_CHECK_POS_CONTINUOUS;
+        ret() = ret_value;
+    }
+    auto MoveJointAllCos::executeRT()->int
+    {
+        auto& param = std::any_cast<MoveJSParam&>(this->param());
+        auto time = static_cast<int32_t>(param.time * 1000);
+        auto totaltime = static_cast<int32_t>(param.timenum * time);
+        static double begin_pjs[18] = { 0 };
+        static double step_pjs[18] = { 0 };
+        // 访问主站 //
+        auto& cout = controller()->mout();
+
+        if ((1 <= count()) && (count() <= time / 2))
+        {
+            // 获取当前起始点位置 //
+            if (count() == 1)
+            {
+                for (int i = 0; i < 18; i++) {
+                    begin_pjs[i] = controller()->motionPool()[i].actualPos();
+                    step_pjs[i] = controller()->motionPool()[i].actualPos();
+                }
+            }
+            for (int i = 0; i < 18; i++) {
+                step_pjs[i] = begin_pjs[i] + param.amplitude * (1 - std::cos(2 * PI * count() / time)) / 2;
+                controller()->motionPool().at(0).setTargetPos(step_pjs[i]);
+            }
+
+        }
+        else if ((time / 2 < count()) && (count() <= totaltime - time / 2))
+        {
+            // 获取当前起始点位置 //
+            if (count() == time / 2 + 1)
+            {
+                for (int i = 0; i < 18; i++) {
+                    begin_pjs[i] = controller()->motionPool()[i].actualPos();
+                    step_pjs[i] = controller()->motionPool()[i].actualPos();
+                }
+            }
+
+            for (int i = 0; i < 18; i++) {
+                step_pjs[i] = begin_pjs[i] + 2 * param.amplitude * (1 - std::cos(2 * PI * (count() - time / 2) / time)) / 2;
+                controller()->motionPool().at(0).setTargetPos(step_pjs[i]);
+            }
+        }
+
+        else if ((totaltime - time / 2 < count()) && (count() <= totaltime))
+        {
+            // 获取当前起始点位置 //
+            if (count() == totaltime - time / 2 + 1)
+            {
+                for (int i = 0; i < 18; i++) {
+                    begin_pjs[i] = controller()->motionPool()[i].actualPos();
+                    step_pjs[i] = controller()->motionPool()[i].actualPos();
+                }
+            }
+            for (int i = 0; i < 18; i++) {
+                step_pjs[i] = begin_pjs[i] + param.amplitude * (1 - std::cos(2 * PI * (count() - totaltime + time / 2) / time)) / 2;
+                controller()->motionPool().at(0).setTargetPos(step_pjs[i]);
+            }
+        }
+
+        // 打印 //
+        //if (count() % 100 == 0)
+        //{
+        //    cout << "pos" << ":" << controller()->motionAtAbs(0).actualPos() << "  ";
+        //    cout << std::endl;
+        //}
+
+        // log //
+        //auto& lout = controller()->lout();
+        //lout << controller()->motionAtAbs(0).targetPos() << ",";
+        //lout << std::endl;
+
+        return totaltime - count();
+    }
+
+
+    auto MoveJointAllCos::collectNrt()->void {}
+    MoveJointAllCos::MoveJointAllCos(const std::string& name)
+    {
+        aris::core::fromXmlString(command(),
+            "<Command name=\"moveJAC\">"
+            "	<GroupParam>"
+            "		<Param name=\"amplitude\" default=\"5.0\" abbreviation=\"a\"/>"
+            "		<Param name=\"time\" default=\"1.0\" abbreviation=\"t\"/>"
+            "		<Param name=\"timenum\" default=\"2\" abbreviation=\"n\"/>"
+            "	</GroupParam>"
+            "</Command>");
+    }
+    MoveJointAllCos::~MoveJointAllCos() = default;
+
+
+    //---------------------单电机简单性能测试（梯形曲线移动）--------------------//
+    auto MoveJointSingle::prepareNrt()->void
+    {
+        cef_[0] = doubleParam("coefficient0");
+        cef_[1] = doubleParam("coefficient1");
+        cef_[2] = doubleParam("coefficient2");
+        cef_[3] = doubleParam("coefficient3");
+        cef_[4] = doubleParam("coefficient4");
+        cef_[5] = doubleParam("coefficient5");
+        cef_[6] = doubleParam("coefficient6");
+        cef_[7] = doubleParam("coefficient7");
+        cef_[8] = doubleParam("coefficient8");
+        cef_[9] = doubleParam("coefficient9");
+        cef_[10] = doubleParam("coefficient10");
+        cef_[11] = doubleParam("coefficient11");
+        cef_[12] = doubleParam("coefficient12");
+        cef_[13] = doubleParam("coefficient13");
+        cef_[14] = doubleParam("coefficient14");
+        cef_[15] = doubleParam("coefficient15");
+        cef_[16] = doubleParam("coefficient16");
+        cef_[17] = doubleParam("coefficient17");
+        for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+    }
+    auto MoveJointSingle::executeRT()->int
+    {
+        static double begin_angle[18] = { 0 };
+        if (count() == 1) {
+            for (int i = 0; i < 18; ++i) {
+                begin_angle[i] = controller()->motionPool()[i].actualPos();
+            }
+        }
+
+        TCurve s1(2, 5);
+        s1.getCurveParam();
+        int time = s1.getTc() * 1000;
+
+        double angle[18] = { 0 };
+        for (int i = 0; i < 18; ++i) {
+            angle[i] = begin_angle[i] + cef_[i] * 3.0 * s1.getTCurve(count());
+            controller()->motionPool()[i].setTargetPos(angle[i]);
+        }
+        int ret = time - count();
+        std::cout << "ret = " << ret << std::endl;
+        return ret;
+    }
+
+
+    auto MoveJointSingle::collectNrt()->void {}
+    MoveJointSingle::MoveJointSingle(const std::string& name)
+    {
+        aris::core::fromXmlString(command(),
+            "<Command name=\"moveJA\">"
+            "<GroupParam>"
+            "<Param name=\"coefficient0\" default=\"0.0\" abbreviation=\"c0\"/>"
+            "<Param name=\"coefficient1\" default=\"0.0\" abbreviation=\"c1\"/>"
+            "<Param name=\"coefficient2\" default=\"0.0\" abbreviation=\"c2\"/>"
+            "<Param name=\"coefficient3\" default=\"0.0\" abbreviation=\"c3\"/>"
+            "<Param name=\"coefficient4\" default=\"0.0\" abbreviation=\"c4\"/>"
+            "<Param name=\"coefficient5\" default=\"0.0\" abbreviation=\"c5\"/>"
+            "<Param name=\"coefficient6\" default=\"0.0\" abbreviation=\"c6\"/>"
+            "<Param name=\"coefficient7\" default=\"0.0\" abbreviation=\"c7\"/>"
+            "<Param name=\"coefficient8\" default=\"0.0\" abbreviation=\"c8\"/>"
+            "<Param name=\"coefficient9\" default=\"0.0\" abbreviation=\"c9\"/>"
+            "<Param name=\"coefficient10\" default=\"0.0\" abbreviation=\"c10\"/>"
+            "<Param name=\"coefficient11\" default=\"0.0\" abbreviation=\"c11\"/>"
+
+            "<Param name=\"coefficient12\" default=\"0.0\" abbreviation=\"c12\"/>"
+            "<Param name=\"coefficient13\" default=\"0.0\" abbreviation=\"c13\"/>"
+            "<Param name=\"coefficient14\" default=\"0.0\" abbreviation=\"c14\"/>"
+            "<Param name=\"coefficient15\" default=\"0.0\" abbreviation=\"c15\"/>"
+            "<Param name=\"coefficient16\" default=\"0.0\" abbreviation=\"c16\"/>"
+            "<Param name=\"coefficient17\" default=\"0.0\" abbreviation=\"c17\"/>"
+            "</GroupParam>"
+            "</Command>");
+    }
+    MoveJointSingle::~MoveJointSingle() = default;
 
      
     //----------------------------读取仿真数据--------------------------//
@@ -435,6 +680,7 @@ namespace robot
             TCurve s1(5, 2);
             s1.getCurveParam();
             EllipseTrajectory e1(0, 0.05, 0, s1);
+            //一步转20°，转n步
             BodyPose body_s(0, -20, 0, s1);
             if (count() == 1)
             {

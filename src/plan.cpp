@@ -112,6 +112,7 @@ auto BodyPose::getBodyRotationTrajectory(int count)->void
 //三角步态
 //当前脚的位置 = 上一步脚的位置 + 脚位置增量
 //#注意：目前只适用于平地行走
+//e_1用来记录当前走到第几步，共需要走n步，count是一次迈腿的计时，故不能把总的时钟传入，要处理
 auto planLegTripod(int e_1, int n, double* current_leg, int count, EllipseTrajectory* Ellipse)->void
 {
 	if (count == 0)//初始化脚的位置
@@ -591,10 +592,12 @@ auto tripodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->in
 	static double current_body_in_ground[16] = { 0 };
 	//判断行走状态
 	int e_1 = count / per_step_count;  //判断当前在走哪一步,腿走一步,e1加1
-	int e_2 = count % per_step_count;  //0->Tc count
+	int e_2 = count % per_step_count;  //在一次迈腿周期0->Tc 的count
 
 
 	//规划腿
+	//e_1是判断当前走到第几步，e_2是当前Tc内的count
+	//身体和腿的Tc不是一个Tc
 	planLegTripod(e_1, n, current_leg_in_ground, e_2, Ellipse);
 	//规划身体
 	planBodyTransformTripod(e_1, n, current_body_in_ground, count, Ellipse);
@@ -637,7 +640,6 @@ auto tetrapodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->
 	//模型测试使用
 	for (int i = 0; i < 18; ++i)
 	{
-
 		file_current_leg[i] = current_leg_in_ground[i];
 	}
 	for (int i = 0; i < 16; ++i)

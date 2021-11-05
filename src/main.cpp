@@ -9,7 +9,6 @@ extern double file_current_body[16];
 int main(int argc, char *argv[])
 {
 
-
 	auto& cs = aris::server::ControlServer::instance();
 	cs.resetController(robot::createControllerHexapod().release());
 	cs.resetPlanRoot(robot::createPlanHexapod().release());
