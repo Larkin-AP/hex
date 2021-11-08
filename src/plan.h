@@ -25,6 +25,26 @@ public:
 	~TCurve() {} //析构函数
 };
 
+//传入,a,v,d(需要移动的距离)
+class TCurve2
+{
+private:
+	double d_;
+	double Tc_;
+	double v_;
+	double a_;
+	double ta_;
+public:
+	auto getTCurve(int count)->double; //输入count,输出s=0->1
+	auto getCurveParam()->void; //根据用户输入的v,a,计算Tc，ta
+	auto getTc()->double { return Tc_; };
+	auto getta()->double { return ta_; };
+	auto getv()->double { return v_; };
+	auto geta()->double { return a_; };
+	TCurve2(double a, double v, double d) { a_ = a; v_ = v; d_ = d; } //这是构造函数初始化的写法之一
+	~TCurve2() {} //析构函数
+};
+
 //椭圆轨迹曲线
 //功能：规划末端执行椭圆轨迹曲线，在Tc时间内，x方向从a0->a1,y方向b0->b1->b0，z方向c0->c1
 /*

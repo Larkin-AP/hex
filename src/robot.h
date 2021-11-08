@@ -20,6 +20,7 @@ namespace robot
 	};
 
 	//---------------------从极限位置移动到prepare位置----------------//
+		//在极限位置上电，偏转固定角度，到达prepare位置
 	class Prepare :public aris::core::CloneObject<Prepare, aris::plan::Plan>
 	{
 	public:
@@ -85,6 +86,81 @@ namespace robot
 		double cef_[18];
 	};
 
+	//-------------------驱动   前进后退-------------------//
+	class HexForward :public aris::core::CloneObject<HexForward, aris::plan::Plan>
+	{
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int;
+		auto virtual collectNrt()->void;
+
+		virtual ~HexForward();
+		explicit HexForward(const std::string& name = "forward");
+	private:
+		double x_step_;
+		int n_;
+	};
+
+	//-------------------驱动   左右移动-------------------//
+	class HexLateral :public aris::core::CloneObject<HexLateral, aris::plan::Plan>
+	{
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int;
+		auto virtual collectNrt()->void;
+
+		virtual ~HexLateral();
+		explicit HexLateral(const std::string& name = "lateral");
+	private:
+		double z_step_;
+		int n_;
+	};
+
+	//-------------------驱动   左右转动-------------------//
+	class HexTurn :public aris::core::CloneObject<HexTurn, aris::plan::Plan>
+	{
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int;
+		auto virtual collectNrt()->void;
+
+		virtual ~HexTurn();
+		explicit HexTurn(const std::string& name = "turn");
+	private:
+		double turn_yaw_;
+		int n_;
+	};
+
+	//-------------------驱动   四足步态-------------------//
+	class HexTetrapod :public aris::core::CloneObject<HexTetrapod, aris::plan::Plan>
+	{
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int;
+		auto virtual collectNrt()->void;
+
+		virtual ~HexTetrapod();
+		explicit HexTetrapod(const std::string& name = "turn");
+	private:
+		double x_step_;
+		int n_;
+	};
+
+	//--------------------测试TCurve2-----------------------//
+	class TCurve2Test :public aris::core::CloneObject<TCurve2Test, aris::plan::Plan>
+	{
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int;
+		auto virtual collectNrt()->void;
+
+		virtual ~TCurve2Test();
+		explicit TCurve2Test(const std::string& name = "test");
+
+	};
+
+
+	
 
 
 	class HexRead :public aris::core::CloneObject<HexRead, aris::plan::Plan>

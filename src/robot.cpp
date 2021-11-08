@@ -52,7 +52,7 @@ namespace robot
 
 
     //---------------------从极限位置移动到prepare位置--------------------//
-    //这种方法还是在robot.h中键入偏置位置，后续看看有没有办法可以每次不用改代码的设置偏置角度
+    //在极限位置上电，偏转固定角度，到达prepare位置
     auto Prepare::prepareNrt()->void
     {
         for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
@@ -62,35 +62,36 @@ namespace robot
         
         TCurve s1(1, 1);
         s1.getCurveParam();
+        int time = s1.getTc() * 1000;
 
-        static double begin_angle[18];
+        static double begin_angle[18]; 
         if (count() == 1) {
             for (int i = 0; i < 18; ++i) {
-                begin_angle[i] = controller()->motionPool()[i].actualPos();
+                begin_angle[i] = controller()->motionPool()[i].actualPos(); //这里的位置应该是0
             }
         }
 
-        TCurve s1(1, 3);
-        s1.getCurveParam();
-        //这里要不要加椭圆轨迹规划
 
-
-
-        double current_angle[18];
+        double current_angle[18] = { 0 };
         for (int i = 0; i < 18; ++i) {
-            this->master()->logFileRawName("CurrentAngle");
-            current_angle[i] = controller()->motionPool()[i].actualPos();
+            current_angle[i] = begin_angle[i] + pos_offset[i] * s1.getTCurve(count());
+            controller()->motionPool()[i].setTargetPos(current_angle[i]);
             mout() << current_angle[i] << std::endl;
-            lout() << current_angle[i] << std::endl;
         }
-
-        return 0;
+        if (count() % 10 == 0) {
+            for (int i = 0; i < 18; ++i) {
+                mout() << controller()->motionPool()[i].actualPos() << "\t";
+            }
+            mout()  << std::endl;
+        }
+        int ret = time - count();
+        return ret;
     }
     auto Prepare::collectNrt()->void {}
     Prepare::Prepare(const std::string& name)
     {
         aris::core::fromXmlString(command(),
-            "<Command name=\"read\">"
+            "<Command name=\"pre\">"
             "</Command>");
     }
     Prepare::~Prepare() = default;
@@ -288,6 +289,7 @@ namespace robot
     {
         static double begin_angle[18] = { 0 };
         if (count() == 1) {
+            this->master()->logFileRawName("test");
             for (int i = 0; i < 18; ++i) {
                 begin_angle[i] = controller()->motionPool()[i].actualPos();
             }
@@ -326,7 +328,6 @@ namespace robot
             "<Param name=\"coefficient9\" default=\"0.0\" abbreviation=\"c9\"/>"
             "<Param name=\"coefficient10\" default=\"0.0\" abbreviation=\"c10\"/>"
             "<Param name=\"coefficient11\" default=\"0.0\" abbreviation=\"c11\"/>"
-
             "<Param name=\"coefficient12\" default=\"0.0\" abbreviation=\"c12\"/>"
             "<Param name=\"coefficient13\" default=\"0.0\" abbreviation=\"c13\"/>"
             "<Param name=\"coefficient14\" default=\"0.0\" abbreviation=\"c14\"/>"
@@ -337,6 +338,364 @@ namespace robot
             "</Command>");
     }
     MoveJointSingle::~MoveJointSingle() = default;
+
+
+    //---------------------hex 前进/后退--------------------//
+    //-x是正值是前进，-x是负值是后退，默认是前进-x=0.1
+    auto HexForward::prepareNrt()->void
+    {
+        n_ = doubleParam("step_num");
+        x_step_ = doubleParam("x_step");
+        for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+    }
+    auto HexForward::executeRT()->int
+    {
+        static double begin_angle[18] = { 0 };
+        if (count() == 1) {
+            for (int i = 0; i < 18; ++i) {
+                begin_angle[i] = controller()->motionPool()[i].actualPos();
+            }
+            this->master()->logFileRawName("hex_forward");
+        }
+
+        TCurve s1(2, 5);
+        s1.getCurveParam();
+        EllipseTrajectory e1(x_step_, 0.03, 0, s1);
+        BodyPose body_s(0, 0, 0, s1);
+        int time = s1.getTc() * 1000;
+        int ret = 0;
+        ret = tripodPlan(n_, count() - 1, &e1, input_angle);
+
+        //输出电机角度，用于仿真测试
+        {
+            //log
+            for (int i = 0; i < 18; ++i) {
+                lout() << input_angle[i] << "\t";
+            }
+            lout() << std::endl;
+
+            //打印
+            for (int i = 0; i < 18; ++i) {
+                mout() << input_angle[i] << "\t";
+            }
+            lout() << std::endl;
+        }
+
+        //输出身体和足端曲线，用于仿真测试
+        {
+            //log
+            for (int i = 0; i < 18; ++i) {
+                lout() << file_current_leg[i] << "\t";
+            }
+            lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+            lout() << std::endl;
+
+
+            //打印
+            for (int i = 0; i < 18; ++i) {
+                mout() << file_current_leg[i] << "\t";
+            }
+            mout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+            mout() << std::endl;
+        }
+
+        //给电机发送信号
+        for (int i = 0; i < 18; ++i) {
+            controller()->motionPool()[i].setTargetPos(input_angle[i]);
+        }
+        return ret;
+    }
+
+
+    auto HexForward::collectNrt()->void {}
+    HexForward::HexForward(const std::string& name)
+    {
+        aris::core::fromXmlString(command(),
+            "<Command name=\"forward\">"
+            "<GroupParam>"
+            "<Param name=\"step_num\" default=\"5.0\" abbreviation=\"n\"/>"
+            "<Param name=\"x_step\" default=\"0.1\" abbreviation=\"x\"/>"
+            "</GroupParam>"
+            "</Command>");
+    }
+    HexForward::~HexForward() = default;
+
+    //---------------------hex 左移/右移--------------------//
+    //-z是正值是右移，-z是负值是左移，默认是右移-z=0.1
+    auto HexLateral::prepareNrt()->void
+    {
+        n_ = doubleParam("step_num");
+        z_step_ = doubleParam("z_step");
+        for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+    }
+    auto HexLateral::executeRT()->int
+    {
+        static double begin_angle[18] = { 0 };
+        if (count() == 1) {
+            for (int i = 0; i < 18; ++i) {
+                begin_angle[i] = controller()->motionPool()[i].actualPos();
+            }
+            this->master()->logFileRawName("hex_lateral");
+        }
+
+        TCurve s1(2, 5);
+        s1.getCurveParam();
+        EllipseTrajectory e1(0, 0.03, z_step_, s1);
+        BodyPose body_s(0, 0, 0, s1);
+        int time = s1.getTc() * 1000;
+        int ret = 0;
+        ret = tripodPlan(n_, count() - 1, &e1, input_angle);
+
+        //输出电机角度，用于仿真测试
+        {
+            //log
+            for (int i = 0; i < 18; ++i) {
+                lout() << input_angle[i] << "\t";
+            }
+            lout() << std::endl;
+
+            //打印
+            for (int i = 0; i < 18; ++i) {
+                mout() << input_angle[i] << "\t";
+            }
+            lout() << std::endl;
+        }
+
+        //输出身体和足端曲线，用于仿真测试
+        {
+            //log
+            for (int i = 0; i < 18; ++i) {
+                lout() << file_current_leg[i] << "\t";
+            }
+            lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+            lout() << std::endl;
+
+
+            //打印
+            for (int i = 0; i < 18; ++i) {
+                mout() << file_current_leg[i] << "\t";
+            }
+            mout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+            mout() << std::endl;
+        }
+
+        //给电机发送信号
+        for (int i = 0; i < 18; ++i) {
+            controller()->motionPool()[i].setTargetPos(input_angle[i]);
+        }
+        return ret;
+    }
+
+
+    auto HexLateral::collectNrt()->void {}
+    HexLateral::HexLateral(const std::string& name)
+    {
+        aris::core::fromXmlString(command(),
+            "<Command name=\"lateral\">"
+            "<GroupParam>"
+            "<Param name=\"step_num\" default=\"5.0\" abbreviation=\"n\"/>"
+            "<Param name=\"z_step\" default=\"0.1\" abbreviation=\"z\"/>"
+            "</GroupParam>"
+            "</Command>");
+    }
+    HexLateral::~HexLateral() = default;
+
+    //---------------------hex 左转/右转--------------------//
+    //-y是正值是左转，-y是负值是右转，默认是右移-y=20
+    auto HexTurn::prepareNrt()->void
+    {
+        n_ = doubleParam("step_num");
+        turn_yaw_ = doubleParam("turn_yaw");
+        for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+    }
+    auto HexTurn::executeRT()->int
+    {
+        static double begin_angle[18] = { 0 };
+        if (count() == 1) {
+            for (int i = 0; i < 18; ++i) {
+                begin_angle[i] = controller()->motionPool()[i].actualPos();
+            }
+            this->master()->logFileRawName("hex_turn");
+        }
+
+        TCurve s1(2, 5);
+        s1.getCurveParam();
+        EllipseTrajectory e1(0, 0.03, 0, s1);
+        BodyPose body_s(0, turn_yaw_, 0, s1);
+        int time = s1.getTc() * 1000;
+        int ret = 0;
+        ret = turnPlanTripod(n_, count() - 1, &e1, &body_s, input_angle);
+
+        //输出电机角度，用于仿真测试
+        {
+            //log
+            for (int i = 0; i < 18; ++i) {
+                lout() << input_angle[i] << "\t";
+            }
+            lout() << std::endl;
+
+            //打印
+            for (int i = 0; i < 18; ++i) {
+                mout() << input_angle[i] << "\t";
+            }
+            lout() << std::endl;
+        }
+
+        //输出身体和足端曲线，用于仿真测试
+        {
+            //log
+            for (int i = 0; i < 18; ++i) {
+                lout() << file_current_leg[i] << "\t";
+            }
+            lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+            lout() << std::endl;
+
+
+            //打印
+            for (int i = 0; i < 18; ++i) {
+                mout() << file_current_leg[i] << "\t";
+            }
+            mout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+            mout() << std::endl;
+        }
+
+        //给电机发送信号
+        for (int i = 0; i < 18; ++i) {
+            controller()->motionPool()[i].setTargetPos(input_angle[i]);
+        }
+        return ret;
+    }
+
+
+    auto HexTurn::collectNrt()->void {}
+    HexTurn::HexTurn(const std::string& name)
+    {
+        aris::core::fromXmlString(command(),
+            "<Command name=\"turn\">"
+            "<GroupParam>"
+            "<Param name=\"step_num\" default=\"5.0\" abbreviation=\"n\"/>"
+            "<Param name=\"turn_yaw\" default=\"20\" abbreviation=\"y\"/>"
+            "</GroupParam>"
+            "</Command>");
+    }
+    HexTurn::~HexTurn() = default;
+
+    //---------------------hex 四足步态--------------------//
+    //-x是正值是前进，-x是负值是后退，默认是前进-x=0.1
+    auto HexTetrapod::prepareNrt()->void
+    {
+        n_ = doubleParam("step_num");
+        x_step_ = doubleParam("x_step");
+        for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+    }
+    auto HexTetrapod::executeRT()->int
+    {
+        static double begin_angle[18] = { 0 };
+        if (count() == 1) {
+            for (int i = 0; i < 18; ++i) {
+                begin_angle[i] = controller()->motionPool()[i].actualPos();
+            }
+            this->master()->logFileRawName("hex_tetra");
+        }
+
+
+        TCurve s1(2, 5);
+        s1.getCurveParam();
+        EllipseTrajectory e1(x_step_, 0.03, 0, s1);
+        BodyPose body_s(0, 0, 0, s1);
+        int time = s1.getTc() * 1000;
+        int ret = 0;
+        ret = tetrapodPlan(5, count() - 1, &e1, input_angle);
+
+        //输出电机角度，用于仿真测试
+        {
+            //log
+            for (int i = 0; i < 18; ++i) {
+                lout() << input_angle[i] << "\t";
+            }
+            lout() << std::endl;
+
+            //打印
+            for (int i = 0; i < 18; ++i) {
+                mout() << input_angle[i] << "\t";
+            }
+            lout() << std::endl;
+        }
+
+        //输出身体和足端曲线，用于仿真测试
+        {
+            //log
+            for (int i = 0; i < 18; ++i) {
+                lout() << file_current_leg[i] << "\t";
+            }
+            lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+            lout() << std::endl;
+
+
+            //打印
+            for (int i = 0; i < 18; ++i) {
+                mout() << file_current_leg[i] << "\t";
+            }
+            mout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+            mout() << std::endl;
+        }
+
+        //给电机发送信号
+        for (int i = 0; i < 18; ++i) {
+            controller()->motionPool()[i].setTargetPos(input_angle[i]);
+        }
+        return ret;
+    }
+
+
+    auto HexTetrapod::collectNrt()->void {}
+    HexTetrapod::HexTetrapod(const std::string& name)
+    {
+        aris::core::fromXmlString(command(),
+            "<Command name=\"tetra\">"
+            "<GroupParam>"
+            "<Param name=\"step_num\" default=\"5.0\" abbreviation=\"n\"/>"
+            "<Param name=\"x_step\" default=\"0.1\" abbreviation=\"x\"/>"
+            "</GroupParam>"
+            "</Command>");
+    }
+    HexTetrapod::~HexTetrapod() = default;
+
+
+    //---------------------TCurve2 test--------------------//
+    auto TCurve2Test::prepareNrt()->void
+    {
+        for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+    }
+    auto TCurve2Test::executeRT()->int
+    {
+        if (count() == 1) {
+            this->master()->logFileRawName("test");
+        }
+        TCurve2 s1(1, 2, 10);
+        s1.getCurveParam();
+        int ret = s1.getTc() * 1000 - count();
+        //std::cout << "Tc = " << s1.getTc() << std::endl;
+        //std::cout << "ta = " << s1.getta() << std::endl;
+        //std::cout << "v = " << s1.getv() << std::endl;
+        //std::cout << "a = " << s1.geta() << std::endl;
+        std::cout << "count = " << count() << std::endl;
+        std::cout << "ret = " << ret << std::endl;
+        std::cout << s1.getTCurve(count()) << std::endl;
+        std::cout << std::endl;
+        lout() << s1.getTCurve(count()) << std::endl;
+        return ret;
+    }
+
+
+    auto TCurve2Test::collectNrt()->void {}
+    TCurve2Test::TCurve2Test(const std::string& name)
+    {
+        aris::core::fromXmlString(command(),
+            "<Command name=\"test\">"
+            "</Command>");
+    }
+    TCurve2Test::~TCurve2Test() = default;
 
      
     //----------------------------读取仿真数据--------------------------//
@@ -1413,7 +1772,8 @@ namespace robot
         plan_root->planPool().add<HexDynamicRightTest>();
         plan_root->planPool().add<HexDynamicLeftTest>();
         plan_root->planPool().add<HexDynamicTurnRightTest>();
-        plan_root->planPool().add<HexDynamicTetrapodTest>();
+        plan_root->planPool().add<HexDynamicTetrapodTest>(); 
+        plan_root->planPool().add<TCurve2Test>();
         return plan_root;
     }
 
