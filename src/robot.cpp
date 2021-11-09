@@ -95,6 +95,52 @@ namespace robot
             "</Command>");
     }
     Prepare::~Prepare() = default;
+
+
+
+    //---------------------home指令--------------------//
+    auto Home::prepareNrt()->void
+    {
+        for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+    }
+    auto Home::executeRT()->int
+    {
+
+        TCurve s1(1, 1);
+        s1.getCurveParam();
+        int time = s1.getTc() * 1000;
+
+        static double begin_angle[18];
+        if (count() == 1) {
+            for (int i = 0; i < 18; ++i) {
+                begin_angle[i] = controller()->motionPool()[i].actualPos(); //这里的位置应该是0
+            }
+        }
+
+
+        double current_angle[18] = { 0 };
+        for (int i = 0; i < 18; ++i) {
+            current_angle[i] = begin_angle[i] - begin_angle[i] * s1.getTCurve(count()) + pos_offset[i]; //电机的绝对值为pos_offset
+            controller()->motionPool()[i].setTargetPos(current_angle[i]);
+            mout() << current_angle[i] << std::endl;
+        }
+        if (count() % 10 == 0) {
+            for (int i = 0; i < 18; ++i) {
+                mout() << controller()->motionPool()[i].actualPos() << "\t";
+            }
+            mout() << std::endl;
+        }
+        int ret = time - count();
+        return ret;
+    }
+    auto Home::collectNrt()->void {}
+    Home::Home(const std::string& name)
+    {
+        aris::core::fromXmlString(command(),
+            "<Command name=\"home\">"
+            "</Command>");
+    }
+    Home::~Home() = default;
     
 
     //---------------------每个电机简单性能测试（梯形曲线移动）--------------------//
@@ -314,7 +360,7 @@ namespace robot
     MoveJointSingle::MoveJointSingle(const std::string& name)
     {
         aris::core::fromXmlString(command(),
-            "<Command name=\"moveJA\">"
+            "<Command name=\"moveJS\">"
             "<GroupParam>"
             "<Param name=\"coefficient0\" default=\"0.0\" abbreviation=\"c0\"/>"
             "<Param name=\"coefficient1\" default=\"0.0\" abbreviation=\"c1\"/>"
@@ -1772,8 +1818,20 @@ namespace robot
         plan_root->planPool().add<HexDynamicRightTest>();
         plan_root->planPool().add<HexDynamicLeftTest>();
         plan_root->planPool().add<HexDynamicTurnRightTest>();
-        plan_root->planPool().add<HexDynamicTetrapodTest>(); 
+        plan_root->planPool().add<HexDynamicTetrapodTest>();
         plan_root->planPool().add<TCurve2Test>();
+
+        //驱动
+        plan_root->planPool().add<ReadCurrentPos>();  //read
+        plan_root->planPool().add<Prepare>();  //pre
+        plan_root->planPool().add<Home>();    //home
+        plan_root->planPool().add<MoveJointAll>();  //moveJA
+        plan_root->planPool().add<MoveJointAllCos>();  //moveJAC
+        plan_root->planPool().add<MoveJointSingle>();   //moveJS
+        plan_root->planPool().add<HexForward>();   //forward
+        plan_root->planPool().add<HexLateral>();  //lateral
+        plan_root->planPool().add<HexTurn>();  //turn
+        plan_root->planPool().add<HexTetrapod>();   //tetra
         return plan_root;
     }
 

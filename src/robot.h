@@ -6,6 +6,15 @@
 
 namespace robot
 {
+	//pos_offset记录的是极限位置上电后，prepare位置对应的电机位置
+	static const double pos_offset[18] = {
+			0,0,0,
+			0,0,0,
+			0,0,0,
+			0,0,0,
+			0,0,0,
+			0,0,0
+	};
 
 	//---------------------读取当前电机的位置--------------------//
 	class ReadCurrentPos :public aris::core::CloneObject<ReadCurrentPos, aris::plan::Plan>
@@ -20,7 +29,7 @@ namespace robot
 	};
 
 	//---------------------从极限位置移动到prepare位置----------------//
-		//在极限位置上电，偏转固定角度，到达prepare位置
+		//在极限位置上电，偏转固定角度，到达prepare位置，这个位置可将机器人偏转至该位置，读出此时电机的位置，然后输入并记住，应该可以固定该数值
 	class Prepare :public aris::core::CloneObject<Prepare, aris::plan::Plan>
 	{
 	public:
@@ -30,15 +39,21 @@ namespace robot
 
 		virtual ~Prepare();
 		explicit Prepare(const std::string& name = "prepare");
-	private:
-		double pos_offset[18] = {
-			0,0,0,
-			0,0,0,
-			0,0,0,
-			0,0,0,
-			0,0,0,
-			0,0,0
-		};
+
+	};
+
+	//---------------------从任意位置移动到prepare位置----------------//
+	//极限位置上电，理论上这个也可以回到prepare位置
+	class Home :public aris::core::CloneObject<Home, aris::plan::Plan>
+	{
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int;
+		auto virtual collectNrt()->void;
+
+		virtual ~Home();
+		explicit Home(const std::string& name = "home");
+
 	};
 
 	//-------------------每个电机简单性能测试（梯形曲线移动）-------------------//
