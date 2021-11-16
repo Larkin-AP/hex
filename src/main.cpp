@@ -12,9 +12,9 @@ int main(int argc, char *argv[])
 	auto& cs = aris::server::ControlServer::instance();
 	cs.resetController(robot::createControllerHexapod().release());
 	cs.resetPlanRoot(robot::createPlanHexapod().release());
-	cs.resetModel(robot::createModelHexapod().release());
+    //cs.resetModel(robot::createModelHexapod().release());
 
-	// ÉèÖÃÄ£ĞÍ³õÊ¼Î»ÖÃ£¬¸ø¹Ø½Ú½Ç¶È  ×¢£ºÏà¶ÔµÄÎ»ÖÃÊÇÄ£ĞÍQuadÀïÉèÖÃµÄ¹Ø½ÚÖáºÍÄ©¶Ë  ³õÊ¼Î»ÖÃµç»úÊäÈëÎª0 //
+	// è®¾ç½®æ¨¡å‹åˆå§‹ä½ç½®ï¼Œç»™å…³èŠ‚è§’åº¦  æ³¨ï¼šç›¸å¯¹çš„ä½ç½®æ˜¯æ¨¡å‹Quadé‡Œè®¾ç½®çš„å…³èŠ‚è½´å’Œæœ«ç«¯  åˆå§‹ä½ç½®ç”µæœºè¾“å…¥ä¸º0 //
 	double set_init_position[18] = {
 		0,0,0,
 		0,0,0,
@@ -25,11 +25,11 @@ int main(int argc, char *argv[])
 	};
 
 	//cs.model().setInputPos(set_init_position); 
-	//if (cs.model().forwardKinematics()) THROW_FILE_LINE("forward failed"); //ÏÈËãÕı½â£¬µÃµ½Ä©¶ËÎ»ÖÃ
+	//if (cs.model().forwardKinematics()) THROW_FILE_LINE("forward failed"); //å…ˆç®—æ­£è§£ï¼Œå¾—åˆ°æœ«ç«¯ä½ç½®
 	//robot::setStandTopologyIK(cs);
 	
 	//auto& adams1 = dynamic_cast<aris::dynamic::AdamsSimulator&>(cs.model().simulatorPool().front());
-	//adams.saveAdams("C:\\Users\\jpche\\Desktop\\aaa\\hexapod_simulation.cmd"); //Õâ¸öÖ»ÊÇµ¼ÈëÄ£ĞÍ
+	//adams.saveAdams("C:\\Users\\jpche\\Desktop\\aaa\\hexapod_simulation.cmd"); //è¿™ä¸ªåªæ˜¯å¯¼å…¥æ¨¡å‹
 	
 
 	//robot::HexDynamicForwardTest plan;
@@ -41,17 +41,18 @@ int main(int argc, char *argv[])
 	//robot::HexDynamicTetrapodTest plan;
 
 	//adams1.simulate(plan, cs.model().simResultPool().front());
-	//adams1.saveAdams("C:\\Users\\jpche\\Desktop\\aaa\\hexapod_simulation_with_control.cmd", cs.model().simResultPool().front()); //Õâ¸öÄ£ĞÍ»¹º¬ÓĞÔË¶¯²ÎÊı
+	//adams1.saveAdams("C:\\Users\\jpche\\Desktop\\aaa\\hexapod_simulation_with_control.cmd", cs.model().simResultPool().front()); //è¿™ä¸ªæ¨¡å‹è¿˜å«æœ‰è¿åŠ¨å‚æ•°
 
 	
 
 	//std::cout << "simulate finished" << std::endl;
 
-	//µÈ´ıÖÕ¶ËÊäÈëº¯Êı£¬±¾º¯Êı²»ÄÜÈ¥µô£¬·ñÔòÊµÊ±Ïß³ÌºÍÖ÷Ïß³Ì¶¼»á½áÊø//
+	//ç­‰å¾…ç»ˆç«¯è¾“å…¥å‡½æ•°ï¼Œæœ¬å‡½æ•°ä¸èƒ½å»æ‰ï¼Œå¦åˆ™å®æ—¶çº¿ç¨‹å’Œä¸»çº¿ç¨‹éƒ½ä¼šç»“æŸ//
 	cs.init();
 
-	//¿ªÆôwebsocket/socket·şÎñÆ÷//
+	//å¼€å¯websocket/socketæœåŠ¡å™¨//
 	cs.open();
+    cs.start();
 	cs.runCmdLine();
 	return 0;
 }

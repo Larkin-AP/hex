@@ -6,9 +6,9 @@
 
 namespace robot
 {
-	//pos_offset¼ÇÂ¼µÄÊÇ¼«ÏŞÎ»ÖÃÉÏµçºó£¬prepareÎ»ÖÃ¶ÔÓ¦µÄµç»úÎ»ÖÃ
+	//pos_offsetè®°å½•çš„æ˜¯æé™ä½ç½®ä¸Šç”µåï¼Œprepareä½ç½®å¯¹åº”çš„ç”µæœºä½ç½®
 	static const double pos_offset[18] = {
-			0,0,0,
+            5,5,5,
 			0,0,0,
 			0,0,0,
 			0,0,0,
@@ -16,7 +16,7 @@ namespace robot
 			0,0,0
 	};
 
-	//---------------------¶ÁÈ¡µ±Ç°µç»úµÄÎ»ÖÃ--------------------//
+	//---------------------è¯»å–å½“å‰ç”µæœºçš„ä½ç½®--------------------//
 	class ReadCurrentPos :public aris::core::CloneObject<ReadCurrentPos, aris::plan::Plan>
 	{
 	public:
@@ -28,22 +28,9 @@ namespace robot
 		explicit ReadCurrentPos(const std::string& name = "Read");
 	};
 
-	//---------------------´Ó¼«ÏŞÎ»ÖÃÒÆ¶¯µ½prepareÎ»ÖÃ----------------//
-		//ÔÚ¼«ÏŞÎ»ÖÃÉÏµç£¬Æ«×ª¹Ì¶¨½Ç¶È£¬µ½´ïprepareÎ»ÖÃ£¬Õâ¸öÎ»ÖÃ¿É½«»úÆ÷ÈËÆ«×ªÖÁ¸ÃÎ»ÖÃ£¬¶Á³ö´ËÊ±µç»úµÄÎ»ÖÃ£¬È»ºóÊäÈë²¢¼Ç×¡£¬Ó¦¸Ã¿ÉÒÔ¹Ì¶¨¸ÃÊıÖµ
-	class Prepare :public aris::core::CloneObject<Prepare, aris::plan::Plan>
-	{
-	public:
-		auto virtual prepareNrt()->void;
-		auto virtual executeRT()->int;
-		auto virtual collectNrt()->void;
 
-		virtual ~Prepare();
-		explicit Prepare(const std::string& name = "prepare");
-
-	};
-
-	//---------------------´ÓÈÎÒâÎ»ÖÃÒÆ¶¯µ½prepareÎ»ÖÃ----------------//
-	//¼«ÏŞÎ»ÖÃÉÏµç£¬ÀíÂÛÉÏÕâ¸öÒ²¿ÉÒÔ»Øµ½prepareÎ»ÖÃ
+    //---------------------ä»ä»»æ„ä½ç½®ç§»åŠ¨åˆ°prepareä½ç½®,åœ¨æé™ä½ç½®ä¸Šç”µ----------------//
+    //æé™ä½ç½®ä¸Šç”µï¼Œ
 	class Home :public aris::core::CloneObject<Home, aris::plan::Plan>
 	{
 	public:
@@ -56,7 +43,21 @@ namespace robot
 
 	};
 
-	//-------------------Ã¿¸öµç»ú¼òµ¥ĞÔÄÜ²âÊÔ£¨ÌİĞÎÇúÏßÒÆ¶¯£©-------------------//
+    //---------------------ä»ä»»æ„ä½ç½®ç§»åŠ¨åˆ°prepareä½ç½®----------------//
+    //åœ¨é›¶ä½ä¸Šç”µ
+    class Home2 :public aris::core::CloneObject<Home2, aris::plan::Plan>
+    {
+    public:
+        auto virtual prepareNrt()->void;
+        auto virtual executeRT()->int;
+        auto virtual collectNrt()->void;
+
+        virtual ~Home2();
+        explicit Home2(const std::string& name = "home2");
+
+    };
+
+	//-------------------æ¯ä¸ªç”µæœºç®€å•æ€§èƒ½æµ‹è¯•ï¼ˆæ¢¯å½¢æ›²çº¿ç§»åŠ¨ï¼‰-------------------//
 		class MoveJointAll :public aris::core::CloneObject<MoveJointAll, aris::plan::Plan>
 	{
 	public:
@@ -71,7 +72,7 @@ namespace robot
 		
 	};
 
-	//-------------------Ã¿¸öµç»ú¼òµ¥ĞÔÄÜ²âÊÔ£¨ÌİĞÎÇúÏßÒÆ¶¯£©-------------------//
+	//-------------------æ¯ä¸ªç”µæœºç®€å•æ€§èƒ½æµ‹è¯•ï¼ˆæ¢¯å½¢æ›²çº¿ç§»åŠ¨ï¼‰-------------------//
 	class MoveJointAllCos :public aris::core::CloneObject<MoveJointAllCos, aris::plan::Plan>
 	{
 	public:
@@ -87,21 +88,8 @@ namespace robot
 	};
 
 
-	//-------------------µ¥µç»ú¼òµ¥ĞÔÄÜ²âÊÔ£¨ÌİĞÎÇúÏßÒÆ¶¯£©-------------------//
-	class MoveJointSingle :public aris::core::CloneObject<MoveJointSingle, aris::plan::Plan>
-	{
-	public:
-		auto virtual prepareNrt()->void;
-		auto virtual executeRT()->int;
-		auto virtual collectNrt()->void;
 
-		virtual ~MoveJointSingle();
-		explicit MoveJointSingle(const std::string& name = "moveJS");
-	private:
-		double cef_[18];
-	};
-
-	//-------------------Çı¶¯   Ç°½øºóÍË-------------------//
+	//-------------------é©±åŠ¨   å‰è¿›åé€€-------------------//
 	class HexForward :public aris::core::CloneObject<HexForward, aris::plan::Plan>
 	{
 	public:
@@ -116,7 +104,7 @@ namespace robot
 		int n_;
 	};
 
-	//-------------------Çı¶¯   ×óÓÒÒÆ¶¯-------------------//
+	//-------------------é©±åŠ¨   å·¦å³ç§»åŠ¨-------------------//
 	class HexLateral :public aris::core::CloneObject<HexLateral, aris::plan::Plan>
 	{
 	public:
@@ -131,7 +119,7 @@ namespace robot
 		int n_;
 	};
 
-	//-------------------Çı¶¯   ×óÓÒ×ª¶¯-------------------//
+	//-------------------é©±åŠ¨   å·¦å³è½¬åŠ¨-------------------//
 	class HexTurn :public aris::core::CloneObject<HexTurn, aris::plan::Plan>
 	{
 	public:
@@ -146,7 +134,7 @@ namespace robot
 		int n_;
 	};
 
-	//-------------------Çı¶¯   ËÄ×ã²½Ì¬-------------------//
+	//-------------------é©±åŠ¨   å››è¶³æ­¥æ€-------------------//
 	class HexTetrapod :public aris::core::CloneObject<HexTetrapod, aris::plan::Plan>
 	{
 	public:
@@ -161,7 +149,7 @@ namespace robot
 		int n_;
 	};
 
-	//--------------------²âÊÔTCurve2-----------------------//
+	//--------------------æµ‹è¯•TCurve2-----------------------//
 	class TCurve2Test :public aris::core::CloneObject<TCurve2Test, aris::plan::Plan>
 	{
 	public:
@@ -189,7 +177,7 @@ namespace robot
 	private:
 		double turn_angle_;
 	};
-	//Ç°½ø
+	//å‰è¿›
 	class HexDynamicForwardTest :public aris::core::CloneObject<HexDynamicForwardTest, aris::plan::Plan> {
 	public:
 		auto virtual prepareNrt()->void;
@@ -198,7 +186,7 @@ namespace robot
 		virtual ~HexDynamicForwardTest();
 		explicit HexDynamicForwardTest(const std::string& name = "hex_forward");
 	};
-	//ºóÍË
+	//åé€€
 	class HexDynamicBackTest :public aris::core::CloneObject<HexDynamicBackTest, aris::plan::Plan> {
 	public:
 		auto virtual prepareNrt()->void;
@@ -207,7 +195,7 @@ namespace robot
 		virtual ~HexDynamicBackTest();
 		explicit HexDynamicBackTest(const std::string& name = "hex_back");
 	};
-	//ÓÒÒÆ
+	//å³ç§»
 	class HexDynamicRightTest :public aris::core::CloneObject<HexDynamicRightTest, aris::plan::Plan> {
 	public:
 		auto virtual prepareNrt()->void;
@@ -216,7 +204,7 @@ namespace robot
 		virtual ~HexDynamicRightTest();
 		explicit HexDynamicRightTest(const std::string& name = "hex_right");
 	};
-	//×óÒÆ
+	//å·¦ç§»
 	class HexDynamicLeftTest :public aris::core::CloneObject<HexDynamicLeftTest, aris::plan::Plan> {
 	public:
 		auto virtual prepareNrt()->void;
@@ -225,7 +213,7 @@ namespace robot
 		virtual ~HexDynamicLeftTest();
 		explicit HexDynamicLeftTest(const std::string& name = "hex_left");
 	};
-	//ÓÒ×ª
+	//å³è½¬
 	class HexDynamicTurnRightTest :public aris::core::CloneObject<HexDynamicTurnRightTest, aris::plan::Plan> {
 	public:
 		auto virtual prepareNrt()->void;
@@ -235,7 +223,7 @@ namespace robot
 		explicit HexDynamicTurnRightTest(const std::string& name = "hex_turn_right");
 	};
 
-	//×ó×ª
+	//å·¦è½¬
 	class HexDynamicTurnLeftTest :public aris::core::CloneObject<HexDynamicTurnLeftTest, aris::plan::Plan> {
 	public:
 		auto virtual prepareNrt()->void;
@@ -245,7 +233,7 @@ namespace robot
 		explicit HexDynamicTurnLeftTest(const std::string& name = "hex_turn_left");
 	};
 
-	//ËÄ×ã²½Ì¬
+	//å››è¶³æ­¥æ€
 	class HexDynamicTetrapodTest :public aris::core::CloneObject<HexDynamicTetrapodTest, aris::plan::Plan> {
 	public:
 		auto virtual prepareNrt()->void;
@@ -259,6 +247,6 @@ namespace robot
 	auto createModelHexapod()->std::unique_ptr<aris::dynamic::Model>;
 	auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>;
 	auto createPlanHexapod()->std::unique_ptr<aris::plan::PlanRoot>;
-	auto setStandTopologyIK(aris::server::ControlServer& cs)->void;
+
 }
 #endif

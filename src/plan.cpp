@@ -9,11 +9,11 @@ using namespace std;
 extern double file_current_leg[18];
 extern double file_current_body[16];
 extern double PI;
-//-------------------------------------------------------ÌİĞÎÇúÏß----------------------------------------------------//
+//-------------------------------------------------------æ¢¯å½¢æ›²çº¿----------------------------------------------------//
 
-//Éú³ÉÌİĞÎÇúÏß0->1
-//ÊäÈë£ºÊ±¼ä£¬Ã¿ºÁÃë¼ÆÊıÒ»´Î
-//Êä³ö£ºµ±Ç°Ê±¿ÌsµÄÖµ
+//ç”Ÿæˆæ¢¯å½¢æ›²çº¿0->1
+//è¾“å…¥ï¼šæ—¶é—´ï¼Œæ¯æ¯«ç§’è®¡æ•°ä¸€æ¬¡
+//è¾“å‡ºï¼šå½“å‰æ—¶åˆ»sçš„å€¼
 auto TCurve::getTCurve(int count)->double
 {
 	//double ta = p.ta_;
@@ -23,7 +23,7 @@ auto TCurve::getTCurve(int count)->double
 	int t = count + 1;
 	double s = 0;
 
-	if (2 * ta_ == Tc_)   //Èı½ÇĞÎÇúÏß
+	if (2 * ta_ == Tc_)   //ä¸‰è§’å½¢æ›²çº¿
 	{
 		if (t < ta_ * 1000)
 		{
@@ -34,7 +34,7 @@ auto TCurve::getTCurve(int count)->double
 			s = 0.5 * a_ * ta_ * ta_ + 0.5 * (t / 1000.0 - ta_) * (2 * v_ - a_ * (t / 1000.0 - ta_));
 		}
 	}
-	else    //ÌİĞÎÇúÏß
+	else    //æ¢¯å½¢æ›²çº¿
 	{
 		if (t < ta_ * 1000)
 		{
@@ -53,10 +53,10 @@ auto TCurve::getTCurve(int count)->double
 	return s;
 }
 
-//¼ÆËãÌİĞÎÇúÏßµÄ²ÎÊı£¬ÓÉ³ÉÔ±º¯Êı³õÊ¼»¯£¬¶ÔÓ¦ÊäÈë²ÎÊıÓÉ¹¹Ôìº¯Êı³õÊ¼»¯
+//è®¡ç®—æ¢¯å½¢æ›²çº¿çš„å‚æ•°ï¼Œç”±æˆå‘˜å‡½æ•°åˆå§‹åŒ–ï¼Œå¯¹åº”è¾“å…¥å‚æ•°ç”±æ„é€ å‡½æ•°åˆå§‹åŒ–
 auto TCurve::getCurveParam()->void
 {
-	if (v_ * v_ / a_ <= 1) //ÌİĞÎÇúÏß
+	if (v_ * v_ / a_ <= 1) //æ¢¯å½¢æ›²çº¿
 	{
 		this->Tc_ = (a_ + v_ * v_) / v_ / a_;
 		this->a_ = a_;
@@ -64,8 +64,8 @@ auto TCurve::getCurveParam()->void
 	}
 	else
 	{
-		//°´ËÙ¶È¼ÆËã£¬´ËÊ±¸ø¶¨µÄ¼ÓËÙ¶È²»Æğ×÷ÓÃ
-		this->Tc_ = 2.0 / v_;  //Èı½ÇĞÎÇúÏß
+		//æŒ‰é€Ÿåº¦è®¡ç®—ï¼Œæ­¤æ—¶ç»™å®šçš„åŠ é€Ÿåº¦ä¸èµ·ä½œç”¨
+		this->Tc_ = 2.0 / v_;  //ä¸‰è§’å½¢æ›²çº¿
 		this->a_ = v_ * v_;
 		this->v_ = v_;
 	}
@@ -73,13 +73,14 @@ auto TCurve::getCurveParam()->void
 }
 
 
-//-----------------------------ÌİĞÎÇúÏß2£¬´«Èëa,v,s-------------------------------------------//
+//-----------------------------æ¢¯å½¢æ›²çº¿2ï¼Œä¼ å…¥a,v,s-------------------------------------------//
+//è¿™ä¸ªæœ‰ä¸ªé—®é¢˜éœ€è¦æ³¨æ„ï¼Œå°±æ˜¯åŒæ ·çš„aï¼Œvä½†è¾“å…¥çš„è·ç¦»ä¸åŒï¼Œæ—¶é—´å‘¨æœŸä¼šä¸ä¸€æ ·ï¼Œä½¿ç”¨çš„æ—¶å€™æ³¨æ„ä¸€ä¸‹ï¼Œé€‰æ‹©é€‚å½“çš„æ¢¯å½¢æ›²çº¿
 auto TCurve2::getTCurve(int count)->double
 {
-	int t = count ; //µ¥Î»ÎªÃë
+	int t = count ; //å•ä½ä¸ºç§’
 	double s = 0;
 
-	if (2 * ta_ == Tc_)   //Èı½ÇĞÎÇúÏß
+	if (2 * ta_ == Tc_)   //ä¸‰è§’å½¢æ›²çº¿
 	{
 		if (t < ta_*1000)
 		{
@@ -90,7 +91,7 @@ auto TCurve2::getTCurve(int count)->double
 			s = 0.5 * a_ * ta_ * ta_ + 0.5 * (t / 1000.0 - ta_) * (2 * v_ - a_ * (t / 1000.0 - ta_));
 		}
 	}
-	else    //ÌİĞÎÇúÏß
+	else    //æ¢¯å½¢æ›²çº¿
 	{
 		if (t < ta_ * 1000)
 		{
@@ -110,7 +111,7 @@ auto TCurve2::getTCurve(int count)->double
 
 auto TCurve2::getCurveParam()->void
 {
-	if (v_ * v_ / a_ <= d_) //ÌİĞÎÇúÏß
+	if (v_ * v_ / a_ <= d_) //æ¢¯å½¢æ›²çº¿
 	{
 		this->Tc_ = (d_ * a_ + v_ * v_) / v_ / a_;
 		this->a_ = a_;
@@ -118,8 +119,8 @@ auto TCurve2::getCurveParam()->void
 	}
 	else
 	{
-		//°´ËÙ¶È¼ÆËã£¬´ËÊ±¸ø¶¨µÄ¼ÓËÙ¶È²»Æğ×÷ÓÃ
-		this->Tc_ = 2.0 * d_ / v_;  //Èı½ÇĞÎÇúÏß
+		//æŒ‰é€Ÿåº¦è®¡ç®—ï¼Œæ­¤æ—¶ç»™å®šçš„åŠ é€Ÿåº¦ä¸èµ·ä½œç”¨
+		this->Tc_ = 2.0 * d_ / v_;  //ä¸‰è§’å½¢æ›²çº¿
 		this->a_ = v_ * v_ / d_;
 		this->v_ = v_;
 	}
@@ -127,10 +128,10 @@ auto TCurve2::getCurveParam()->void
 }
 
 
-//---------------------------------------------------------ÍÖÔ²¹ì¼£---------------------------------------------------//
+//---------------------------------------------------------æ¤­åœ†è½¨è¿¹---------------------------------------------------//
 
-//Éú³ÉÍÖÔ²¹ì¼££¬ÔÚTcÊ±¼äÄÚ  x·½Ïò0->a/2;y·½Ïò0->b->0;z·½Ïò0->c/2¡£¶ÔÓ¦ÊäÈë²ÎÊıÓÉ¹¹Ôìº¯Êı³õÊ¼»¯¡£
-//²ÎÊı¹¹ÔìÎªÍÖÔ²µÄ³¤ÖáºÍ¶ÌÖá£¬ËùÒÔÕâ¸öµØ·½xz»á³ı2
+//ç”Ÿæˆæ¤­åœ†è½¨è¿¹ï¼Œåœ¨Tcæ—¶é—´å†…  xæ–¹å‘0->a/2;yæ–¹å‘0->b->0;zæ–¹å‘0->c/2ã€‚å¯¹åº”è¾“å…¥å‚æ•°ç”±æ„é€ å‡½æ•°åˆå§‹åŒ–ã€‚
+//å‚æ•°æ„é€ ä¸ºæ¤­åœ†çš„é•¿è½´å’ŒçŸ­è½´ï¼Œæ‰€ä»¥è¿™ä¸ªåœ°æ–¹xzä¼šé™¤2
 auto EllipseTrajectory::getEllipseTrajectory(int count)->void
 {
 	x_ = a_ * (1 + cos(PI - PI * s_.getTCurve(count))) / 2.0;
@@ -141,12 +142,12 @@ auto EllipseTrajectory::getEllipseTrajectory(int count)->void
 
 
 
-//-----------------------------------------------------ÉíÌåĞı×ª½Ç¶È¹ì¼£----------------------------------------------//
+//-----------------------------------------------------èº«ä½“æ—‹è½¬è§’åº¦è½¨è¿¹----------------------------------------------//
 
-//Éú³ÉÉíÌåÈÆxyzÈıÖáĞı×ªµÄ½Ç¶È¹ì¼£0->theta  ½Ç¶ÈÎª»¡¶È
+//ç”Ÿæˆèº«ä½“ç»•xyzä¸‰è½´æ—‹è½¬çš„è§’åº¦è½¨è¿¹0->theta  è§’åº¦ä¸ºå¼§åº¦
 auto BodyPose::getBodyRotationTrajectory(int count)->void
 {
-	pitch_ = pitch_angle_z_ * PI * b_r_s_.getTCurve(count) / 180.0;  //pitch  ×ª»¯Îª»¡¶È ²¢°´ÕÕÌİĞÎÇúÏßÉú³É
+	pitch_ = pitch_angle_z_ * PI * b_r_s_.getTCurve(count) / 180.0;  //pitch  è½¬åŒ–ä¸ºå¼§åº¦ å¹¶æŒ‰ç…§æ¢¯å½¢æ›²çº¿ç”Ÿæˆ
 	roll_ = roll_angle_x_ * PI * b_r_s_.getTCurve(count) / 180.0;
 	yaw_ = yaw_angle_y_ * PI * b_r_s_.getTCurve(count) / 180.0;
 
@@ -156,19 +157,19 @@ auto BodyPose::getBodyRotationTrajectory(int count)->void
 
 
 
-//---------------------------------------------------¹æ»®½Å---------------------------------------------//
+//---------------------------------------------------è§„åˆ’è„š---------------------------------------------//
 
-///×ã¼âÔÚµÑ¿¨¶û×ø±êÏµÏÂµÄ¹æ»®¡£Ã¿Ö´ĞĞÍêÒ»´ÎÌİĞÎÇúÏß¼ÇÂ¼Ò»´ÎÊı¾İ
-///count=e_2 ÊÇ0 µ½ Tc Ñ­»·  
-///ÅĞ¶Ïµ±Ç°ÔÚ×ßÄÄÒ»²½,ÍÈ×ßÒ»²½e1¼Ó1
+///è¶³å°–åœ¨ç¬›å¡å°”åæ ‡ç³»ä¸‹çš„è§„åˆ’ã€‚æ¯æ‰§è¡Œå®Œä¸€æ¬¡æ¢¯å½¢æ›²çº¿è®°å½•ä¸€æ¬¡æ•°æ®
+///count=e_2 æ˜¯0 åˆ° Tc å¾ªç¯  
+///åˆ¤æ–­å½“å‰åœ¨èµ°å“ªä¸€æ­¥,è…¿èµ°ä¸€æ­¥e1åŠ 1
 
-//Èı½Ç²½Ì¬
-//µ±Ç°½ÅµÄÎ»ÖÃ = ÉÏÒ»²½½ÅµÄÎ»ÖÃ + ½ÅÎ»ÖÃÔöÁ¿
-//#×¢Òâ£ºÄ¿Ç°Ö»ÊÊÓÃÓÚÆ½µØĞĞ×ß
-//e_1ÓÃÀ´¼ÇÂ¼µ±Ç°×ßµ½µÚ¼¸²½£¬¹²ĞèÒª×ßn²½£¬countÊÇÒ»´ÎÂõÍÈµÄ¼ÆÊ±£¬¹Ê²»ÄÜ°Ñ×ÜµÄÊ±ÖÓ´«Èë£¬Òª´¦Àí
+//ä¸‰è§’æ­¥æ€
+//å½“å‰è„šçš„ä½ç½® = ä¸Šä¸€æ­¥è„šçš„ä½ç½® + è„šä½ç½®å¢é‡
+//#æ³¨æ„ï¼šç›®å‰åªé€‚ç”¨äºå¹³åœ°è¡Œèµ°
+//e_1ç”¨æ¥è®°å½•å½“å‰èµ°åˆ°ç¬¬å‡ æ­¥ï¼Œå…±éœ€è¦èµ°næ­¥ï¼Œcountæ˜¯ä¸€æ¬¡è¿ˆè…¿çš„è®¡æ—¶ï¼Œæ•…ä¸èƒ½æŠŠæ€»çš„æ—¶é’Ÿä¼ å…¥ï¼Œè¦å¤„ç†
 auto planLegTripod(int e_1, int n, double* current_leg, int count, EllipseTrajectory* Ellipse)->void
 {
-	if (count == 0)//³õÊ¼»¯½ÅµÄÎ»ÖÃ
+	if (count == 0)//åˆå§‹åŒ–è„šçš„ä½ç½®
 	{
 		for (int i = 0; i < 18; ++i)
 		{
@@ -178,15 +179,15 @@ auto planLegTripod(int e_1, int n, double* current_leg, int count, EllipseTrajec
 
 	Ellipse->getEllipseTrajectory(count);
 
-	if (e_1 % 2 == 0)  //Å¼Êı135ÂõÍÈ£¬246Í£
+	if (e_1 % 2 == 0)  //å¶æ•°135è¿ˆè…¿ï¼Œ246åœ
 	{
-		if (e_1 == 0)   //¼ÓËÙ¶Î
+		if (e_1 == 0)   //åŠ é€Ÿæ®µ
 		{
-			//¹æ»®leg1
+			//è§„åˆ’leg1
 			current_leg[0] = foot_position_start_point[0] + Ellipse->get_x() / 2;
 			current_leg[1] = foot_position_start_point[1] + Ellipse->get_y();
 			current_leg[2] = foot_position_start_point[2] + Ellipse->get_z() / 2;
-			//¹æ»®leg3
+			//è§„åˆ’leg3
 			current_leg[6] = foot_position_start_point[6] + Ellipse->get_x() / 2;
 			current_leg[7] = foot_position_start_point[7] + Ellipse->get_y();
 			current_leg[8] = foot_position_start_point[8] + Ellipse->get_z() / 2;
@@ -197,13 +198,13 @@ auto planLegTripod(int e_1, int n, double* current_leg, int count, EllipseTrajec
 		}
 		else
 		{
-			//¹æ»®leg1
+			//è§„åˆ’leg1
 			current_leg[0] = foot_position_start_point[0] + Ellipse->get_x();
 			current_leg[1] = foot_position_start_point[1] + Ellipse->get_y();
 			current_leg[2] = foot_position_start_point[2] + Ellipse->get_z();
 
 
-			//¹æ»®leg3
+			//è§„åˆ’leg3
 			current_leg[6] = foot_position_start_point[6] + Ellipse->get_x();
 			current_leg[7] = foot_position_start_point[7] + Ellipse->get_y();
 			current_leg[8] = foot_position_start_point[8] + Ellipse->get_z();
@@ -213,15 +214,15 @@ auto planLegTripod(int e_1, int n, double* current_leg, int count, EllipseTrajec
 			current_leg[14] = foot_position_start_point[14] + Ellipse->get_z();
 		}
 	}
-	else if (e_1 % 2 == 1)  //ÆæÊı24ÂõÍÈ13Í£
+	else if (e_1 % 2 == 1)  //å¥‡æ•°24è¿ˆè…¿13åœ
 	{
-		if (e_1 == (2 * n - 1))//¼õËÙ¶Î
+		if (e_1 == (2 * n - 1))//å‡é€Ÿæ®µ
 		{
-			//¹æ»®leg2
+			//è§„åˆ’leg2
 			current_leg[3] = foot_position_start_point[3] + Ellipse->get_x() / 2;
 			current_leg[4] = foot_position_start_point[4] + Ellipse->get_y();
 			current_leg[5] = foot_position_start_point[5] + Ellipse->get_z() / 2;
-			//¹æ»®leg4
+			//è§„åˆ’leg4
 			current_leg[9] = foot_position_start_point[9] + Ellipse->get_x() / 2;
 			current_leg[10] = foot_position_start_point[10] + Ellipse->get_y();
 			current_leg[11] = foot_position_start_point[11] + Ellipse->get_z() / 2;
@@ -232,11 +233,11 @@ auto planLegTripod(int e_1, int n, double* current_leg, int count, EllipseTrajec
 		}
 		else
 		{
-			//¹æ»®leg2
+			//è§„åˆ’leg2
 			current_leg[3] = foot_position_start_point[3] + Ellipse->get_x();
 			current_leg[4] = foot_position_start_point[4] + Ellipse->get_y();
 			current_leg[5] = foot_position_start_point[5] + Ellipse->get_z();
-			//¹æ»®leg4
+			//è§„åˆ’leg4
 			current_leg[9] = foot_position_start_point[9] + Ellipse->get_x();
 			current_leg[10] = foot_position_start_point[10] + Ellipse->get_y();
 			current_leg[11] = foot_position_start_point[11] + Ellipse->get_z();
@@ -247,7 +248,7 @@ auto planLegTripod(int e_1, int n, double* current_leg, int count, EllipseTrajec
 		}
 	}
 
-	if (count + 1 == std::floor(Ellipse->get_s().getTc() * 1000)) //floor º¯Êı ÏòÏÂÈ¡Õû
+	if (count + 1 == std::floor(Ellipse->get_s().getTc() * 1000)) //floor å‡½æ•° å‘ä¸‹å–æ•´
 	{
 		for (int i = 0; i < 18; ++i)
 		{
@@ -256,15 +257,15 @@ auto planLegTripod(int e_1, int n, double* current_leg, int count, EllipseTrajec
 	}
 }
 
-//Èı½Ç²½Ì¬ÏÂÔ­µØĞı×ª
-//¹æ»®½ÅÊúÖ±ÉÏÏÂÌ§Æğ¡£È»ºó³ËĞı×ª¾ØÕó£¿£¿
-//#×¢Òâ£ºÄ¿Ç°Ö»ÊÊÓÃÓÚÆ½µØ
+//ä¸‰è§’æ­¥æ€ä¸‹åŸåœ°æ—‹è½¬
+//è§„åˆ’è„šç«–ç›´ä¸Šä¸‹æŠ¬èµ·ã€‚ç„¶åä¹˜æ—‹è½¬çŸ©é˜µï¼Ÿï¼Ÿ
+//#æ³¨æ„ï¼šç›®å‰åªé€‚ç”¨äºå¹³åœ°
 auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajectory* Ellipse, BodyPose* body_pose_param)->void
 {
 
-	//count ÊÇ0 µ½ Tc Ñ­»·  //ÅĞ¶Ïµ±Ç°ÔÚ×ßÄÄÒ»²½,ÍÈ×ßÒ»²½e1¼Ó1
+	//count æ˜¯0 åˆ° Tc å¾ªç¯  //åˆ¤æ–­å½“å‰åœ¨èµ°å“ªä¸€æ­¥,è…¿èµ°ä¸€æ­¥e1åŠ 1
 	
-	if (count == 0)//³õÊ¼»¯½ÅµÄÎ»ÖÃ
+	if (count == 0)//åˆå§‹åŒ–è„šçš„ä½ç½®
 	{
 		for (int i = 0; i < 18; ++i)
 		{
@@ -275,14 +276,14 @@ auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajector
 
 	double temp_xyz_in_ground[18] = { 0 };
 	static double yaw = 0;
-	//Ã¿¸öÌİĞÎÇúÏß¿ªÊ¼Ê±¶ÁÈ¡Ö®Ç°µÄÖµ
+	//æ¯ä¸ªæ¢¯å½¢æ›²çº¿å¼€å§‹æ—¶è¯»å–ä¹‹å‰çš„å€¼
 	if (count == 0)
 	{
 		yaw = 0;
 	}
 
-	body_pose_param->getBodyRotationTrajectory(count); //µÃµ½Ëæcount±ä»¯µÄrpy
-	yaw = body_pose_param->getCurrentYaw(); //µÃµ½µ±Ç°Ê±¿ÌµÄyaw
+	body_pose_param->getBodyRotationTrajectory(count); //å¾—åˆ°éšcountå˜åŒ–çš„rpy
+	yaw = body_pose_param->getCurrentYaw(); //å¾—åˆ°å½“å‰æ—¶åˆ»çš„yaw
 
 	double R_y[16] = {
 						 std::cos(yaw), 0, std::sin(yaw), 0,
@@ -291,21 +292,21 @@ auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajector
 								0, 0,        0, 1
 	};
 
-	//°´Õı³£¹æ»®£¬½ÅÉÏÏÂÌ§Æğ
-	if (e_1 % 2 == 0)  //Å¼Êı135ÂõÍÈ£¬246Í£
+	//æŒ‰æ­£å¸¸è§„åˆ’ï¼Œè„šä¸Šä¸‹æŠ¬èµ·
+	if (e_1 % 2 == 0)  //å¶æ•°135è¿ˆè…¿ï¼Œ246åœ
 	{
-		//¹æ»®leg1
+		//è§„åˆ’leg1
 		temp_xyz_in_ground[0] = foot_position_start_point[0] + Ellipse->get_x();
 		temp_xyz_in_ground[1] = foot_position_start_point[1] + Ellipse->get_y();
 		temp_xyz_in_ground[2] = foot_position_start_point[2] + Ellipse->get_z();
 
 
-		//¹æ»®leg3
+		//è§„åˆ’leg3
 		temp_xyz_in_ground[6] = foot_position_start_point[6] + Ellipse->get_x();
 		temp_xyz_in_ground[7] = foot_position_start_point[7] + Ellipse->get_y();
 		temp_xyz_in_ground[8] = foot_position_start_point[8] + Ellipse->get_z();
 
-		//¹æ»®leg5
+		//è§„åˆ’leg5
 		temp_xyz_in_ground[12] = foot_position_start_point[12] + Ellipse->get_x();
 		temp_xyz_in_ground[13] = foot_position_start_point[13] + Ellipse->get_y();
 		temp_xyz_in_ground[14] = foot_position_start_point[14] + Ellipse->get_z();
@@ -314,17 +315,17 @@ auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajector
 		aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 4 * 3, current_leg + 4 * 3);
 
 	}
-	else if (e_1 % 2 == 1)  //ÆæÊı246ÂõÍÈ135Í£
+	else if (e_1 % 2 == 1)  //å¥‡æ•°246è¿ˆè…¿135åœ
 	{
-		//¹æ»®leg2
+		//è§„åˆ’leg2
 		temp_xyz_in_ground[3] = foot_position_start_point[3] + Ellipse->get_x();
 		temp_xyz_in_ground[4] = foot_position_start_point[4] + Ellipse->get_y();
 		temp_xyz_in_ground[5] = foot_position_start_point[5] + Ellipse->get_z();
-		//¹æ»®leg4
+		//è§„åˆ’leg4
 		temp_xyz_in_ground[9] = foot_position_start_point[9] + Ellipse->get_x();
 		temp_xyz_in_ground[10] = foot_position_start_point[10] + Ellipse->get_y();
 		temp_xyz_in_ground[11] = foot_position_start_point[11] + Ellipse->get_z();
-		//¹æ»®leg6
+		//è§„åˆ’leg6
 		temp_xyz_in_ground[15] = foot_position_start_point[15] + Ellipse->get_x();
 		temp_xyz_in_ground[16] = foot_position_start_point[16] + Ellipse->get_y();
 		temp_xyz_in_ground[17] = foot_position_start_point[17] + Ellipse->get_z();
@@ -335,7 +336,7 @@ auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajector
 	}
 
 
-	//Ã¿Íê³ÉÒ»¸öÌİĞÎÇúÏßºó¼ÇÂ¼Ò»´Î½ÅµÄÎ»ÖÃ
+	//æ¯å®Œæˆä¸€ä¸ªæ¢¯å½¢æ›²çº¿åè®°å½•ä¸€æ¬¡è„šçš„ä½ç½®
 	if (count + 1 == floor(Ellipse->get_s().getTc() * 1000))
 	{
 		for (int i = 0; i < 18; ++i)
@@ -345,12 +346,12 @@ auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajector
 	}
 }
 
-//ËÄ×ã²½Ì¬
-//µ±Ç°½ÅµÄÎ»ÖÃ = ÉÏÒ»²½½ÅµÄÎ»ÖÃ + ½ÅÎ»ÖÃÔöÁ¿
-//#×¢Òâ£ºÄ¿Ç°Ö»ÊÊÓÃÓÚÆ½µØĞĞ×ß
+//å››è¶³æ­¥æ€
+//å½“å‰è„šçš„ä½ç½® = ä¸Šä¸€æ­¥è„šçš„ä½ç½® + è„šä½ç½®å¢é‡
+//#æ³¨æ„ï¼šç›®å‰åªé€‚ç”¨äºå¹³åœ°è¡Œèµ°
 auto planLegTetrapod(int e_1, int n, double* current_leg, int count, EllipseTrajectory* Ellipse)->void
 {
-	if (count == 0)//³õÊ¼»¯½ÅµÄÎ»ÖÃ
+	if (count == 0)//åˆå§‹åŒ–è„šçš„ä½ç½®
 	{
 		for (int i = 0; i < 18; ++i)
 		{
@@ -361,115 +362,115 @@ auto planLegTetrapod(int e_1, int n, double* current_leg, int count, EllipseTraj
 
 
 	//14  25  36  
-	if (e_1  % 3 == 0)  //Âõ14ÍÈ
+	if (e_1  % 3 == 0)  //è¿ˆ14è…¿
 	{
-		if (e_1 == 0)   //¼ÓËÙ¶Î
+		if (e_1 == 0)   //åŠ é€Ÿæ®µ
 		{
-			//¹æ»®leg1
+			//è§„åˆ’leg1
 			current_leg[0] = foot_position_start_point[0] + Ellipse->get_x() / 2;
 			current_leg[1] = foot_position_start_point[1] + Ellipse->get_y();
 			current_leg[2] = foot_position_start_point[2] + Ellipse->get_z() / 2;
 
-			//¹æ»®leg4
+			//è§„åˆ’leg4
 			current_leg[9] = foot_position_start_point[9] + Ellipse->get_x() / 2;
 			current_leg[10] = foot_position_start_point[10] + Ellipse->get_y();
 			current_leg[11] = foot_position_start_point[11] + Ellipse->get_z() / 2;
 		}
-		else if (e_1 == 3 * n - 3) //¼õËÙ¶Î
+		else if (e_1 == 3 * n - 3) //å‡é€Ÿæ®µ
 		{
-			//¹æ»®leg1  
+			//è§„åˆ’leg1  
 			current_leg[0] = foot_position_start_point[0] + Ellipse->get_x() / 2;
 			current_leg[1] = foot_position_start_point[1] + Ellipse->get_y();
 			current_leg[2] = foot_position_start_point[2] + Ellipse->get_z() / 2;
 
-			//¹æ»®leg4
+			//è§„åˆ’leg4
 			current_leg[9] = foot_position_start_point[9] + Ellipse->get_x() / 2;
 			current_leg[10] = foot_position_start_point[10] + Ellipse->get_y();
 			current_leg[11] = foot_position_start_point[11] + Ellipse->get_z() / 2;
 		}
-		else  //ÔÈËÙ¶Î
+		else  //åŒ€é€Ÿæ®µ
 		{
-			//¹æ»®leg1 
+			//è§„åˆ’leg1 
 			current_leg[0] = foot_position_start_point[0] + Ellipse->get_x();
 			current_leg[1] = foot_position_start_point[1] + Ellipse->get_y();
 			current_leg[2] = foot_position_start_point[2] + Ellipse->get_z();
 
-			//¹æ»®leg4 
+			//è§„åˆ’leg4 
 			current_leg[9] = foot_position_start_point[9] + Ellipse->get_x();
 			current_leg[10] = foot_position_start_point[10] + Ellipse->get_y();
 			current_leg[11] = foot_position_start_point[11] + Ellipse->get_z();
 		}
 	}
-	else if (e_1  % 3 == 1)  //Âõ25ÍÈ
+	else if (e_1  % 3 == 1)  //è¿ˆ25è…¿
 	{
-		if (e_1 == 1)//¼ÓËÙ¶Î
+		if (e_1 == 1)//åŠ é€Ÿæ®µ
 		{
-			//¹æ»®leg2
+			//è§„åˆ’leg2
 			current_leg[3] = foot_position_start_point[3] + Ellipse->get_x() / 2;
 			current_leg[4] = foot_position_start_point[4] + Ellipse->get_y();
 			current_leg[5] = foot_position_start_point[5] + Ellipse->get_z() / 2;
-			//¹æ»®leg5
+			//è§„åˆ’leg5
 			current_leg[12] = foot_position_start_point[12] + Ellipse->get_x() / 2;
 			current_leg[13] = foot_position_start_point[13] + Ellipse->get_y();
 			current_leg[14] = foot_position_start_point[14] + Ellipse->get_z() / 2;
 		}
-		else if (e_1 == 3 * n - 2)  //¼õËÙ¶Î
+		else if (e_1 == 3 * n - 2)  //å‡é€Ÿæ®µ
 		{
-			//¹æ»®leg2
+			//è§„åˆ’leg2
 			current_leg[3] = foot_position_start_point[3] + Ellipse->get_x() / 2;
 			current_leg[4] = foot_position_start_point[4] + Ellipse->get_y();
 			current_leg[5] = foot_position_start_point[5] + Ellipse->get_z() / 2;
-			//¹æ»®leg5
+			//è§„åˆ’leg5
 			current_leg[12] = foot_position_start_point[12] + Ellipse->get_x() / 2;
 			current_leg[13] = foot_position_start_point[13] + Ellipse->get_y();
 			current_leg[14] = foot_position_start_point[14] + Ellipse->get_z() / 2;
 		}
 		else
 		{
-			//¹æ»®leg2
+			//è§„åˆ’leg2
 			current_leg[3] = foot_position_start_point[3] + Ellipse->get_x();
 			current_leg[4] = foot_position_start_point[4] + Ellipse->get_y();
 			current_leg[5] = foot_position_start_point[5] + Ellipse->get_z();
-			//¹æ»®leg5
+			//è§„åˆ’leg5
 			current_leg[12] = foot_position_start_point[12] + Ellipse->get_x();
 			current_leg[13] = foot_position_start_point[13] + Ellipse->get_y();
 			current_leg[14] = foot_position_start_point[14] + Ellipse->get_z();
 		}
 	}
-	else if (e_1  % 3 == 2)  //Âõ36ÍÈ
+	else if (e_1  % 3 == 2)  //è¿ˆ36è…¿
 	{
-		if (e_1 == 2)//¼ÓËÙ¶Î
+		if (e_1 == 2)//åŠ é€Ÿæ®µ
 		{
-			//¹æ»®leg3
+			//è§„åˆ’leg3
 			current_leg[6] = foot_position_start_point[6] + Ellipse->get_x() / 2;
 			current_leg[7] = foot_position_start_point[7] + Ellipse->get_y();
 			current_leg[8] = foot_position_start_point[8] + Ellipse->get_z() / 2;
 
-			//¹æ»®leg6
+			//è§„åˆ’leg6
 			current_leg[15] = foot_position_start_point[15] + Ellipse->get_x() / 2;
 			current_leg[16] = foot_position_start_point[16] + Ellipse->get_y();
 			current_leg[17] = foot_position_start_point[17] + Ellipse->get_z() / 2;
 		}
-		else if (e_1 == 3 * n - 1) //¼õËÙ¶Î
+		else if (e_1 == 3 * n - 1) //å‡é€Ÿæ®µ
 		{
-			//¹æ»®leg3
+			//è§„åˆ’leg3
 			current_leg[6] = foot_position_start_point[6] + Ellipse->get_x() / 2;
 			current_leg[7] = foot_position_start_point[7] + Ellipse->get_y();
 			current_leg[8] = foot_position_start_point[8] + Ellipse->get_z() / 2;
 
-			//¹æ»®leg6
+			//è§„åˆ’leg6
 			current_leg[15] = foot_position_start_point[15] + Ellipse->get_x() / 2;
 			current_leg[16] = foot_position_start_point[16] + Ellipse->get_y();
 			current_leg[17] = foot_position_start_point[17] + Ellipse->get_z() / 2;
 		}
-		else  //ÔÈËÙ¶Î
+		else  //åŒ€é€Ÿæ®µ
 		{
-			//¹æ»®leg3
+			//è§„åˆ’leg3
 			current_leg[6] = foot_position_start_point[6] + Ellipse->get_x();
 			current_leg[7] = foot_position_start_point[7] + Ellipse->get_y();
 			current_leg[8] = foot_position_start_point[8] + Ellipse->get_z();
 
-			//¹æ»®leg6
+			//è§„åˆ’leg6
 			current_leg[15] = foot_position_start_point[15] + Ellipse->get_x();
 			current_leg[16] = foot_position_start_point[16] + Ellipse->get_y();
 			current_leg[17] = foot_position_start_point[17] + Ellipse->get_z();
@@ -487,16 +488,16 @@ auto planLegTetrapod(int e_1, int n, double* current_leg, int count, EllipseTraj
 }
 
 
-//------------------------------------------------¹æ»®ÉíÌå----------------------------------------------//
+//------------------------------------------------è§„åˆ’èº«ä½“----------------------------------------------//
 
-//±¾º¯ÊıÓÃÓÚ¹æ»®Áù×ã»úÆ÷ÈËÔÚÈı½Ç²½Ì¬ÏÂÉíÌåµÄÎ»ÖÃ¹ì¼££¬²»¼ÓĞı×ª£¨×ËÌ¬±ä»»£©
-//µ±Ç°ÉíÌåµÄÎ»ÖÃ = ÉÏÒ»²½ÉíÌåµÄÎ»ÖÃ + ÉíÌåÎ»ÖÃÔöÁ¿
-//Ã¿µ±½áÊøÒ»´ÎÃüÁîÊÇ£¬ÉíÌåµÄÎ»ÖÃ¸üĞÂÒ»´Î
-//#×¢Òâ£ºÄ¿Ç°Ö»ÊÊÓÃÓÚÆ½µØĞĞ×ß
+//æœ¬å‡½æ•°ç”¨äºè§„åˆ’å…­è¶³æœºå™¨äººåœ¨ä¸‰è§’æ­¥æ€ä¸‹èº«ä½“çš„ä½ç½®è½¨è¿¹ï¼Œä¸åŠ æ—‹è½¬ï¼ˆå§¿æ€å˜æ¢ï¼‰
+//å½“å‰èº«ä½“çš„ä½ç½® = ä¸Šä¸€æ­¥èº«ä½“çš„ä½ç½® + èº«ä½“ä½ç½®å¢é‡
+//æ¯å½“ç»“æŸä¸€æ¬¡å‘½ä»¤æ˜¯ï¼Œèº«ä½“çš„ä½ç½®æ›´æ–°ä¸€æ¬¡
+//#æ³¨æ„ï¼šç›®å‰åªé€‚ç”¨äºå¹³åœ°è¡Œèµ°
 auto planBodyTransformTripod(int e_1, int n, double* current_body, int count, EllipseTrajectory* Ellipse)->void
 {
 	int per_step_count = Ellipse->get_s().getTc() * 1000;
-	if (count == 0) //³õÊ¼»¯ÉíÌåÎ»×Ë
+	if (count == 0) //åˆå§‹åŒ–èº«ä½“ä½å§¿
 	{
 		for (int i = 0; i < 16; ++i)
 		{
@@ -504,30 +505,30 @@ auto planBodyTransformTripod(int e_1, int n, double* current_body, int count, El
 		}
 	}
 
-	if (e_1 == 0)   //¼ÓËÙ¶Î
+	if (e_1 == 0)   //åŠ é€Ÿæ®µ
 	{
-		//¹æ»®ÉíÌå
+		//è§„åˆ’èº«ä½“
 		current_body[3] = body_position_start_point[3] + Ellipse->get_a() * count * count / (4.0 * per_step_count * per_step_count);
 		current_body[7] = body_position_start_point[7];
 		current_body[11] = body_position_start_point[11] + Ellipse->get_c() * count * count / (4.0 * per_step_count * per_step_count);
 	}
-	else if (e_1 == (2 * n - 1))//¼õËÙ¶Î
+	else if (e_1 == (2 * n - 1))//å‡é€Ÿæ®µ
 	{
 
-		//¹æ»®ÉíÌå
+		//è§„åˆ’èº«ä½“
 		int t = (2 * n - 1) * per_step_count + per_step_count;
 		current_body[3] = body_position_start_point[3] + +0 - Ellipse->get_a() * (count - t) * (count - t) / (4.0 * per_step_count * per_step_count) + Ellipse->get_a() * n - Ellipse->get_a() / 2.0;//n * a
 		current_body[7] = body_position_start_point[7];
 		current_body[11] = body_position_start_point[11] + 0 - Ellipse->get_c() * (count - t) * (count - t) / (4.0 * per_step_count * per_step_count) + Ellipse->get_c() * n - Ellipse->get_c() / 2.0;
 	}
-	else //ÔÈËÙ¶Î
+	else //åŒ€é€Ÿæ®µ
 	{
-		//¹æ»®ÉíÌå
-		current_body[3] = body_position_start_point[3] + Ellipse->get_a() / 4.0 + Ellipse->get_a() * (count - per_step_count) / per_step_count / 2;//ËÙ¶ÈÎª75mm/s  Ã¿Ãë¼ÆÊıper_step_count
+		//è§„åˆ’èº«ä½“
+		current_body[3] = body_position_start_point[3] + Ellipse->get_a() / 4.0 + Ellipse->get_a() * (count - per_step_count) / per_step_count / 2;//é€Ÿåº¦ä¸º75mm/s  æ¯ç§’è®¡æ•°per_step_count
 		current_body[7] = body_position_start_point[7];
 		current_body[11] = body_position_start_point[11] + Ellipse->get_c() / 4.0 + Ellipse->get_c() * (count - per_step_count) / per_step_count / 2;
 	}
-	//Õû¸öÉíÌåÔË¶¯ÎªÌİĞÎÇúÏß
+	//æ•´ä¸ªèº«ä½“è¿åŠ¨ä¸ºæ¢¯å½¢æ›²çº¿
 	if (count + 1 >= 2 * n * per_step_count)
 	{
 		for (int i = 0; i < 16; ++i)
@@ -537,26 +538,26 @@ auto planBodyTransformTripod(int e_1, int n, double* current_body, int count, El
 	}
 }
 
-//±¾º¯ÊıÓÃÓÚ¹æ»®Áù×ã»úÆ÷ÈËÔ­µØĞı×ª
-//Ã¿Ò»¸öÌİĞÎÇúÏß×ª¹ı¸ø¶¨½Ç¶ÈµÄÒ»°ë£¬ºÍtripod²½Ì¬¶ÔÓ¦
-//count ÊÇ 0 -> count
+//æœ¬å‡½æ•°ç”¨äºè§„åˆ’å…­è¶³æœºå™¨äººåŸåœ°æ—‹è½¬
+//æ¯ä¸€ä¸ªæ¢¯å½¢æ›²çº¿è½¬è¿‡ç»™å®šè§’åº¦çš„ä¸€åŠï¼Œå’Œtripodæ­¥æ€å¯¹åº”
+//count æ˜¯ 0 -> count
 auto planBodyTurn(int count, double* current_body, BodyPose* body_pose_param)->void
 {
 	double yaw = 0;
 
-	//Ã¿¸öÌİĞÎÇúÏß¿ªÊ¼Ê±¶ÁÈ¡Ö®Ç°µÄÖµ
+	//æ¯ä¸ªæ¢¯å½¢æ›²çº¿å¼€å§‹æ—¶è¯»å–ä¹‹å‰çš„å€¼
 	if (count == 0)
 	{
 		//yaw = body_pose_start_yaw;
 	}
-	if (count == 0) //ÓĞÓÃ£¬²»ÄÜÉ¾£¬·ñÔòËã²»³ö½Ç¶È
+	if (count == 0) //æœ‰ç”¨ï¼Œä¸èƒ½åˆ ï¼Œå¦åˆ™ç®—ä¸å‡ºè§’åº¦
 	{
 		for (int i = 0; i < 16; ++i)
 		{
 			current_body[i] = body_position_start_point[i];
 		}
 	}
-	body_pose_param->getBodyRotationTrajectory(count); //ÓÉbodyÉèÖÃµÄ½Ç¶È²ÎÊıµÃµ½»¡¶ÈÖÆµÄĞı×ª½Ç£¨ËæÊ±¼ä£©
+	body_pose_param->getBodyRotationTrajectory(count); //ç”±bodyè®¾ç½®çš„è§’åº¦å‚æ•°å¾—åˆ°å¼§åº¦åˆ¶çš„æ—‹è½¬è§’ï¼ˆéšæ—¶é—´ï¼‰
 
 	yaw = body_pose_param->getCurrentYaw() / 2;
 
@@ -569,11 +570,11 @@ auto planBodyTurn(int count, double* current_body, BodyPose* body_pose_param)->v
 
 	double tempy[16] = { 0 };
 
-	aris::dynamic::s_pm_dot_pm(body_position_start_point, R_y, tempy); //¾ØÕóÏà³Ë¡£tempyµÃµ½µÄÊÇĞı×ªºóµÄÉíÌåÎ»×Ë
-	std::copy(tempy, tempy + 16, current_body); //copy£¨¿½±´ÄÚÈİµÄÊ×µØÖ·£¬Î²µØÖ·£¬¿½±´Ä¿µÄµØµÄÊ×µØÖ·£© µÃµ½current_body
+	aris::dynamic::s_pm_dot_pm(body_position_start_point, R_y, tempy); //çŸ©é˜µç›¸ä¹˜ã€‚tempyå¾—åˆ°çš„æ˜¯æ—‹è½¬åçš„èº«ä½“ä½å§¿
+	std::copy(tempy, tempy + 16, current_body); //copyï¼ˆæ‹·è´å†…å®¹çš„é¦–åœ°å€ï¼Œå°¾åœ°å€ï¼Œæ‹·è´ç›®çš„åœ°çš„é¦–åœ°å€ï¼‰ å¾—åˆ°current_body
 
-	//½áÊøÊ±±£´æ±ä»¯Ö®ºóµÄÖµ
-	if (count + 1 == std::floor(body_pose_param->getTcurve().getTc() * 1000)) //std::floor ÏòÏÂÈ¡ÕûÊı
+	//ç»“æŸæ—¶ä¿å­˜å˜åŒ–ä¹‹åçš„å€¼
+	if (count + 1 == std::floor(body_pose_param->getTcurve().getTc() * 1000)) //std::floor å‘ä¸‹å–æ•´æ•°
 	{
 
 		for (int i = 0; i < 16; i++)
@@ -583,14 +584,14 @@ auto planBodyTurn(int count, double* current_body, BodyPose* body_pose_param)->v
 	}
 }
 
-//±¾º¯ÊıÓÃÓÚ¹æ»®Áù×ã»úÆ÷ÈËÔÚËÄ×ã²½Ì¬ÏÂÉíÌåµÄÎ»ÖÃ¹ì¼££¬²»¼ÓĞı×ª£¨×ËÌ¬±ä»»£©
-//µ±Ç°ÉíÌåµÄÎ»ÖÃ = ÉÏÒ»²½ÉíÌåµÄÎ»ÖÃ + ÉíÌåÎ»ÖÃÔöÁ¿
-//Ã¿µ±½áÊøÒ»´ÎÃüÁîÊÇ£¬ÉíÌåµÄÎ»ÖÃ¸üĞÂÒ»´Î
-//#×¢Òâ£ºÄ¿Ç°Ö»ÊÊÓÃÓÚÆ½µØĞĞ×ß
+//æœ¬å‡½æ•°ç”¨äºè§„åˆ’å…­è¶³æœºå™¨äººåœ¨å››è¶³æ­¥æ€ä¸‹èº«ä½“çš„ä½ç½®è½¨è¿¹ï¼Œä¸åŠ æ—‹è½¬ï¼ˆå§¿æ€å˜æ¢ï¼‰
+//å½“å‰èº«ä½“çš„ä½ç½® = ä¸Šä¸€æ­¥èº«ä½“çš„ä½ç½® + èº«ä½“ä½ç½®å¢é‡
+//æ¯å½“ç»“æŸä¸€æ¬¡å‘½ä»¤æ˜¯ï¼Œèº«ä½“çš„ä½ç½®æ›´æ–°ä¸€æ¬¡
+//#æ³¨æ„ï¼šç›®å‰åªé€‚ç”¨äºå¹³åœ°è¡Œèµ°
 auto planBodyTransformTetrapod(int e_1, int n, double* current_body, int count, EllipseTrajectory* Ellipse)->void
 {
 	int per_step_count = Ellipse->get_s().getTc() * 1000;
-	if (count == 0) //³õÊ¼»¯ÉíÌåÎ»×Ë
+	if (count == 0) //åˆå§‹åŒ–èº«ä½“ä½å§¿
 	{
 		for (int i = 0; i < 16; ++i)
 		{
@@ -598,30 +599,30 @@ auto planBodyTransformTetrapod(int e_1, int n, double* current_body, int count, 
 		}
 	}
 
-	if (e_1 <= 2)   //¼ÓËÙ¶Î
+	if (e_1 <= 2)   //åŠ é€Ÿæ®µ
 	{
-		//¹æ»®ÉíÌå
+		//è§„åˆ’èº«ä½“
 		current_body[3] = body_position_start_point[3] + Ellipse->get_a() * count * count / (18.0 * per_step_count * per_step_count);
 		current_body[7] = body_position_start_point[7];
 		current_body[11] = body_position_start_point[11] + Ellipse->get_c() * count * count / (18.0 * per_step_count * per_step_count);
 	}
-	else if (e_1 >= (3 * n - 3))//¼õËÙ¶Î
+	else if (e_1 >= (3 * n - 3))//å‡é€Ÿæ®µ
 	{
 
-		//¹æ»®ÉíÌå
+		//è§„åˆ’èº«ä½“
 		int t = 3 * n * per_step_count;
 		current_body[3] = body_position_start_point[3] - Ellipse->get_a() * (count - t) * (count - t) / (18.0 * per_step_count * per_step_count) + Ellipse->get_a() * (n - 1);//n * a
 		current_body[7] = body_position_start_point[7];
 		current_body[11] = body_position_start_point[11] - Ellipse->get_c() * (count - t) * (count - t) / (18.0 * per_step_count * per_step_count) + Ellipse->get_c() * (n - 1);
 	}
-	else //ÔÈËÙ¶Î
+	else //åŒ€é€Ÿæ®µ
 	{
-		//¹æ»®ÉíÌå
-		current_body[3] = body_position_start_point[3] + Ellipse->get_a() / 2.0 + Ellipse->get_a() * (count -3* per_step_count) / per_step_count / 3;//ËÙ¶ÈÎª75mm/s  Ã¿Ãë¼ÆÊıper_step_count
+		//è§„åˆ’èº«ä½“
+		current_body[3] = body_position_start_point[3] + Ellipse->get_a() / 2.0 + Ellipse->get_a() * (count -3* per_step_count) / per_step_count / 3;//é€Ÿåº¦ä¸º75mm/s  æ¯ç§’è®¡æ•°per_step_count
 		current_body[7] = body_position_start_point[7];
 		current_body[11] = body_position_start_point[11] + Ellipse->get_c() / 2.0 + Ellipse->get_c() * (count -3* per_step_count) / per_step_count / 3;
 	}
-	//Õû¸öÉíÌåÔË¶¯ÎªÌİĞÎÇúÏß
+	//æ•´ä¸ªèº«ä½“è¿åŠ¨ä¸ºæ¢¯å½¢æ›²çº¿
 	if (count + 1 >= 3 * n * per_step_count)
 	{
 		for (int i = 0; i < 16; ++i)
@@ -631,11 +632,11 @@ auto planBodyTransformTetrapod(int e_1, int n, double* current_body, int count, 
 	}
 }
 
-//--------------------------------------------------²½Ì¬¹æ»®---------------------------------------------------------//
+//--------------------------------------------------æ­¥æ€è§„åˆ’---------------------------------------------------------//
 
-//»úÆ÷ÈËĞĞ×ßÈı½Ç²½Ì¬£¬°üÀ¨Ô­µØÌ¤²½¡¢Ç°½ø¡¢ºóÍË¡¢×óÒÆ¡¢ÓÒÒÆ¡£
-//ÆäÖĞ²½³¤²½¸ßºÍ²½Êı¿ÉÓÉÓÃ»§ÊäÈë¡£×ßÒ»²½µÄÊ±¼ä£¨»òĞĞ×ß¿ìÂı£©¿ÉÓÉÓÃ»§ÊäÈëÌİĞÎÇúÏßµÄËÙ¶ÈºÍ¼ÓËÙ¶ÈÈ·¶¨
-//#×¢Òâ£ºĞĞ×ß×î´óËÙ¶ÈºÍ¼ÓËÙ¶È»¹Ã»²âÊÔ
+//æœºå™¨äººè¡Œèµ°ä¸‰è§’æ­¥æ€ï¼ŒåŒ…æ‹¬åŸåœ°è¸æ­¥ã€å‰è¿›ã€åé€€ã€å·¦ç§»ã€å³ç§»ã€‚
+//å…¶ä¸­æ­¥é•¿æ­¥é«˜å’Œæ­¥æ•°å¯ç”±ç”¨æˆ·è¾“å…¥ã€‚èµ°ä¸€æ­¥çš„æ—¶é—´ï¼ˆæˆ–è¡Œèµ°å¿«æ…¢ï¼‰å¯ç”±ç”¨æˆ·è¾“å…¥æ¢¯å½¢æ›²çº¿çš„é€Ÿåº¦å’ŒåŠ é€Ÿåº¦ç¡®å®š
+//#æ³¨æ„ï¼šè¡Œèµ°æœ€å¤§é€Ÿåº¦å’ŒåŠ é€Ÿåº¦è¿˜æ²¡æµ‹è¯•
 auto tripodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->int
 {
 
@@ -643,19 +644,19 @@ auto tripodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->in
 
 	static double current_leg_in_ground[18] = { 0 };
 	static double current_body_in_ground[16] = { 0 };
-	//ÅĞ¶ÏĞĞ×ß×´Ì¬
-	int e_1 = count / per_step_count;  //ÅĞ¶Ïµ±Ç°ÔÚ×ßÄÄÒ»²½,ÍÈ×ßÒ»²½,e1¼Ó1
-	int e_2 = count % per_step_count;  //ÔÚÒ»´ÎÂõÍÈÖÜÆÚ0->Tc µÄcount
+	//åˆ¤æ–­è¡Œèµ°çŠ¶æ€
+	int e_1 = count / per_step_count;  //åˆ¤æ–­å½“å‰åœ¨èµ°å“ªä¸€æ­¥,è…¿èµ°ä¸€æ­¥,e1åŠ 1
+	int e_2 = count % per_step_count;  //åœ¨ä¸€æ¬¡è¿ˆè…¿å‘¨æœŸ0->Tc çš„count
 
 
-	//¹æ»®ÍÈ
-	//e_1ÊÇÅĞ¶Ïµ±Ç°×ßµ½µÚ¼¸²½£¬e_2ÊÇµ±Ç°TcÄÚµÄcount
-	//ÉíÌåºÍÍÈµÄTc²»ÊÇÒ»¸öTc
+	//è§„åˆ’è…¿
+	//e_1æ˜¯åˆ¤æ–­å½“å‰èµ°åˆ°ç¬¬å‡ æ­¥ï¼Œe_2æ˜¯å½“å‰Tcå†…çš„count
+	//èº«ä½“å’Œè…¿çš„Tcä¸æ˜¯ä¸€ä¸ªTc
 	planLegTripod(e_1, n, current_leg_in_ground, e_2, Ellipse);
-	//¹æ»®ÉíÌå
+	//è§„åˆ’èº«ä½“
 	planBodyTransformTripod(e_1, n, current_body_in_ground, count, Ellipse);
 
-	//Ä£ĞÍ²âÊÔÊ¹ÓÃ
+	//æ¨¡å‹æµ‹è¯•ä½¿ç”¨
 	for (int i = 0; i < 18; ++i)
 	{
 
@@ -670,9 +671,9 @@ auto tripodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->in
 	return 2 * n * per_step_count - count - 1;
 }
 
-//»úÆ÷ÈËĞĞ×ßËÄ×ã²½Ì¬£¬°üÀ¨Ô­µØÌ¤²½¡¢Ç°½ø¡¢ºóÍË¡¢×óÒÆ¡¢ÓÒÒÆ¡£
-//ÆäÖĞ²½³¤²½¸ßºÍ²½Êı¿ÉÓÉÓÃ»§ÊäÈë¡£×ßÒ»²½µÄÊ±¼ä£¨»òĞĞ×ß¿ìÂı£©¿ÉÓÉÓÃ»§ÊäÈëÌİĞÎÇúÏßµÄËÙ¶ÈºÍ¼ÓËÙ¶ÈÈ·¶¨
-//#×¢Òâ£ºĞĞ×ß×î´óËÙ¶ÈºÍ¼ÓËÙ¶È»¹Ã»²âÊÔ
+//æœºå™¨äººè¡Œèµ°å››è¶³æ­¥æ€ï¼ŒåŒ…æ‹¬åŸåœ°è¸æ­¥ã€å‰è¿›ã€åé€€ã€å·¦ç§»ã€å³ç§»ã€‚
+//å…¶ä¸­æ­¥é•¿æ­¥é«˜å’Œæ­¥æ•°å¯ç”±ç”¨æˆ·è¾“å…¥ã€‚èµ°ä¸€æ­¥çš„æ—¶é—´ï¼ˆæˆ–è¡Œèµ°å¿«æ…¢ï¼‰å¯ç”±ç”¨æˆ·è¾“å…¥æ¢¯å½¢æ›²çº¿çš„é€Ÿåº¦å’ŒåŠ é€Ÿåº¦ç¡®å®š
+//#æ³¨æ„ï¼šè¡Œèµ°æœ€å¤§é€Ÿåº¦å’ŒåŠ é€Ÿåº¦è¿˜æ²¡æµ‹è¯•
 auto tetrapodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->int
 {
 
@@ -680,17 +681,17 @@ auto tetrapodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->
 
 	static double current_leg_in_ground[18] = { 0 };
 	static double current_body_in_ground[16] = { 0 };
-	//ÅĞ¶ÏĞĞ×ß×´Ì¬
-	int e_1 = count / per_step_count;  //ÅĞ¶Ïµ±Ç°ÔÚ×ßÄÄÒ»²½,ÍÈ×ßÒ»²½,e1¼Ó1
+	//åˆ¤æ–­è¡Œèµ°çŠ¶æ€
+	int e_1 = count / per_step_count;  //åˆ¤æ–­å½“å‰åœ¨èµ°å“ªä¸€æ­¥,è…¿èµ°ä¸€æ­¥,e1åŠ 1
 	int e_2 = count % per_step_count;  //0->Tc count
 
 
-	//¹æ»®ÍÈ
+	//è§„åˆ’è…¿
 	planLegTetrapod(e_1, n, current_leg_in_ground, e_2, Ellipse);
-	//¹æ»®ÉíÌå
+	//è§„åˆ’èº«ä½“
 	planBodyTransformTetrapod(e_1, n, current_body_in_ground, count, Ellipse);
 
-	//Ä£ĞÍ²âÊÔÊ¹ÓÃ
+	//æ¨¡å‹æµ‹è¯•ä½¿ç”¨
 	for (int i = 0; i < 18; ++i)
 	{
 		file_current_leg[i] = current_leg_in_ground[i];
@@ -705,7 +706,7 @@ auto tetrapodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->
 }
 
 
-//¶Ô½Ç²½Ì¬ÏÂÔ­µØĞı×ª
+//å¯¹è§’æ­¥æ€ä¸‹åŸåœ°æ—‹è½¬
 auto turnPlanTripod(int n, int count, EllipseTrajectory* Ellipse, BodyPose* body_pose_param, double* input)->int
 {
 
@@ -714,17 +715,17 @@ auto turnPlanTripod(int n, int count, EllipseTrajectory* Ellipse, BodyPose* body
 	static double current_leg_in_ground[18] = { 0 };
 	static double current_body_in_ground[16] = { 0 };
 
-	//ÅĞ¶ÏĞĞ×ß×´Ì¬
-	int e_1 = count / per_step_count;  //ÅĞ¶Ïµ±Ç°ÔÚ×ßÄÄÒ»²½,ÍÈ×ßÒ»²½,e1¼Ó1
+	//åˆ¤æ–­è¡Œèµ°çŠ¶æ€
+	int e_1 = count / per_step_count;  //åˆ¤æ–­å½“å‰åœ¨èµ°å“ªä¸€æ­¥,è…¿èµ°ä¸€æ­¥,e1åŠ 1
 	int e_2 = count % per_step_count;  //0->Tc count
 
-	//¹æ»®ÍÈ
+	//è§„åˆ’è…¿
 	planLegTripodTurn(e_1, current_leg_in_ground, e_2, Ellipse, body_pose_param);
-	//¹æ»®ÉíÌå
+	//è§„åˆ’èº«ä½“
 	planBodyTurn(e_2, current_body_in_ground, body_pose_param);
 
 
-	//Ä£ĞÍ²âÊÔÊ¹ÓÃ
+	//æ¨¡å‹æµ‹è¯•ä½¿ç”¨
 	for (int i = 0; i < 18; ++i)
 	{
 		file_current_leg[i] = current_leg_in_ground[i];
@@ -733,7 +734,7 @@ auto turnPlanTripod(int n, int count, EllipseTrajectory* Ellipse, BodyPose* body
 	{
 		file_current_body[i] = current_body_in_ground[i];
 	}
-	//Ä£ĞÍ²âÊÔÊ¹ÓÃ
+	//æ¨¡å‹æµ‹è¯•ä½¿ç”¨
 
 	inverseLeg(current_leg_in_ground, current_body_in_ground, input);
 	

@@ -4,8 +4,8 @@
 
 double PI = aris::PI;
 
-//ÉíÌåÔÚÍÈ×ø±êÏµÏÂµÄ±ä»»¾ØÕó£¬ÍÈ×ø±êÏµ½¨Á¢ÔÚ×ªÖáÓëµ×°åµØÃæµÄ½»µãÉÏ£¬¶ø·Ç·´½âÖÐµÄAµã£¬´Ë´¦ÐèÒª×¢Òâ
-//ÉíÌå×ø±êÏµÔÚ1ÍÈµÄÏÂµÄ±ä»»¾ØÕó£¬ÍÈµÄ×ø±êÏµ¾ùÓëµØÃæ×ø±êÏµ³¯ÏòÒ»ÖÂ  ¼´Leg_P_Body
+//èº«ä½“åœ¨è…¿åæ ‡ç³»ä¸‹çš„å˜æ¢çŸ©é˜µï¼Œè…¿åæ ‡ç³»å»ºç«‹åœ¨è½¬è½´ä¸Žåº•æ¿åœ°é¢çš„äº¤ç‚¹ä¸Šï¼Œè€Œéžåè§£ä¸­çš„Aç‚¹ï¼Œæ­¤å¤„éœ€è¦æ³¨æ„
+//èº«ä½“åæ ‡ç³»åœ¨1è…¿çš„ä¸‹çš„å˜æ¢çŸ©é˜µï¼Œè…¿çš„åæ ‡ç³»å‡ä¸Žåœ°é¢åæ ‡ç³»æœå‘ä¸€è‡´  å³Leg_P_Body
 
 
 double PL1[16] =
@@ -56,20 +56,20 @@ double PL6[16] =
 	 0,			0,		0,			1
 };
 
- //ÔË¶¯Ñ§·´½â
- //ee_positionÎªÄ©¶Ë×ø±ê£¬°´Ë³ÐòÎªxyz
- //mot_pos¼´ÎªÇý¶¯¸Ë¼þµÄ×ø±ê±ä»¯Öµ£¬¶ÔÓ¦×ø±êÎªxyR
- //leg_inverse_kinematicsº¯ÊýÊäÈëÖ¸¶¨Ä©¶ËËùµ½Î»ÖÃee_position£¬°ÑÇó½âµÄ½á¹û·ÅÔÚmot_pos
- //ee_positionÒªÇóÊÇÔÚ"""ÍÈ×ø±êÏµÏÂµÄ×ø±ê"""£¬¹ÊÔÚ´«½øÀ´Ö®Ç°ÒªÇó½øÐÐ×ø±ê±ä»»£¬´«Èë×ø±êÒÀ´ÎÎªxyz
- //ÍÈ×ø±êÏµÓëÉíÌå×ø±êÏµÍ¬Ïò
+ //è¿åŠ¨å­¦åè§£
+ //ee_positionä¸ºæœ«ç«¯åæ ‡ï¼ŒæŒ‰é¡ºåºä¸ºxyz
+ //mot_poså³ä¸ºé©±åŠ¨æ†ä»¶çš„åæ ‡å˜åŒ–å€¼ï¼Œå¯¹åº”åæ ‡ä¸ºxyR
+ //leg_inverse_kinematicså‡½æ•°è¾“å…¥æŒ‡å®šæœ«ç«¯æ‰€åˆ°ä½ç½®ee_positionï¼ŒæŠŠæ±‚è§£çš„ç»“æžœæ”¾åœ¨mot_pos
+ //ee_positionè¦æ±‚æ˜¯åœ¨"""è…¿åæ ‡ç³»ä¸‹çš„åæ ‡"""ï¼Œæ•…åœ¨ä¼ è¿›æ¥ä¹‹å‰è¦æ±‚è¿›è¡Œåæ ‡å˜æ¢ï¼Œä¼ å…¥åæ ‡ä¾æ¬¡ä¸ºxyz
+ //è…¿åæ ‡ç³»ä¸Žèº«ä½“åæ ‡ç³»åŒå‘
  auto legInverseKinematics(double *ee_position, double *mot_pos)->void
  {
-	 //´Ë´¦×ø±êÔ­µãÔÚ ×ªÖáÓëµ×°åµØÃæµÄ½»µã
-	 //mot_pos[2] = -atan2(ee_position[2], ee_position[0]); //ÊúÖ±×ª¶¯Öá ###´Ë´¦ÔÝÊ±²»¼ÓÒ»¸ö¸ººÅ
-	 double theta0 = -atan2(ee_position[2], ee_position[0]);  //ÊúÖ±×ª¶¯Öá×ª¶¯µÄ½Ç¶È£¬»¹ÐèÒª×ª»»µ½µç»úÖáÉÏ
-	 mot_pos[2] = 50 * 28 / 19 * theta0;  //¼õËÙÏä¼õËÙ±È50£º1£¬´ø´«¶¯±È 28£º19
-	 double x0 = sqrt(ee_position[2] * ee_position[2] + ee_position[0] * ee_position[0]); //·´½âËùÔÚÆ½ÃæµÄxÖµ
-	 double y0 = ee_position[1]; //·´½âËùÔÚÆ½ÃæµÄyÖµ
+	 //æ­¤å¤„åæ ‡åŽŸç‚¹åœ¨ è½¬è½´ä¸Žåº•æ¿åœ°é¢çš„äº¤ç‚¹
+	 //mot_pos[2] = -atan2(ee_position[2], ee_position[0]); //ç«–ç›´è½¬åŠ¨è½´ ###æ­¤å¤„æš‚æ—¶ä¸åŠ ä¸€ä¸ªè´Ÿå·
+	 double theta0 = -atan2(ee_position[2], ee_position[0]);  //ç«–ç›´è½¬åŠ¨è½´è½¬åŠ¨çš„è§’åº¦ï¼Œè¿˜éœ€è¦è½¬æ¢åˆ°ç”µæœºè½´ä¸Š
+	 mot_pos[2] = 50 * 28 / 19 * theta0;  //å‡é€Ÿç®±å‡é€Ÿæ¯”50ï¼š1ï¼Œå¸¦ä¼ åŠ¨æ¯” 28ï¼š19
+	 double x0 = sqrt(ee_position[2] * ee_position[2] + ee_position[0] * ee_position[0]); //åè§£æ‰€åœ¨å¹³é¢çš„xå€¼
+	 double y0 = ee_position[1]; //åè§£æ‰€åœ¨å¹³é¢çš„yå€¼
 
 	 double x = x0 - PA_X;
 	 double y = y0 + PA_Y;
@@ -106,9 +106,10 @@ double PL6[16] =
 	 {
 		 Hx = Gx - GH; 
 	 }
-	 //mot_pos[0] = Hx - H_0x; //X·½ÏòÍÆ¸Ë
-	 double deltaX = Hx - H_0x; //x·½ÏòÍÆ¸Ë±ä»¯Öµ£¬»¹ÐèÒª×ª»»µ½µç»úµÄÐý×ª±ä»»Öµ
-	 mot_pos[0] = 26 / 16 * deltaX / 0.0025; //µ¼³ÌÎª2.5mm£¬×ª»»µ½m£¬´ø´«¶¯´«¶¯±ÈÎª26:16  µç»úÊä³öÁ¿
+	 //mot_pos[0] = Hx - H_0x; //Xæ–¹å‘æŽ¨æ†
+	 double deltaX = Hx - H_0x; //xæ–¹å‘æŽ¨æ†å˜åŒ–å€¼ï¼Œè¿˜éœ€è¦è½¬æ¢åˆ°ç”µæœºçš„æ—‹è½¬å˜æ¢å€¼
+//     std::cout << "Hx = " << Hx << std::endl;
+	 mot_pos[0] = 26 / 16 * deltaX / 0.0025; //å¯¼ç¨‹ä¸º2.5mmï¼Œè½¬æ¢åˆ°mï¼Œå¸¦ä¼ åŠ¨ä¼ åŠ¨æ¯”ä¸º26:16  ç”µæœºè¾“å‡ºé‡
 
 	 
 
@@ -125,20 +126,21 @@ double PL6[16] =
 	 double FL = vector_AF1 - LM;
 	 double BL = sqrt(BF * BF - FL * FL);
 	 double By = vector_AF2 + BL;
-	 //mot_pos[1] = -(By - B_0y); //Y·½ÏòÍÆ¸Ë  ÏòÏÂÍÆ¶¯£¿ ÎÒÒ²²»¶®£¿
-	 double deltaY = -(By - B_0y); //Y·½ÏòÍÆ¸Ë±ä»¯Öµ£¬»¹Ðè×ª»»µ½µç»úÉÏ  ÏòÏÂÍÆ¶¯£¿ ÎÒÒ²²»¶®£¿
-	 mot_pos[1] = 26 / 16 * deltaY / 0.0025; //µ¼³ÌÎª2.5mm£¬×ª»»µ½m£¬´ø´«¶¯´«¶¯±ÈÎª26:16   µç»úÊä³öÁ¿
+	 //mot_pos[1] = -(By - B_0y); //Yæ–¹å‘æŽ¨æ†  å‘ä¸‹æŽ¨åŠ¨ï¼Ÿ æˆ‘ä¹Ÿä¸æ‡‚ï¼Ÿ
+	 double deltaY = -(By - B_0y); //Yæ–¹å‘æŽ¨æ†å˜åŒ–å€¼ï¼Œè¿˜éœ€è½¬æ¢åˆ°ç”µæœºä¸Š  å‘ä¸‹æŽ¨åŠ¨ï¼Ÿ æˆ‘ä¹Ÿä¸æ‡‚ï¼Ÿ
+//     std::cout << "By = " << By <<std::endl;
+	 mot_pos[1] = 26 / 16 * deltaY / 0.0025; //å¯¼ç¨‹ä¸º2.5mmï¼Œè½¬æ¢åˆ°mï¼Œå¸¦ä¼ åŠ¨ä¼ åŠ¨æ¯”ä¸º26:16   ç”µæœºè¾“å‡ºé‡
 
  }
 
- //ÔÚ×ø±ê±ä»»ºóÇó½â·´½â
- //inputÊÇÊäÈëµÄÄ©¶Ë×ø±ê£¨ÊÀ½ç×ø±êÏµÏÂ£©
- //Body_P_GroundÊÇµØÃæÔÚÉíÌå×ø±êÏµµÄ±í´ï£¬´Ë´¦³õÊ¼Î»ÖÃÖØºÏ£¬¹ÊÎª4*4µ¥Î»Õó
- //Leg_P_BodyÊÇÉíÌå×ø±êÏµÔÚÍÈ×ø±êÏµµÄ±í´ï
- //×îºóÐèÒªµÄÍÈÄ©¶ËÔÚÍÈ×ø±êÏµÏÂµÄ±í´ïxyz_in_leg
+ //åœ¨åæ ‡å˜æ¢åŽæ±‚è§£åè§£
+ //inputæ˜¯è¾“å…¥çš„æœ«ç«¯åæ ‡ï¼ˆä¸–ç•Œåæ ‡ç³»ä¸‹ï¼‰
+ //Body_P_Groundæ˜¯åœ°é¢åœ¨èº«ä½“åæ ‡ç³»çš„è¡¨è¾¾ï¼Œæ­¤å¤„åˆå§‹ä½ç½®é‡åˆï¼Œæ•…ä¸º4*4å•ä½é˜µ
+ //Leg_P_Bodyæ˜¯èº«ä½“åæ ‡ç³»åœ¨è…¿åæ ‡ç³»çš„è¡¨è¾¾
+ //æœ€åŽéœ€è¦çš„è…¿æœ«ç«¯åœ¨è…¿åæ ‡ç³»ä¸‹çš„è¡¨è¾¾xyz_in_leg
  //Leg_xyz_ee =Leg_P_Body * Body_P_Ground * Ground_xyz_ee(input4*1)
- //AÔÚBÖÐ±íÊ¾µÄ±ä»»¾ØÕóÓëBÔÚAÖÐ±íÊ¾µÄ±ä»¯¾ØÕó»¥ÎªÄæ£¬¼´Body_P_Ground * Ground_P_Body = I
- //inverseLegº¯ÊýÊÇ´«Èë£¨Ä©¶ËÔÚµØÃæµÄxyz×ø±ê£¬ÉíÌåÔÚµØÃæµÄ×ø±ê£¬½á¹û±£´æµÄµØ·½£¨µç»úÍÆ¸Ë±ä»¯Öµ£©£©
+ //Aåœ¨Bä¸­è¡¨ç¤ºçš„å˜æ¢çŸ©é˜µä¸ŽBåœ¨Aä¸­è¡¨ç¤ºçš„å˜åŒ–çŸ©é˜µäº’ä¸ºé€†ï¼Œå³Body_P_Ground * Ground_P_Body = I
+ //inverseLegå‡½æ•°æ˜¯ä¼ å…¥ï¼ˆæœ«ç«¯åœ¨åœ°é¢çš„xyzåæ ‡ï¼Œèº«ä½“åœ¨åœ°é¢çš„åæ ‡ï¼Œç»“æžœä¿å­˜çš„åœ°æ–¹ï¼ˆç”µæœºæŽ¨æ†å˜åŒ–å€¼ï¼‰ï¼‰
 
 
 
@@ -157,8 +159,8 @@ double PL6[16] =
 	 aris::dynamic::s_pm_dot_inv_pm(PL5, ground_p_body, real_pm_l5);  //Leg_P_Ground
 	 aris::dynamic::s_pm_dot_inv_pm(PL6, ground_p_body, real_pm_l6);  //Leg_P_Ground
 
-	 double xyz_in_leg_l1[18] = { 0 }; //Ã¿ÌõÍÈÄ©¶ËÔÚ¸÷×ÔÍÈ×ø±êÏµÏÂµÄ±í´ï£¬Ð´ÔÚÒ»¸ö¾ØÕóÖÐ
-	 //¸Ãº¯ÊýÊÇÊäÈë£¨Î»×Ë±ä»¯¾ØÕó£¬Ò»¸ö×ø±ê£¬Êä³ö×ª»»ºóµÄ×ø±ê3*1£©
+	 double xyz_in_leg_l1[18] = { 0 }; //æ¯æ¡è…¿æœ«ç«¯åœ¨å„è‡ªè…¿åæ ‡ç³»ä¸‹çš„è¡¨è¾¾ï¼Œå†™åœ¨ä¸€ä¸ªçŸ©é˜µä¸­
+	 //è¯¥å‡½æ•°æ˜¯è¾“å…¥ï¼ˆä½å§¿å˜åŒ–çŸ©é˜µï¼Œä¸€ä¸ªåæ ‡ï¼Œè¾“å‡ºè½¬æ¢åŽçš„åæ ‡3*1ï¼‰
 	 aris::dynamic::s_pp2pp(real_pm_l1, ground_xyz_ee + 0 * 3, xyz_in_leg_l1 + 0 * 3); //l1
 	 aris::dynamic::s_pp2pp(real_pm_l2, ground_xyz_ee + 1 * 3, xyz_in_leg_l1 + 1 * 3); //l2
 	 aris::dynamic::s_pp2pp(real_pm_l3, ground_xyz_ee + 2 * 3, xyz_in_leg_l1 + 2 * 3); //l2
@@ -166,7 +168,7 @@ double PL6[16] =
 	 aris::dynamic::s_pp2pp(real_pm_l5, ground_xyz_ee + 4 * 3, xyz_in_leg_l1 + 4 * 3); //l2
 	 aris::dynamic::s_pp2pp(real_pm_l6, ground_xyz_ee + 5 * 3, xyz_in_leg_l1 + 5 * 3); //l2
 
-	 //µÃµ½mot_pos
+	 //å¾—åˆ°mot_pos
 	 legInverseKinematics(xyz_in_leg_l1 + 0 * 3, input + 0 * 3);
 	 legInverseKinematics(xyz_in_leg_l1 + 1 * 3, input + 1 * 3);
 	 legInverseKinematics(xyz_in_leg_l1 + 2 * 3, input + 2 * 3);
