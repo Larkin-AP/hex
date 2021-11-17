@@ -417,9 +417,9 @@ auto HexForward::executeRT()->int
 //        }
 
     //给电机发送信号
-        for (int i = 0; i < 3; ++i) {
-            controller()->motionPool()[i].setTargetPos(motor_angle[i]);
-        }
+        //for (int i = 0; i < 3; ++i) {
+        //    controller()->motionPool()[i].setTargetPos(motor_angle[i]);
+        //}
     return ret;
 }
 

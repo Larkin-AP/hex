@@ -108,7 +108,7 @@ double PL6[16] =
 	 }
 	 //mot_pos[0] = Hx - H_0x; //X方向推杆
 	 double deltaX = Hx - H_0x; //x方向推杆变化值，还需要转换到电机的旋转变换值
-//     std::cout << "Hx = " << Hx << std::endl;
+     //std::cout << "Hx = " << Hx << std::endl;
 	 mot_pos[0] = 26 / 16 * deltaX / 0.0025; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量
 
 	 
@@ -128,7 +128,7 @@ double PL6[16] =
 	 double By = vector_AF2 + BL;
 	 //mot_pos[1] = -(By - B_0y); //Y方向推杆  向下推动？ 我也不懂？
 	 double deltaY = -(By - B_0y); //Y方向推杆变化值，还需转换到电机上  向下推动？ 我也不懂？
-//     std::cout << "By = " << By <<std::endl;
+     //std::cout << "By = " << By <<std::endl;
 	 mot_pos[1] = 26 / 16 * deltaY / 0.0025; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量
 
  }
