@@ -18,17 +18,17 @@ double PL1[16] =
 
 double PL2[16] =
 {
-	 0.5,		0,		-0.866,		-FRONTX,
-	 0,			1,		0,			0,
-	 0.866,		0,		0.5,		0,
-	 0,			0,		0,			1
+     0.5,		0,		-0.866025,		-FRONTX,
+     0,			1,		0,              0,
+     0.866,		0,		0.5,            0,
+     0,			0,		0,              1
 };
 
 double PL3[16] =
 {
-	 -0.5,		0,		-0.866,		-FRONTX,
+     -0.5,		0,		-0.866025,		-FRONTX,
 	 0,			1,		0,			0,
-	 0.866,		0,		-0.5,		0,
+     0.866025,		0,		-0.5,		0,
 	 0,			0,		0,			1
 };
 
@@ -42,17 +42,17 @@ double PL4[16] =
 
 double PL5[16] =
 {
-	 -0.5,		0,		0.866,		-FRONTX,
+     -0.5,		0,		0.866025,		-FRONTX,
 	 0,			1,		0,			0,
-	 -0.866,	0,		-0.5,		0,
+     -0.866025,	0,		-0.5,		0,
 	 0,			0,		0,			1
 };
 
 double PL6[16] =
 {
-	 0.5,		0,		0.866,		-FRONTX,
+     0.5,		0,		0.866025,		-FRONTX,
 	 0,			1,		0,			0,
-	 -0.866,	0,		0.5,		0,
+     -0.866025,	0,		0.5,		0,
 	 0,			0,		0,			1
 };
 
@@ -168,6 +168,7 @@ double PL6[16] =
 	 aris::dynamic::s_pp2pp(real_pm_l5, ground_xyz_ee + 4 * 3, xyz_in_leg_l1 + 4 * 3); //l2
 	 aris::dynamic::s_pp2pp(real_pm_l6, ground_xyz_ee + 5 * 3, xyz_in_leg_l1 + 5 * 3); //l2
 
+
 	 //得到mot_pos
 	 legInverseKinematics(xyz_in_leg_l1 + 0 * 3, input + 0 * 3);
 	 legInverseKinematics(xyz_in_leg_l1 + 1 * 3, input + 1 * 3);
@@ -175,6 +176,12 @@ double PL6[16] =
 	 legInverseKinematics(xyz_in_leg_l1 + 3 * 3, input + 3 * 3);
 	 legInverseKinematics(xyz_in_leg_l1 + 4 * 3, input + 4 * 3);
 	 legInverseKinematics(xyz_in_leg_l1 + 5 * 3, input + 5 * 3);
+//     for (int i = 0; i<18;++i){
+//         std::cout << input[i] << "\t";
+//         if (i%3==2){
+//             std::cout << std::endl;
+//         }
+//     }
 	 
 	 return 0;
  }
