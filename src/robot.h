@@ -43,6 +43,20 @@ namespace robot
 
 	};
 
+    //---------------------test,single motor cos move----------------//
+    //极限位置上电，
+    class Test :public aris::core::CloneObject<Test, aris::plan::Plan>
+    {
+    public:
+        auto virtual prepareNrt()->void;
+        auto virtual executeRT()->int;
+        auto virtual collectNrt()->void;
+
+        virtual ~Test();
+        explicit Test(const std::string& name = "Test");
+
+    };
+
     //---------------------从任意位置移动到prepare位置----------------//
     //在零位上电
     class Home2 :public aris::core::CloneObject<Home2, aris::plan::Plan>

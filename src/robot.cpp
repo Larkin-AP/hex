@@ -95,14 +95,14 @@ auto Home::prepareNrt()->void
 auto Home::executeRT()->int
 {
 
-    TCurve s1(1, 1);
+    TCurve s1(2, 2);
     s1.getCurveParam();
     int time = s1.getTc() * 1000;
 
     static double begin_angle[18];
     if (count() == 1) {
         for (int i = 0; i < 3; ++i) {
-            begin_angle[i] = controller()->motionPool()[i].actualPos(); //这里的位置应该是0
+            begin_angle[i] = controller()->motionPool()[i].targetPos(); //这里的位置应该是0
         }
     }
 
@@ -110,15 +110,20 @@ auto Home::executeRT()->int
     double current_angle[18] = { 0 };
     for (int i = 0; i < 3; ++i) {
         current_angle[i] = begin_angle[i] - (begin_angle[i] - pos_offset[i]) * s1.getTCurve(count()) ; //电机的绝对值为pos_offset
+
+       mout() << begin_angle[0] << "\t" << current_angle[0] << std::endl;
+
+
+
         controller()->motionPool()[i].setTargetPos(current_angle[i]);
-        mout() << current_angle[i] << std::endl;
+      //  mout() << current_angle[i] << std::endl;
     }
-    if (count() % 10 == 0) {
-        for (int i = 0; i < 3; ++i) {
-            mout() << controller()->motionPool()[i].actualPos() << "\t";
-        }
-        mout() << std::endl;
-    }
+//    if (count() % 10 == 0) {
+//        for (int i = 0; i < 3; ++i) {
+//            mout() << controller()->motionPool()[i].actualPos() << "\t";
+//        }
+//        mout() << std::endl;
+//    }
     int ret = time - count();
     return ret;
 }
@@ -147,7 +152,7 @@ auto Home2::executeRT()->int
     static double begin_angle[18];
     if (count() == 1) {
         for (int i = 0; i < 3; ++i) {
-            begin_angle[i] = controller()->motionPool()[i].actualPos();
+            begin_angle[i] = controller()->motionPool()[i].targetPos();
         }
     }
 
@@ -188,7 +193,7 @@ auto MoveJointAll::executeRT()->int
     static double begin_angle[18] = { 0 };
     if (count() == 1) {
         for (int i = 0; i < 3; ++i) {
-            begin_angle[i] = controller()->motionPool()[i].actualPos();
+            begin_angle[i] = controller()->motionPool()[i].targetPos();
         }
     }
 
@@ -217,6 +222,127 @@ MoveJointAll::MoveJointAll(const std::string& name)
         "</Command>");
 }
 MoveJointAll::~MoveJointAll() = default;
+
+
+// ---------------------------单关节正弦往复轨迹 --------------------------------//
+struct MoveJSParam1
+{
+    double j1;
+    double time;
+    uint32_t timenum;
+};
+auto Test::prepareNrt()->void
+{
+    MoveJSParam1 param;
+
+    param.j1 = 0.0;
+    param.time = 0.0;
+    param.timenum = 0;
+
+    for (auto &p : cmdParams())
+    {
+        if (p.first == "j1")
+        {
+            if (p.second == "current_pos")
+            {
+                param.j1 = controller()->motionPool()[0].actualPos();
+            }
+            else
+            {
+                param.j1 = doubleParam(p.first);
+            }
+
+        }
+        else if (p.first == "time")
+        {
+            param.time = doubleParam(p.first);
+        }
+        else if (p.first == "timenum")
+        {
+            param.timenum = int32Param(p.first);
+        }
+    }
+    this->param() = param;
+    std::vector<std::pair<std::string, std::any>> ret_value;
+    for (auto &option : motorOptions())	option |= NOT_CHECK_POS_CONTINUOUS_SECOND_ORDER|NOT_CHECK_POS_CONTINUOUS;
+    ret() = ret_value;
+}
+auto Test::executeRT()->int
+{
+
+    auto &param = std::any_cast<MoveJSParam1&>(this->param());
+    auto time = static_cast<int32_t>(param.time * 1000);
+    auto totaltime = static_cast<int32_t>(param.timenum * time);
+    static double begin_pjs;
+    static double step_pjs;
+    // 访问主站 //
+    auto &cout = controller()->mout();
+
+    if ((1 <= count()) && (count() <= time / 2))
+    {
+        // 获取当前起始点位置 //
+        if (count() == 1)
+        {
+            begin_pjs = controller()->motionPool()[0].actualPos();
+            step_pjs = controller()->motionPool()[0].actualPos();
+            this->master()->logFileRawName("moveJS");//建立记录数据的文件夹
+        }
+        step_pjs = begin_pjs + param.j1 * (1 - std::cos(2 * PI*count() / time)) / 2;
+        controller()->motionPool().at(0).setTargetPos(step_pjs);
+    }
+    else if ((time / 2 < count()) && (count() <= totaltime - time / 2))
+    {
+        // 获取当前起始点位置 //
+        if (count() == time / 2 + 1)
+        {
+            begin_pjs = controller()->motionPool()[0].actualPos();
+            step_pjs = controller()->motionPool()[0].actualPos();
+        }
+
+        step_pjs = begin_pjs - 2 * param.j1 * (1 - std::cos(2 * PI*(count() - time / 2) / time)) / 2;
+        controller()->motionPool().at(0).setTargetPos(step_pjs);
+    }
+    else if ((totaltime - time / 2 < count()) && (count() <= totaltime))
+    {
+        // 获取当前起始点位置 //
+        if (count() == totaltime - time / 2 + 1)
+        {
+            begin_pjs = controller()->motionPool()[0].actualPos();
+            step_pjs = controller()->motionPool()[0].actualPos();
+        }
+        step_pjs = begin_pjs - param.j1 * (1 - std::cos(2 * PI*(count() - totaltime + time / 2) / time)) / 2;
+        controller()->motionPool().at(0).setTargetPos(step_pjs);
+    }
+
+    // 打印 //
+    if (count() % 10 == 0)
+    {
+        mout() << "pos" << ":" << controller()->motionAtAbs(0).actualPos() << "\t";
+        mout() << "vel" << ":" << controller()->motionAtAbs(0).actualVel() << std::endl;
+    }
+
+    // log //
+//    auto &lout = controller()->lout();
+//    lout << controller()->motionAtAbs(0).targetPos() << ",";
+//    lout << std::endl;
+    lout() << controller()->motionAtAbs(0).actualPos() <<"\t";
+    lout() << controller()->motionAtAbs(0).actualVel() <<std::endl;
+
+    return totaltime - count();
+}
+auto Test::collectNrt()->void {}
+Test::Test(const std::string &name)
+{
+    aris::core::fromXmlString(command(),
+        "<Command name=\"test1\">"
+        "	<GroupParam>"
+        "		<Param name=\"j1\" default=\"current_pos\"/>"
+        "		<Param name=\"time\" default=\"4.0\" abbreviation=\"t\"/>"
+        "		<Param name=\"timenum\" default=\"2\" abbreviation=\"n\"/>"
+        "	</GroupParam>"
+        "</Command>");
+}
+Test::~Test() = default;
 
 //---------------------每个电机简单性能测试（cos曲线移动）--------------------//
 struct MoveJSParam
@@ -269,8 +395,8 @@ auto MoveJointAllCos::executeRT()->int
         if (count() == 1)
         {
             for (int i = 0; i < 3; i++) {
-                begin_pjs[i] = controller()->motionPool()[i].actualPos();
-                step_pjs[i] = controller()->motionPool()[i].actualPos();
+                begin_pjs[i] = controller()->motionPool()[i].targetPos();
+                step_pjs[i] = controller()->motionPool()[i].targetPos();
             }
         }
         for (int i = 0; i < 3; i++) {
@@ -285,8 +411,8 @@ auto MoveJointAllCos::executeRT()->int
         if (count() == time / 2 + 1)
         {
             for (int i = 0; i < 3; i++) {
-                begin_pjs[i] = controller()->motionPool()[i].actualPos();
-                step_pjs[i] = controller()->motionPool()[i].actualPos();
+                begin_pjs[i] = controller()->motionPool()[i].targetPos();
+                step_pjs[i] = controller()->motionPool()[i].targetPos();
             }
         }
 
@@ -302,8 +428,8 @@ auto MoveJointAllCos::executeRT()->int
         if (count() == totaltime - time / 2 + 1)
         {
             for (int i = 0; i < 3; i++) {
-                begin_pjs[i] = controller()->motionPool()[i].actualPos();
-                step_pjs[i] = controller()->motionPool()[i].actualPos();
+                begin_pjs[i] = controller()->motionPool()[i].targetPos();
+                step_pjs[i] = controller()->motionPool()[i].targetPos();
             }
         }
         for (int i = 0; i < 3; i++) {
@@ -334,9 +460,9 @@ MoveJointAllCos::MoveJointAllCos(const std::string& name)
     aris::core::fromXmlString(command(),
         "<Command name=\"moveJAC\">"
         "	<GroupParam>"
-        "		<Param name=\"amplitude\" default=\"5.0\" abbreviation=\"a\"/>"
-        "		<Param name=\"time\" default=\"1.0\" abbreviation=\"t\"/>"
-        "		<Param name=\"timenum\" default=\"2\" abbreviation=\"n\"/>"
+        "		<Param name=\"amplitude\" default=\"15.0\" abbreviation=\"a\"/>"
+        "		<Param name=\"time\" default=\"4.0\" abbreviation=\"t\"/>"
+        "		<Param name=\"timenum\" default=\"5\" abbreviation=\"n\"/>"
         "	</GroupParam>"
         "</Command>");
 }
@@ -358,7 +484,7 @@ auto HexForward::executeRT()->int
     static double begin_angle[18] = { 0 };
     if (count() == 1) {
         for (int i = 0; i < 3; ++i) {
-            begin_angle[i] = controller()->motionPool()[i].actualPos();
+            begin_angle[i] = controller()->motionPool()[i].targetPos();
 //            mout() << begin_angle[0] << "\t" << begin_angle[1] << std::endl;
         }
         this->master()->logFileRawName("hex_forward");
@@ -366,7 +492,7 @@ auto HexForward::executeRT()->int
 
     TCurve s1(2, 1);
     s1.getCurveParam();
-    EllipseTrajectory e1(x_step_, 0.03, 0, s1);
+    EllipseTrajectory e1(x_step_, 0.2, 0, s1);
     BodyPose body_s(0, 0, 0, s1);
     int ret = 0;
     ret = tripodPlan(n_, count() - 1, &e1, input_angle);
@@ -419,6 +545,11 @@ auto HexForward::executeRT()->int
         for (int i = 0; i < 3; ++i) {
             controller()->motionPool()[i].setTargetPos(motor_angle[i]);
         }
+        if (ret == 0){
+            for (int i = 0; i < 3; ++i) {
+                mout() << controller()->motionPool()[i].actualPos() <<std::endl;
+            }
+        }
     return ret;
 }
 
@@ -428,8 +559,8 @@ HexForward::HexForward(const std::string& name)
     aris::core::fromXmlString(command(),
         "<Command name=\"forward\">"
         "<GroupParam>"
-        "<Param name=\"step_num\" default=\"2.0\" abbreviation=\"n\"/>"
-        "<Param name=\"x_step\" default=\"0.1\" abbreviation=\"x\"/>"
+        "<Param name=\"step_num\" default=\"5.0\" abbreviation=\"n\"/>"
+        "<Param name=\"x_step\" default=\"0.15\" abbreviation=\"x\"/>"
         "</GroupParam>"
         "</Command>");
 }
@@ -449,14 +580,14 @@ HexForward::~HexForward() = default;
         static double begin_angle[18] = { 0 };
         if (count() == 1) {
             for (int i = 0; i < 3; ++i) {
-                begin_angle[i] = controller()->motionPool()[i].actualPos();
+                begin_angle[i] = controller()->motionPool()[i].targetPos();
             }
             this->master()->logFileRawName("hex_lateral");
         }
 
-        TCurve s1(2, 1.5);
+        TCurve s1(2, 1);
         s1.getCurveParam();
-        EllipseTrajectory e1(0, 0.03, z_step_, s1);
+        EllipseTrajectory e1(0, 0.2, z_step_, s1);
         BodyPose body_s(0, 0, 0, s1);
         int ret = 0;
         ret = tripodPlan(n_, count() - 1, &e1, input_angle);
@@ -502,6 +633,11 @@ HexForward::~HexForward() = default;
         for (int i = 0; i < 3; ++i) {
             controller()->motionPool()[i].setTargetPos(motor_angle[i]);
         }
+        if (ret == 0){
+            for (int i = 0; i < 3; ++i) {
+                mout() << controller()->motionPool()[i].actualPos() <<std::endl;
+            }
+        }
         return ret;
     }
 
@@ -512,7 +648,7 @@ HexForward::~HexForward() = default;
         aris::core::fromXmlString(command(),
             "<Command name=\"lateral\">"
             "<GroupParam>"
-            "<Param name=\"step_num\" default=\"2.0\" abbreviation=\"n\"/>"
+            "<Param name=\"step_num\" default=\"5.0\" abbreviation=\"n\"/>"
             "<Param name=\"z_step\" default=\"0.1\" abbreviation=\"z\"/>"
             "</GroupParam>"
             "</Command>");
@@ -533,12 +669,12 @@ HexForward::~HexForward() = default;
             static double begin_angle[18] = { 0 };
             if (count() == 1) {
                 for (int i = 0; i < 3; ++i) {
-                    begin_angle[i] = controller()->motionPool()[i].actualPos();
+                    begin_angle[i] = controller()->motionPool()[i].targetPos();
                 }
-                this->master()->logFileRawName("hex_turn");
+                this->master()->logFileRawName("hex_turn1");
             }
 
-            TCurve s1(2, 1.5);
+            TCurve s1(2, 1);
             s1.getCurveParam();
             EllipseTrajectory e1(0, 0.03, 0, s1);
             BodyPose body_s(0, turn_yaw_, 0, s1);
@@ -553,7 +689,7 @@ HexForward::~HexForward() = default;
             {
                 //log
                 for (int i = 0; i < 3; ++i) {
-                    lout() << input_angle[i] << "\t";
+                    lout() << motor_angle[i] << "\t";
                 }
                 lout() << std::endl;
 
@@ -586,6 +722,11 @@ HexForward::~HexForward() = default;
             for (int i = 0; i < 3; ++i) {
                 controller()->motionPool()[i].setTargetPos(motor_angle[i]);
             }
+            if (ret == 0){
+                for (int i = 0; i < 3; ++i) {
+                    mout() << controller()->motionPool()[i].actualPos() <<std::endl;
+                }
+            }
             return ret;
         }
 
@@ -596,7 +737,7 @@ HexForward::~HexForward() = default;
             aris::core::fromXmlString(command(),
                 "<Command name=\"turn\">"
                 "<GroupParam>"
-                "<Param name=\"step_num\" default=\"2.0\" abbreviation=\"n\"/>"
+                "<Param name=\"step_num\" default=\"5.0\" abbreviation=\"n\"/>"
                 "<Param name=\"turn_yaw\" default=\"20\" abbreviation=\"y\"/>"
                 "</GroupParam>"
                 "</Command>");
@@ -618,21 +759,21 @@ HexForward::~HexForward() = default;
                 static double begin_angle[18] = { 0 };
                 if (count() == 1) {
                     for (int i = 0; i < 3; ++i) {
-                        begin_angle[i] = controller()->motionPool()[i].actualPos();
+                        begin_angle[i] = controller()->motionPool()[i].targetPos();
                     }
                     this->master()->logFileRawName("hex_tetra");
                 }
 
 
-                TCurve s1(2, 3);
+                TCurve s1(2, 1);
                 s1.getCurveParam();
                 EllipseTrajectory e1(x_step_, 0.03, 0, s1);
                 BodyPose body_s(0, 0, 0, s1);
                 int ret = 0;
-                ret = tetrapodPlan(5, count() - 1, &e1, input_angle);
+                ret = tetrapodPlan(n_, count() - 1, &e1, input_angle);
                 double motor_angle[18] ={0};
                 for(int i = 0; i < 3 ;++i){
-                    motor_angle[i] = begin_angle[i] + input_angle[i+3];
+                    motor_angle[i] = begin_angle[i] + input_angle[i];
                 }
 
                 //输出电机角度，用于仿真测试
@@ -672,6 +813,11 @@ HexForward::~HexForward() = default;
                 for (int i = 0; i < 3; ++i) {
                     controller()->motionPool()[i].setTargetPos(motor_angle[i]);
                 }
+                if (ret == 0){
+                    for (int i = 0; i < 3; ++i) {
+                        mout() << controller()->motionPool()[i].actualPos() <<std::endl;
+                    }
+                }
                 return ret;
             }
 
@@ -682,7 +828,7 @@ HexForward::~HexForward() = default;
                 aris::core::fromXmlString(command(),
                     "<Command name=\"tetra\">"
                     "<GroupParam>"
-                    "<Param name=\"step_num\" default=\".0\" abbreviation=\"n\"/>"
+                    "<Param name=\"step_num\" default=\"2.0\" abbreviation=\"n\"/>"
                     "<Param name=\"x_step\" default=\"0.1\" abbreviation=\"x\"/>"
                     "</GroupParam>"
                     "</Command>");
@@ -1618,7 +1764,7 @@ auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>
 {
     std::unique_ptr<aris::control::Controller> controller(new aris::control::EthercatController);
 
-    for (aris::Size i = 0; i < 3; ++i)
+    for (aris::Size i = 0; i < 1; ++i)
     {
 #ifdef ARIS_USE_ETHERCAT_SIMULATION
         double pos_offset[18]
@@ -1671,7 +1817,7 @@ auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>
         };
         double max_vel[18]  //最大速度
         {
-            330 / 60 * 10 * PI, 330 / 60 * 10 * PI,  330 / 60 * 10 * PI,
+            100 * PI, 100 * PI,  100 * PI,
             330 / 60 * 2 * PI, 330 / 60 * 2 * PI,  330 / 60 * 2 * PI,
             330 / 60 * 2 * PI, 330 / 60 * 2 * PI,  330 / 60 * 2 * PI,
             330 / 60 * 2 * PI, 330 / 60 * 2 * PI,  330 / 60 * 2 * PI,
@@ -1778,6 +1924,7 @@ auto createPlanHexapod()->std::unique_ptr<aris::plan::PlanRoot>
     plan_root->planPool().add<HexLateral>();
     plan_root->planPool().add<HexTurn>();
     plan_root->planPool().add<HexTetrapod>();
+    plan_root->planPool().add<Test>();
 
 
     return plan_root;
