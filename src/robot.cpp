@@ -30,7 +30,7 @@ auto ReadCurrentPos::prepareNrt()->void
 auto ReadCurrentPos::executeRT()->int
 {
     double current_pos[18] = { 0 };
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 18; ++i) {
         this->master()->logFileRawName("CurrentPos");
         current_pos[i] = controller()->motionPool()[i].actualPos();
         mout() << current_pos[i] << std::endl;
@@ -95,21 +95,21 @@ auto Home::prepareNrt()->void
 auto Home::executeRT()->int
 {
 
-    TCurve s1(2, 2);
-    s1.getCurveParam();
-    int time = s1.getTc() * 1000;
-
     static double begin_angle[18];
     if (count() == 1) {
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 18; ++i) {
             begin_angle[i] = controller()->motionPool()[i].targetPos(); //这里的位置应该是0
         }
     }
 
+    TCurve s1(1, 1);
+    s1.getCurveParam();
+    int time = s1.getTc() * 1000;
+
 
     double current_angle[18] = { 0 };
-    for (int i = 0; i < 3; ++i) {
-        current_angle[i] = begin_angle[i] - (begin_angle[i] - pos_offset[i]) * s1.getTCurve(count()) ; //电机的绝对值为pos_offset
+    for (int i = 0; i < 18; ++i) {
+        current_angle[i] = begin_angle[i] - (begin_angle[i] - home_offset[i]) * s1.getTCurve(count()) ; //电机的绝对值为pos_offset
 
        mout() << begin_angle[0] << "\t" << current_angle[0] << std::endl;
 
@@ -119,7 +119,7 @@ auto Home::executeRT()->int
       //  mout() << current_angle[i] << std::endl;
     }
 //    if (count() % 10 == 0) {
-//        for (int i = 0; i < 3; ++i) {
+//        for (int i = 0; i < 18; ++i) {
 //            mout() << controller()->motionPool()[i].actualPos() << "\t";
 //        }
 //        mout() << std::endl;
@@ -151,20 +151,20 @@ auto Home2::executeRT()->int
 
     static double begin_angle[18];
     if (count() == 1) {
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 18; ++i) {
             begin_angle[i] = controller()->motionPool()[i].targetPos();
         }
     }
 
 
     double current_angle[18] = { 0 };
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 18; ++i) {
         current_angle[i] = begin_angle[i] - (begin_angle[i]) * s1.getTCurve(count()) ; //电机的绝对值为pos_offset
         controller()->motionPool()[i].setTargetPos(current_angle[i]);
         mout() << current_angle[i] << std::endl;
     }
     if (count() % 10 == 0) {
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 18; ++i) {
             mout() << controller()->motionPool()[i].actualPos() << "\t";
         }
         mout() << std::endl;
@@ -185,26 +185,27 @@ Home2::~Home2() = default;
 //---------------------每个电机简单性能测试（梯形曲线移动）--------------------//
 auto MoveJointAll::prepareNrt()->void
 {
-    cef_ = doubleParam("coefficient");
+    dir_ = doubleParam("direction");
+    len_ = doubleParam("length");
     for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
 }
 auto MoveJointAll::executeRT()->int
 {
     static double begin_angle[18] = { 0 };
     if (count() == 1) {
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 18; ++i) {
             begin_angle[i] = controller()->motionPool()[i].targetPos();
         }
     }
 
-    double d = cef_ * 10;
-    TCurve2 s1(5, 2, d);
+
+    TCurve2 s1(5, 3, len_);
     s1.getCurveParam();
     //int time = s1.getTc() * 1000;
 
     double angle[18] = { 0 };
-    for (int i = 0; i < 3; ++i) {
-        angle[i] = begin_angle[i] +  s1.getTCurve(count());
+    for (int i = 0; i < 18; ++i) {
+        angle[i] = begin_angle[i] +  dir_ * s1.getTCurve(count());
         controller()->motionPool()[i].setTargetPos(angle[i]);
     }
     //int ret = time - count();
@@ -218,7 +219,10 @@ MoveJointAll::MoveJointAll(const std::string& name)
 {
     aris::core::fromXmlString(command(),
         "<Command name=\"moveJA\">"
-        "<Param name=\"coefficient\" default=\"1.0\" abbreviation=\"c\"/>"
+        "	<GroupParam>"
+        "		<Param name=\"direction\" default=\"1\" abbreviation=\"d\"/>"
+        "		<Param name=\"length\" default=\"5\" abbreviation=\"l\"/>"
+        "	</GroupParam>"
         "</Command>");
 }
 MoveJointAll::~MoveJointAll() = default;
@@ -243,14 +247,7 @@ auto Test::prepareNrt()->void
     {
         if (p.first == "j1")
         {
-            if (p.second == "current_pos")
-            {
-                param.j1 = controller()->motionPool()[0].actualPos();
-            }
-            else
-            {
-                param.j1 = doubleParam(p.first);
-            }
+            param.j1 = doubleParam(p.first);
 
         }
         else if (p.first == "time")
@@ -315,18 +312,18 @@ auto Test::executeRT()->int
     }
 
     // 打印 //
-    if (count() % 10 == 0)
-    {
-        mout() << "pos" << ":" << controller()->motionAtAbs(0).actualPos() << "\t";
-        mout() << "vel" << ":" << controller()->motionAtAbs(0).actualVel() << std::endl;
-    }
+//    if (count() % 10 == 0)
+//    {
+//        mout() << "pos" << ":" << controller()->motionAtAbs(0).actualPos() << "\t";
+//        mout() << "vel" << ":" << controller()->motionAtAbs(0).actualVel() << std::endl;
+//    }
 
     // log //
 //    auto &lout = controller()->lout();
 //    lout << controller()->motionAtAbs(0).targetPos() << ",";
 //    lout << std::endl;
-    lout() << controller()->motionAtAbs(0).actualPos() <<"\t";
-    lout() << controller()->motionAtAbs(0).actualVel() <<std::endl;
+//    lout() << controller()->motionAtAbs(0).actualPos() <<"\t";
+//    lout() << controller()->motionAtAbs(0).actualVel() <<std::endl;
 
     return totaltime - count();
 }
@@ -336,7 +333,7 @@ Test::Test(const std::string &name)
     aris::core::fromXmlString(command(),
         "<Command name=\"test1\">"
         "	<GroupParam>"
-        "		<Param name=\"j1\" default=\"current_pos\"/>"
+        "		<Param name=\"j1\" default=\"10.0\" abbreviation=\"j\"/>"
         "		<Param name=\"time\" default=\"4.0\" abbreviation=\"t\"/>"
         "		<Param name=\"timenum\" default=\"2\" abbreviation=\"n\"/>"
         "	</GroupParam>"
@@ -394,12 +391,12 @@ auto MoveJointAllCos::executeRT()->int
         // 获取当前起始点位置 //
         if (count() == 1)
         {
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 18; i++) {
                 begin_pjs[i] = controller()->motionPool()[i].targetPos();
                 step_pjs[i] = controller()->motionPool()[i].targetPos();
             }
         }
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 18; i++) {
             step_pjs[i] = begin_pjs[i] + param.amplitude * (1 - std::cos(2 * PI * count() / time)) / 2;
             controller()->motionPool().at(i).setTargetPos(step_pjs[i]);
         }
@@ -410,14 +407,14 @@ auto MoveJointAllCos::executeRT()->int
         // 获取当前起始点位置 //
         if (count() == time / 2 + 1)
         {
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 18; i++) {
                 begin_pjs[i] = controller()->motionPool()[i].targetPos();
                 step_pjs[i] = controller()->motionPool()[i].targetPos();
             }
         }
 
-        for (int i = 0; i < 3; i++) {
-            step_pjs[i] = begin_pjs[i] + 2 * param.amplitude * (1 - std::cos(2 * PI * (count() - time / 2) / time)) / 2;
+        for (int i = 0; i < 18; i++) {
+            step_pjs[i] = begin_pjs[i] - 2 * param.amplitude * (1 - std::cos(2 * PI * (count() - time / 2) / time)) / 2;
             controller()->motionPool().at(i).setTargetPos(step_pjs[i]);
         }
     }
@@ -427,13 +424,13 @@ auto MoveJointAllCos::executeRT()->int
         // 获取当前起始点位置 //
         if (count() == totaltime - time / 2 + 1)
         {
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 18; i++) {
                 begin_pjs[i] = controller()->motionPool()[i].targetPos();
                 step_pjs[i] = controller()->motionPool()[i].targetPos();
             }
         }
-        for (int i = 0; i < 3; i++) {
-            step_pjs[i] = begin_pjs[i] + param.amplitude * (1 - std::cos(2 * PI * (count() - totaltime + time / 2) / time)) / 2;
+        for (int i = 0; i < 18; i++) {
+            step_pjs[i] = begin_pjs[i] - param.amplitude * (1 - std::cos(2 * PI * (count() - totaltime + time / 2) / time)) / 2;
             controller()->motionPool().at(i).setTargetPos(step_pjs[i]);
         }
     }
@@ -477,46 +474,59 @@ auto HexForward::prepareNrt()->void
 {
     n_ = doubleParam("step_num");
     x_step_ = doubleParam("x_step");
-    for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+    for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE | aris::plan::Plan::NOT_CHECK_POS_CONTINUOUS;
 }
 auto HexForward::executeRT()->int
 {
     static double begin_angle[18] = { 0 };
     if (count() == 1) {
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 18; ++i) {
             begin_angle[i] = controller()->motionPool()[i].targetPos();
 //            mout() << begin_angle[0] << "\t" << begin_angle[1] << std::endl;
         }
         this->master()->logFileRawName("hex_forward");
+//        this->master()->logFileRawName("file_leg");
+//        this->master()->logFileRawName("file_body");
     }
 
     TCurve s1(2, 1);
     s1.getCurveParam();
-    EllipseTrajectory e1(x_step_, 0.2, 0, s1);
+    EllipseTrajectory e1(x_step_, 0.05, 0, s1);
     BodyPose body_s(0, 0, 0, s1);
     int ret = 0;
     ret = tripodPlan(n_, count() - 1, &e1, input_angle);
     double motor_angle[18] ={0};
-    for(int i = 0; i < 3 ;++i){
+    for(int i = 0; i < 18 ;++i){
         motor_angle[i] = begin_angle[i] + input_angle[i];
     }
+    int16_t current[18] ={0};
+    for (int i =0 ; i< 18 ; i++){
+        this->ecController()->motionPool()[i].readPdo(0x6077,0x00,current[i]);
+        lout() << current[i] << "\t";
+    }
+    lout() << std::endl;
 
     //输出电机角度，用于仿真测试
     {
         //log
-//            for (int i = 0; i < 3; ++i) {
+//            for (int i = 0; i < 18; ++i) {
 //                lout() << motor_angle[i] << "\t";
 //            }
-        for (int i = 0; i < 18; ++i) {
-            lout() << input_angle[i] << "\t";
-        }
-        lout() << std::endl;
+//        for (int i = 0; i < 18; ++i) {
+//            lout() << input_angle[i] << "\t";
+//        }
+//        lout() << std::endl;
+        //log
+//        for (int i =0 ; i< 18; i++){
+//            lout() <<controller()->motionPool()[i].targetPos() << "\t";
+//        }
+//        lout() << std::endl;
 
         //打印
-//            for (int i = 0; i < 3; ++i) {
+//            for (int i = 0; i < 18; ++i) {
 //                mout() << motor_angle[i] << "\t";
 //            }
-//            for (int i = 0; i < 3; ++i) {
+//            for (int i = 0; i < 18; ++i) {
 //                mout() << input_angle[i+3] << "\t";
 //            }
 
@@ -524,9 +534,9 @@ auto HexForward::executeRT()->int
     }
 
     //输出身体和足端曲线，用于仿真测试
-//        {
+
 //            //log
-//            for (int i = 0; i < 3; ++i) {
+//            for (int i = 0; i < 18; ++i) {
 //                lout() << file_current_leg[i] << "\t";
 //            }
 //            lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
@@ -534,7 +544,7 @@ auto HexForward::executeRT()->int
 
 
 //            //打印
-//            for (int i = 0; i < 3; ++i) {
+//            for (int i = 0; i < 18; ++i) {
 //                mout() << file_current_leg[i] << "\t";
 //            }
 //            mout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
@@ -542,12 +552,19 @@ auto HexForward::executeRT()->int
 //        }
 
     //给电机发送信号
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 18; ++i) {
             controller()->motionPool()[i].setTargetPos(motor_angle[i]);
         }
         if (ret == 0){
-            for (int i = 0; i < 3; ++i) {
+            for (int i = 0; i < 18; ++i) {
                 mout() << controller()->motionPool()[i].actualPos() <<std::endl;
+            }
+            mout() << count() << std::endl;
+            for (int i =0 ; i<16; i++){
+                mout() << file_current_body[i] << "\t";
+                if (i%4 == 3){
+                    mout() << std::endl;
+                }
             }
         }
     return ret;
@@ -559,8 +576,8 @@ HexForward::HexForward(const std::string& name)
     aris::core::fromXmlString(command(),
         "<Command name=\"forward\">"
         "<GroupParam>"
-        "<Param name=\"step_num\" default=\"5.0\" abbreviation=\"n\"/>"
-        "<Param name=\"x_step\" default=\"0.15\" abbreviation=\"x\"/>"
+        "<Param name=\"step_num\" default=\"2.0\" abbreviation=\"n\"/>"
+        "<Param name=\"x_step\" default=\"0.1\" abbreviation=\"x\"/>"
         "</GroupParam>"
         "</Command>");
 }
@@ -573,13 +590,13 @@ HexForward::~HexForward() = default;
     {
         n_ = doubleParam("step_num");
         z_step_ = doubleParam("z_step");
-        for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+        for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE |aris::plan::Plan::NOT_CHECK_POS_CONTINUOUS ;
     }
     auto HexLateral::executeRT()->int
     {
         static double begin_angle[18] = { 0 };
         if (count() == 1) {
-            for (int i = 0; i < 3; ++i) {
+            for (int i = 0; i < 18; ++i) {
                 begin_angle[i] = controller()->motionPool()[i].targetPos();
             }
             this->master()->logFileRawName("hex_lateral");
@@ -587,25 +604,25 @@ HexForward::~HexForward() = default;
 
         TCurve s1(2, 1);
         s1.getCurveParam();
-        EllipseTrajectory e1(0, 0.2, z_step_, s1);
+        EllipseTrajectory e1(0, 0.05, z_step_, s1);
         BodyPose body_s(0, 0, 0, s1);
         int ret = 0;
         ret = tripodPlan(n_, count() - 1, &e1, input_angle);
         double motor_angle[18] ={0};
-        for(int i = 0; i < 3 ;++i){
+        for(int i = 0; i < 18 ;++i){
             motor_angle[i] = begin_angle[i] + input_angle[i];
         }
 
         //输出电机角度，用于仿真测试
         {
-            //log
-            for (int i = 0; i < 3; ++i) {
-                lout() << input_angle[i] << "\t";
-            }
-            lout() << std::endl;
+//            //log
+//            for (int i = 0; i < 18; ++i) {
+//                lout() << input_angle[i] << "\t";
+//            }
+//            lout() << std::endl;
 
             //打印
-//            for (int i = 0; i < 3; ++i) {
+//            for (int i = 0; i < 18; ++i) {
 //                mout() << input_angle[i] << "\t";
 //            }
 //            mout() << std::endl;
@@ -613,16 +630,16 @@ HexForward::~HexForward() = default;
 
 //        //输出身体和足端曲线，用于仿真测试
 //        {
-//            //log
-//            for (int i = 0; i < 3; ++i) {
-//                lout() << file_current_leg[i] << "\t";
-//            }
-//            lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
-//            lout() << std::endl;
+            //log
+            for (int i = 0; i < 18; ++i) {
+                lout() << file_current_leg[i] << "\t";
+            }
+            lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+
 
 
 //            //打印
-//            for (int i = 0; i < 3; ++i) {
+//            for (int i = 0; i < 18; ++i) {
 //                mout() << file_current_leg[i] << "\t";
 //            }
 //            mout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
@@ -630,11 +647,11 @@ HexForward::~HexForward() = default;
 //        }
 
         //给电机发送信号
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 18; ++i) {
             controller()->motionPool()[i].setTargetPos(motor_angle[i]);
         }
         if (ret == 0){
-            for (int i = 0; i < 3; ++i) {
+            for (int i = 0; i < 18; ++i) {
                 mout() << controller()->motionPool()[i].actualPos() <<std::endl;
             }
         }
@@ -648,7 +665,7 @@ HexForward::~HexForward() = default;
         aris::core::fromXmlString(command(),
             "<Command name=\"lateral\">"
             "<GroupParam>"
-            "<Param name=\"step_num\" default=\"5.0\" abbreviation=\"n\"/>"
+            "<Param name=\"step_num\" default=\"2.0\" abbreviation=\"n\"/>"
             "<Param name=\"z_step\" default=\"0.1\" abbreviation=\"z\"/>"
             "</GroupParam>"
             "</Command>");
@@ -662,13 +679,13 @@ HexForward::~HexForward() = default;
         {
             n_ = doubleParam("step_num");
             turn_yaw_ = doubleParam("turn_yaw");
-            for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+            for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE |aris::plan::Plan::NOT_CHECK_POS_CONTINUOUS ;
         }
         auto HexTurn::executeRT()->int
         {
             static double begin_angle[18] = { 0 };
             if (count() == 1) {
-                for (int i = 0; i < 3; ++i) {
+                for (int i = 0; i < 18; ++i) {
                     begin_angle[i] = controller()->motionPool()[i].targetPos();
                 }
                 this->master()->logFileRawName("hex_turn1");
@@ -679,22 +696,22 @@ HexForward::~HexForward() = default;
             EllipseTrajectory e1(0, 0.03, 0, s1);
             BodyPose body_s(0, turn_yaw_, 0, s1);
             int ret = 0;
-            ret = turnPlanTripod(n_, count() - 1, &e1, &body_s, input_angle);
+            ret = turnPlanTripod(n_, count()-1, &e1, &body_s, input_angle);
             double motor_angle[18] ={0};
-            for(int i = 0; i < 3 ;++i){
+            for(int i = 0; i < 18; ++i){
                 motor_angle[i] = begin_angle[i] + input_angle[i];
             }
 
             //输出电机角度，用于仿真测试
             {
                 //log
-                for (int i = 0; i < 3; ++i) {
-                    lout() << motor_angle[i] << "\t";
-                }
-                lout() << std::endl;
+//                for (int i = 0; i < 18; ++i) {
+//                    lout() << input_angle[i] << "\t";
+//                }
+//                lout() << std::endl;
 
 //                //打印
-//                for (int i = 0; i < 3; ++i) {
+//                for (int i = 0; i < 18; ++i) {
 //                    mout() << input_angle[i] << "\t";
 //                }
 //                lout() << std::endl;
@@ -703,15 +720,15 @@ HexForward::~HexForward() = default;
             //输出身体和足端曲线，用于仿真测试
 //            {
 //                //log
-//                for (int i = 0; i < 3; ++i) {
+//                for (int i = 0; i < 18; ++i) {
 //                    lout() << file_current_leg[i] << "\t";
 //                }
-//                lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
-//                lout() << std::endl;
+////                lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+//                lout() << file_current_body[3] << std::endl;
 
 
 //                //打印
-//                for (int i = 0; i < 3; ++i) {
+//                for (int i = 0; i < 18; ++i) {
 //                    mout() << file_current_leg[i] << "\t";
 //                }
 //                mout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
@@ -719,12 +736,18 @@ HexForward::~HexForward() = default;
 //            }
 
             //给电机发送信号
-            for (int i = 0; i < 3; ++i) {
+            for (int i = 0; i < 18; ++i) {
                 controller()->motionPool()[i].setTargetPos(motor_angle[i]);
             }
             if (ret == 0){
-                for (int i = 0; i < 3; ++i) {
+                for (int i = 0; i < 18; ++i) {
                     mout() << controller()->motionPool()[i].actualPos() <<std::endl;
+                }
+                for (int i =0 ; i<16; i++){
+                    mout() << file_current_body[i] << "\t";
+                    if (i%4 == 3){
+                        mout() << std::endl;
+                    }
                 }
             }
             return ret;
@@ -737,8 +760,8 @@ HexForward::~HexForward() = default;
             aris::core::fromXmlString(command(),
                 "<Command name=\"turn\">"
                 "<GroupParam>"
-                "<Param name=\"step_num\" default=\"5.0\" abbreviation=\"n\"/>"
-                "<Param name=\"turn_yaw\" default=\"20\" abbreviation=\"y\"/>"
+                "<Param name=\"step_num\" default=\"2.0\" abbreviation=\"n\"/>"
+                "<Param name=\"turn_yaw\" default=\"15\" abbreviation=\"y\"/>"
                 "</GroupParam>"
                 "</Command>");
         }
@@ -752,13 +775,13 @@ HexForward::~HexForward() = default;
             {
                 n_ = doubleParam("step_num");
                 x_step_ = doubleParam("x_step");
-                for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+                for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE |aris::plan::Plan::NOT_CHECK_POS_CONTINUOUS ;
             }
             auto HexTetrapod::executeRT()->int
             {
                 static double begin_angle[18] = { 0 };
                 if (count() == 1) {
-                    for (int i = 0; i < 3; ++i) {
+                    for (int i = 0; i < 18; ++i) {
                         begin_angle[i] = controller()->motionPool()[i].targetPos();
                     }
                     this->master()->logFileRawName("hex_tetra");
@@ -772,20 +795,20 @@ HexForward::~HexForward() = default;
                 int ret = 0;
                 ret = tetrapodPlan(n_, count() - 1, &e1, input_angle);
                 double motor_angle[18] ={0};
-                for(int i = 0; i < 3 ;++i){
+                for(int i = 0; i < 18 ;++i){
                     motor_angle[i] = begin_angle[i] + input_angle[i];
                 }
 
                 //输出电机角度，用于仿真测试
                 {
                     //log
-                    for (int i = 0; i < 3; ++i) {
+                    for (int i = 0; i < 18; ++i) {
                         lout() << input_angle[i] << "\t";
                     }
                     lout() << std::endl;
 
                     //打印
-//                    for (int i = 0; i < 3; ++i) {
+//                    for (int i = 0; i < 18; ++i) {
 //                        mout() << input_angle[i] << "\t";
 //                    }
 //                    lout() << std::endl;
@@ -794,7 +817,7 @@ HexForward::~HexForward() = default;
                 //输出身体和足端曲线，用于仿真测试
 //                {
 //                    //log
-//                    for (int i = 0; i < 3; ++i) {
+//                    for (int i = 0; i < 18; ++i) {
 //                        lout() << file_current_leg[i] << "\t";
 //                    }
 //                    lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
@@ -802,7 +825,7 @@ HexForward::~HexForward() = default;
 
 
 //                    //打印
-//                    for (int i = 0; i < 3; ++i) {
+//                    for (int i = 0; i < 18; ++i) {
 //                        mout() << file_current_leg[i] << "\t";
 //                    }
 //                    mout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
@@ -810,11 +833,11 @@ HexForward::~HexForward() = default;
 //                }
 
                 //给电机发送信号
-                for (int i = 0; i < 3; ++i) {
+                for (int i = 0; i < 18; ++i) {
                     controller()->motionPool()[i].setTargetPos(motor_angle[i]);
                 }
                 if (ret == 0){
-                    for (int i = 0; i < 3; ++i) {
+                    for (int i = 0; i < 18; ++i) {
                         mout() << controller()->motionPool()[i].actualPos() <<std::endl;
                     }
                 }
@@ -948,7 +971,7 @@ HexForward::~HexForward() = default;
         //            aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
         //            aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
         //            //末端位置
-        //            //for (int i = 0; i < 34; ++i)
+        //            //for (int i = 0; i < 184; ++i)
         //            //    lout() << ee[i] << "\t";
         //            //lout() << std::endl;
 
@@ -1764,7 +1787,7 @@ auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>
 {
     std::unique_ptr<aris::control::Controller> controller(new aris::control::EthercatController);
 
-    for (aris::Size i = 0; i < 1; ++i)
+    for (aris::Size i = 0; i < 18; ++i)
     {
 #ifdef ARIS_USE_ETHERCAT_SIMULATION
         double pos_offset[18]
@@ -1862,7 +1885,7 @@ auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>
             "				<PdoEntry name=\"mode_of_display\" index=\"0x6061\" subindex=\"0x00\" size=\"8\"/>"
             "				<PdoEntry name=\"pos_actual_value\" index=\"0x6064\" subindex=\"0x00\" size=\"32\"/>"
             "				<PdoEntry name=\"vel_actual_value\" index=\"0x606c\" subindex=\"0x00\" size=\"32\"/>"
-//            "				<PdoEntry name=\"toq_actual_value\" index=\"0x6077\" subindex=\"0x00\" size=\"16\"/>"
+            "				<PdoEntry name=\"toq_actual_value\" index=\"0x6077\" subindex=\"0x00\" size=\"16\"/>"
             "				<PdoEntry name=\"digital_inputs\" index=\"0x60FD\" subindex=\"0x00\" size=\"32\"/>"
             "			</Pdo>"
             "		</SyncManager>"

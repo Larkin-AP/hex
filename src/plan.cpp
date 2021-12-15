@@ -312,6 +312,7 @@ auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajector
 		temp_xyz_in_ground[14] = foot_position_start_point[14] + Ellipse->get_z();
 
 		aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 0 * 3, current_leg + 0 * 3);
+        aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 2 * 3, current_leg + 2 * 3);
 		aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 4 * 3, current_leg + 4 * 3);
 
 	}
@@ -545,11 +546,7 @@ auto planBodyTurn(int count, double* current_body, BodyPose* body_pose_param)->v
 {
 	double yaw = 0;
 
-	//每个梯形曲线开始时读取之前的值
-	if (count == 0)
-	{
-		//yaw = body_pose_start_yaw;
-	}
+
 	if (count == 0) //有用，不能删，否则算不出角度
 	{
 		for (int i = 0; i < 16; ++i)
@@ -674,6 +671,8 @@ auto tripodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->in
 //机器人行走四足步态，包括原地踏步、前进、后退、左移、右移。
 //其中步长步高和步数可由用户输入。走一步的时间（或行走快慢）可由用户输入梯形曲线的速度和加速度确定
 //#注意：行走最大速度和加速度还没测试
+
+
 auto tetrapodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->int
 {
 

@@ -16,6 +16,28 @@ namespace robot
 			0,0,0
 	};
 
+    static const double home_offset[18]{
+        -41.1344,
+        -24.8798,
+        -5.15221,
+        51.7326,
+        -40.0003,
+        6.4277,
+        7.79429,
+        -42.2623,
+        20.2287,
+        10.0233,
+        -39.9234,
+        27.1795,
+        -15.5258,
+        -40.1103,
+        -11.7967,
+        12.2192,
+        -40.0349,
+        18.826
+
+    };
+
 	//---------------------读取当前电机的位置--------------------//
 	class ReadCurrentPos :public aris::core::CloneObject<ReadCurrentPos, aris::plan::Plan>
 	{
@@ -82,7 +104,8 @@ namespace robot
 		virtual ~MoveJointAll();
 		explicit MoveJointAll(const std::string& name = "moveJA");
 	private:
-		double cef_;
+        double dir_;
+        double len_;
 		
 	};
 

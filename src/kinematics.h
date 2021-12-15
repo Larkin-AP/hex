@@ -61,6 +61,14 @@ static double body_position_start_point[16] = {
 	0,0,1,0,
 	0,0,0,1 };
 
+//当身体需要转动加移动时，需要记录改变当前身体的位置
+static double current_body_point[16] ={
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1
+};
+
 /**********函数声明**********/
 auto inverseLeg(double *Ground_xyz_ee, double *Ground_P_Body, double *input)->int;
 
