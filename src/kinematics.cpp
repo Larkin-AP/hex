@@ -66,8 +66,8 @@ double PL6[16] =
  {
 	 //此处坐标原点在 转轴与底板地面的交点
 	 //mot_pos[2] = -atan2(ee_position[2], ee_position[0]); //竖直转动轴 ###此处暂时不加一个负号
-	 double theta0 = -atan2(ee_position[2], ee_position[0]);  //竖直转动轴转动的角度，还需要转换到电机轴上
-     mot_pos[2] = - 50 * 28 / 19 * theta0;  //减速箱减速比50：1，带传动比 28：19
+     double theta0 = atan2(ee_position[2], ee_position[0]);  //竖直转动轴转动的角度，还需要转换到电机轴上
+     mot_pos[2] =  50 * 28 / 19 * theta0;  //减速箱减速比50：1，带传动比 28：19
 	 double x0 = sqrt(ee_position[2] * ee_position[2] + ee_position[0] * ee_position[0]); //反解所在平面的x值
 	 double y0 = ee_position[1]; //反解所在平面的y值
 
@@ -88,24 +88,26 @@ double PL6[16] =
 	 double vector_AG2 = Gy;
 	 double Hy = -AJ;
 	 double Hx = 0;
-	 if (Gy < Hy)
-	 {
-		 double HK = Hy - Gy;
-		 double angle_HGK = asin(HK / GH);
-		 double GK = GH * cos(angle_HGK);
-		 Hx = Gx - GK;
-	 }
-	 else if (Gy > Hy)
-	 {
-		 double GK = Gy - Hy;
-		 double angle_GHK = asin(GK / GH);
-		 double HK = GH * cos(angle_GHK);
-		 Hx = Gx - HK;
-	 }
-	 else
-	 {
-		 Hx = Gx - GH; 
-	 }
+//	 if (Gy < Hy)
+//	 {
+//		 double HK = Hy - Gy;
+//		 double angle_HGK = asin(HK / GH);
+//		 double GK = GH * cos(angle_HGK);
+//		 Hx = Gx - GK;
+//	 }
+//	 else if (Gy > Hy)
+//	 {
+//		 double GK = Gy - Hy;
+//		 double angle_GHK = asin(GK / GH);
+//		 double HK = GH * cos(angle_GHK);
+//		 Hx = Gx - HK;
+//	 }
+//	 else
+//	 {
+//		 Hx = Gx - GH;
+//	 }
+     double HN = std::sqrt(GH*GH - (Gy - Hy)*(Gy-Hy));
+     Hx = Gx - HN;
 	 //mot_pos[0] = Hx - H_0x; //X方向推杆
      double deltaX = -(Hx - H_0x); //x方向推杆变化值，还需要转换到电机的旋转变换值
      //std::cout << "Hx = " << Hx << std::endl;
