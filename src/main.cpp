@@ -28,11 +28,11 @@ int main(int argc, char *argv[])
 	if (cs.model().forwardKinematics()) THROW_FILE_LINE("forward failed"); //先算正解，得到末端位置
 
 	
-	auto& adams1 = dynamic_cast<aris::dynamic::AdamsSimulator&>(cs.model().simulatorPool().front());
+	//auto& adams1 = dynamic_cast<aris::dynamic::AdamsSimulator&>(cs.model().simulatorPool().front());
 	//adams.saveadams("c:\\users\\jpche\\desktop\\aaa\\hexapod_simulation.cmd"); //这个只是导入模型
 	
 
-	robot::HexDynamicForwardTest plan;
+	//robot::HexDynamicForwardTest plan;
 	//robot::HexDynamicBackTest plan;
 	//robot::HexDynamicRightTest plan;
 	//robot::HexDynamicLeftTest plan;
@@ -40,12 +40,12 @@ int main(int argc, char *argv[])
 	//robot::HexDynamicTurnLeftTest plan;
 	//robot::HexDynamicTetrapodTest plan;
 
-	adams1.simulate(plan, cs.model().simResultPool().front());
-	adams1.saveAdams("C:\\Users\\jpche\\Desktop\\aaa\\hexapod_simulation_with_control.cmd", cs.model().simResultPool().front()); //这个模型还含有运动参数
+	//adams1.simulate(plan, cs.model().simResultPool().front());
+	//adams1.saveAdams("C:\\Users\\jpche\\Desktop\\aaa\\hexapod_simulation_with_control.cmd", cs.model().simResultPool().front()); //这个模型还含有运动参数
 
-	
+	//
 
-	std::cout << "simulate finished" << std::endl;
+	//std::cout << "simulate finished" << std::endl;
 
 	//等待终端输入函数，本函数不能去掉，否则实时线程和主线程都会结束//
 	cs.init();

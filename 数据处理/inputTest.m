@@ -1,4 +1,4 @@
-angle = readmatrix('inputTraj.txt');
+angle = readmatrix('invInput.txt');
 t=0.001:0.001:size(angle(1:end-2,1))/1000; %1ms执行一次
 t1=0.001:0.001:size(angle(1:end-3,1))/1000; %1ms执行一次
 x1=angle(1:end-2,1);
@@ -101,6 +101,7 @@ dz6=diff(z6);
 % title('leg6')
 % suptitle('Motor input in R direction (Tripod)')
 
+figure(1);
 subplot(321);
 plot(t1,dx1,'r')
 title('leg1')
@@ -121,45 +122,47 @@ plot(t1,dx6,'r')
 title('leg6')
 suptitle('Motor velocity in X direction (Tripod)')
 
-% subplot(321);
-% plot(t1,dy1,'r')
-% title('leg1')
-% subplot(322);
-% plot(t1,dy2,'r')
-% title('leg2')
-% subplot(323);
-% plot(t1,dy3,'r')
-% title('leg3')
-% subplot(324);
-% plot(t1,dy4,'r')
-% title('leg4')
-% subplot(325);
-% plot(t1,dy5,'r')
-% title('leg5')
-% subplot(326);
-% plot(t1,dy6,'r')
-% title('leg6')
-% suptitle('Motor velocity in Y direction (Tripod)')
+figure(2);
+subplot(321);
+plot(t1,dy1,'r')
+title('leg1')
+subplot(322);
+plot(t1,dy2,'r')
+title('leg2')
+subplot(323);
+plot(t1,dy3,'r')
+title('leg3')
+subplot(324);
+plot(t1,dy4,'r')
+title('leg4')
+subplot(325);
+plot(t1,dy5,'r')
+title('leg5')
+subplot(326);
+plot(t1,dy6,'r')
+title('leg6')
+suptitle('Motor velocity in Y direction (Tripod)')
 
-% subplot(321);
-% plot(t1,dz1,'r')
-% title('leg1')
-% subplot(322);
-% plot(t1,dz2,'r')
-% title('leg2')
-% subplot(323);
-% plot(t1,dz3,'r')
-% title('leg3')
-% subplot(324);
-% plot(t1,dz4,'r')
-% title('leg4')
-% subplot(325);
-% plot(t1,dz5,'r')
-% title('leg5')
-% subplot(326);
-% plot(t1,dz6,'r')
-% title('leg6')
-% suptitle('Motor velocity in R direction (Tripod)')
+figure(3);
+subplot(321);
+plot(t1,dz1,'r')
+title('leg1')
+subplot(322);
+plot(t1,dz2,'r')
+title('leg2')
+subplot(323);
+plot(t1,dz3,'r')
+title('leg3')
+subplot(324);
+plot(t1,dz4,'r')
+title('leg4')
+subplot(325);
+plot(t1,dz5,'r')
+title('leg5')
+subplot(326);
+plot(t1,dz6,'r')
+title('leg6')
+suptitle('Motor velocity in R direction (Tripod)')
 
 
 

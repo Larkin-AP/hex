@@ -13,7 +13,7 @@
 #define GH  0.025
 #define AJ  0.0905
 #define LM  0.020
-#define NC  0.475
+#define EC  0.475
 #define BF  0.120
 //NC = CD + DE + EN
 //#define R   0.60477 //1腿末端到身体原点的平面投影距离，即末端旋转的半径R
@@ -24,8 +24,9 @@
 //#define H_0x 0.00914
 //#define B_0y 0.05336
 
+//这两个初始值是让输出在初始时刻为0测量出的值
 #define H_0x 0.007105
-#define B_0y 0.0447558
+#define B_0y 0.0447557
 
 
 //身体长宽高设置，单位m

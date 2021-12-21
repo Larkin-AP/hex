@@ -177,20 +177,7 @@ namespace robot
 	};
 
 
-	
-
-
-	class HexRead :public aris::core::CloneObject<HexRead, aris::plan::Plan>
-	{
-	public:
-		auto virtual prepareNrt()->void;
-		auto virtual executeRT()->int;
-
-		virtual ~HexRead();
-		explicit HexRead(const std::string& name = "HexRead");
-	private:
-		double turn_angle_;
-	};
+	//----------------以下为仿真区域------------------------------//
 	//前进
 	class HexDynamicForwardTest :public aris::core::CloneObject<HexDynamicForwardTest, aris::plan::Plan> {
 	public:

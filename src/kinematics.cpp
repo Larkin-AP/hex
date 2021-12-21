@@ -66,59 +66,63 @@ double PL6[16] =
  {
 	 //此处坐标原点在 转轴与底板地面的交点
 	 //mot_pos[2] = -atan2(ee_position[2], ee_position[0]); //竖直转动轴 ###此处暂时不加一个负号
-	 double theta0 = -atan2(ee_position[2], ee_position[0]);  //竖直转动轴转动的角度，还需要转换到电机轴上
+	 double theta0 = atan2(ee_position[2], ee_position[0]);  //竖直转动轴转动的角度，还需要转换到电机轴上
 	 mot_pos[2] = 50 * 28 / 19 * theta0;  //减速箱减速比50：1，带传动比 28：19
+	 //mot_pos[2] = theta0;  //减速箱减速比50：1，带传动比 28：19
 	 double x0 = sqrt(ee_position[2] * ee_position[2] + ee_position[0] * ee_position[0]); //反解所在平面的x值
 	 double y0 = ee_position[1]; //反解所在平面的y值
 
 	 double x = x0 - PA_X;
 	 double y = y0 + PA_Y;
 	 
-
-	 double AN = sqrt(x * x + y * y);
-	 double angle_NCA = (acos((NC * NC + AC * AC - AN * AN) / 2 / NC / AC));
-	 double angle_CAN = (acos((AC * AC + AN * AN - NC * NC) / 2 / AC / AN));
-	 double angle_CAG = PI - angle_NCA;
-	 double angle_NAG = angle_CAG - angle_CAN;
-	 double angle_NAJ = (atan(-x / y));
-	 double angle_GAJ = angle_NAJ - angle_NAG;
+	 
+	 double AE = sqrt(x * x + y * y);
+	 double angle_ECA = (acos((EC * EC + AC * AC - AE * AE) / 2 / EC / AC));
+	 double angle_CAE = (acos((AC * AC + AE * AE - EC * EC) / 2 / AC / AE));
+	 double angle_CAG = PI - angle_ECA;
+	 double angle_EAG = angle_CAG - angle_CAE;
+	 double angle_EAJ = (atan(-x / y));
+	 double angle_GAJ = angle_EAJ - angle_EAG;
 	 double Gx = AG * sin(angle_GAJ);
 	 double Gy = -AG * cos(angle_GAJ);
 	 double vector_AG1 = Gx;
 	 double vector_AG2 = Gy;
 	 double Hy = -AJ;
 	 double Hx = 0;
-	 if (Gy < Hy)
-	 {
-		 double HK = Hy - Gy;
-		 double angle_HGK = asin(HK / GH);
-		 double GK = GH * cos(angle_HGK);
-		 Hx = Gx - GK;
-	 }
-	 else if (Gy > Hy)
-	 {
-		 double GK = Gy - Hy;
-		 double angle_GHK = asin(GK / GH);
-		 double HK = GH * cos(angle_GHK);
-		 Hx = Gx - HK;
-	 }
-	 else
-	 {
-		 Hx = Gx - GH; 
-	 }
-	 //mot_pos[0] = Hx - H_0x; //X方向推杆
-	 double deltaX = Hx - H_0x; //x方向推杆变化值，还需要转换到电机的旋转变换值
+	 //if (Gy < Hy)
+	 //{
+		// double HK = Hy - Gy;
+		// double angle_HGK = asin(HK / GH);
+		// double GK = GH * cos(angle_HGK);
+		// Hx = Gx - GK;
+	 //}
+	 //else if (Gy > Hy)
+	 //{
+		// double GK = Gy - Hy;
+		// double angle_GHK = asin(GK / GH);
+		// double HK = GH * cos(angle_GHK);
+		// Hx = Gx - HK;
+	 //}
+	 //else
+	 //{
+		// Hx = Gx - GH; 
+	 //}
+	 double HN = std::sqrt(GH * GH - (Gy - Hy) * (Gy - Hy));
+	 Hx = Gx - HN;
+
+	 double deltaX =-( Hx - H_0x); //x方向推杆变化值，还需要转换到电机的旋转变换值
      //std::cout << "Hx = " << Hx << std::endl;
-	 mot_pos[0] = 26 / 16 * deltaX / 0.0025; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量
+	 mot_pos[0] = 26 / 16 * deltaX / 0.0025 * 2 * PI; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量  单位为弧度
+	 //mot_pos[0] = deltaX; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量
 
 	 
 
-	 double vector_AN1 = x;
-	 double vector_AN2 = y;
-	 double vector_CN1 = NC / AG * vector_AG1;
-	 double vector_CN2 = NC / AG * vector_AG2;
-	 double vector_AC1 = vector_AN1 - vector_CN1;
-	 double vector_AC2 = vector_AN2 - vector_CN2;
+	 double vector_AE1 = x;
+	 double vector_AE2 = y;
+	 double vector_CE1 = EC / AG * vector_AG1;
+	 double vector_CE2 = EC / AG * vector_AG2;
+	 double vector_AC1 = vector_AE1 - vector_CE1;
+	 double vector_AC2 = vector_AE2 - vector_CE2;
 	 double vector_GF1 = GF / AC * vector_AC1;
 	 double vector_GF2 = GF / AC * vector_AC2;
 	 double vector_AF1 = vector_AG1 + vector_GF1;
@@ -126,11 +130,11 @@ double PL6[16] =
 	 double FL = vector_AF1 - LM;
 	 double BL = sqrt(BF * BF - FL * FL);
 	 double By = vector_AF2 + BL;
-	 //mot_pos[1] = -(By - B_0y); //Y方向推杆  向下推动？ 我也不懂？
-	 double deltaY = -(By - B_0y); //Y方向推杆变化值，还需转换到电机上  向下推动？ 我也不懂？
-     //std::cout << "By = " << By <<std::endl;
-	 mot_pos[1] = 26 / 16 * deltaY / 0.0025; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量
-
+	 //mot_pos[1] = (By - B_0y); //Y方向推杆  向下推动？ 我也不懂？
+	 double deltaY = (By - B_0y); //Y方向推杆变化值，还需转换到电机上  向下推动？ 我也不懂？
+     /*std::cout << "By = " << By <<std::endl;*/
+	 mot_pos[1] = 26 / 16 * deltaY / 0.0025 * 2 * PI; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量  单位为弧度
+	 //mot_pos[1] = deltaY; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量
  }
 
  //在坐标变换后求解反解

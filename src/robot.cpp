@@ -837,72 +837,7 @@ HexForward::~HexForward() = default;
 
 
 
-
-            //----------------------------读取仿真数据--------------------------//
-            auto HexRead::prepareNrt()->void
-            {
-                turn_angle_ = doubleParam("angle");
-                for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
-            }
-            auto HexRead::executeRT()->int
-            {
-                if (count() == 1)this->master()->logFileRawName("eeTraj");
-                int ret = 0;
-                if (count() == 1)
-                {
-                    input_angle[0] = controller()->motionPool()[0].actualPos();
-                    input_angle[1] = controller()->motionPool()[1].actualPos();
-                    input_angle[2] = controller()->motionPool()[2].actualPos();
-                    input_angle[3] = controller()->motionPool()[3].actualPos();
-                    input_angle[4] = controller()->motionPool()[4].actualPos();
-                    input_angle[5] = controller()->motionPool()[5].actualPos();
-                    input_angle[6] = controller()->motionPool()[6].actualPos();
-                    input_angle[7] = controller()->motionPool()[7].actualPos();
-                    input_angle[8] = controller()->motionPool()[8].actualPos();
-                    input_angle[9] = controller()->motionPool()[9].actualPos();
-                    input_angle[10] = controller()->motionPool()[10].actualPos();
-                    input_angle[11] = controller()->motionPool()[11].actualPos();
-                }
-
-                TCurve s1(5, 2);
-                s1.getCurveParam();
-                EllipseTrajectory e1(0, 0, 0, s1);
-
-
-
-                //输出角度，用于仿真测试
-                {
-                    //输出电机角度
-                    for (int i = 0; i < 12; ++i)
-                    {
-                        lout() << input_angle[i] << "\t";
-                    }
-                    time_test += 0.001;
-                    lout() << time_test << "\t";
-
-                    //输出身体和足尖曲线
-                    for (int i = 0; i < 12; ++i)
-                    {
-                        lout() << file_current_leg[i] << "\t";
-                    }
-                    lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
-                }
-                //发送电机角度
-                for (int i = 0; i < 12; ++i)
-                {
-                    if (i == 2 || i == 5 || i == 8 || i == 11)
-                        controller()->motionPool()[i].setTargetPos(1.5 * input_angle[i]);
-                    else
-                        controller()->motionPool()[i].setTargetPos(input_angle[i]);
-                }
-                return ret;
-            }
-            HexRead::HexRead(const std::string& name)
-            {
-                aris::core::fromXmlString(command(),
-                    "<Command name=\"hexpod\"/>");
-            }
-            HexRead::~HexRead() = default;
+//----------------------------------以下为仿真区域------------------------------------------//
 
 
             //---------------------------cpp和Adams调试------------------------//
@@ -914,13 +849,11 @@ HexForward::~HexForward() = default;
         	}
         	auto HexDynamicForwardTest::executeRT()->int
         	{
-                //if (count() == 1) {
-                //    this->master()->logFileRawName("eeTraj");
-                //}
-                    
-          //      //if (count() == 1)this->master()->logFileRawName("inputTraj");
-          //      //if (count() == 1)this->master()->logFileRawName("invInput");
-          //      //if (count() == 1)this->master()->logFileRawName("numInput");
+                //如果要输出cmd文件，则不能创建储存文件，需要注释掉
+                //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+                //if (count() == 1)this->master()->logFileRawName("inputTraj");
+                if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
+                //if (count() == 1)this->master()->logFileRawName("numInput"); //数值解储存文件
 
                 //a为给机器人缓冲落地的时间设置
         		int ret = 0,a=500;
@@ -943,13 +876,14 @@ HexForward::~HexForward() = default;
 
 
                     if (model()->inverseKinematics()) std::cout << "inverse failed " << std::endl;
+                    
                     model()->setTime(0.001 * count());
                 }
                 else
                 {
-                    TCurve s1(1, 1);
+                    TCurve s1(2, 1);
                     s1.getCurveParam();
-                    EllipseTrajectory e1(0.1, 0.03, 0, s1);
+                    EllipseTrajectory e1(0.1, 0.05, 0, s1);
                     BodyPose body_s(0, 0, 0, s1);
 
 
@@ -962,21 +896,28 @@ HexForward::~HexForward() = default;
                     //lout() << std::endl;
 
                     //解析解计算得到的输入的角度
-                    //for (int i = 0; i < 18; ++i)
-                    //    lout() << input_angle[i] << "\t";
-                    //lout() << std::endl;
+                    for (int i = 0; i < 18; ++i)
+                        lout() << input_angle[i] << "\t";
+                    lout() << std::endl;
 
                     model()->setOutputPos(ee);
+                    //model()->setInputPos(input_angle);
+                    //if (model()->forwardKinematics()) {
+                    //    std::cout << "Forward failer!" << std::endl;
+                    //}
+
+                    
 
                     if (model()->inverseKinematics())
                     {
+                        
                         std::cout << "inverse failed!!!" << std::endl;
                         //for (int i = 0; i < 34; ++i) {
                         //    std::cout << ee[i] << std::endl;
                         //}
                         std::cout << "ret = " << ret << std::endl;
                     }
-                    //数值解计算得到的输入的角度
+                   // 数值解计算得到的输入的角度
                     //double input[18];
                     //model()->getInputPos(input);
                     //for (int i = 0; i < 18; ++i)
@@ -1070,7 +1011,7 @@ HexForward::~HexForward() = default;
                 double ee[34];
 
                 {
-                    TCurve s1(5, 2);
+                    TCurve s1(2, 1);
                     s1.getCurveParam();
                     EllipseTrajectory e1(0, 0.05, 0.1, s1);
                     BodyPose body_s(0, 0, 0, s1);
@@ -1080,7 +1021,7 @@ HexForward::~HexForward() = default;
                         aris::dynamic::s_vc(34, ee0, ee); //给ee设置ee0的初值
                     }
 
-                    ret = tripodPlan(3, count() - 1, &e1, input_angle);
+                    ret = tripodPlan(5, count() - 1, &e1, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
                     //for (int i = 16; i < 34; ++i)
@@ -1099,9 +1040,7 @@ HexForward::~HexForward() = default;
 
 
                     model()->setTime(0.001 * count());
-                    if (ret == 1)
-                        //    std::cout << s1.getTc() * 1000 << std::endl;
-                        if (ret == 0) std::cout << count() << std::endl;
+                    if (ret == 0) std::cout << count() << std::endl;
                     return ret;
                 }
             }
@@ -1157,9 +1096,7 @@ HexForward::~HexForward() = default;
 
 
                     model()->setTime(0.001 * count());
-                    if (ret == 1)
-                        //    std::cout << s1.getTc() * 1000 << std::endl;
-                        if (ret == 0) std::cout << count() << std::endl;
+                    if (ret == 0) std::cout << count() << std::endl;
                     return ret;
                 }
             }
@@ -1185,7 +1122,7 @@ HexForward::~HexForward() = default;
                 double ee[34];
 
                 {
-                    TCurve s1(5, 2);
+                    TCurve s1(2, 1);
                     s1.getCurveParam();
                     EllipseTrajectory e1(0, 0.05, 0, s1);
                     //一步转20°，转n步
@@ -1196,7 +1133,7 @@ HexForward::~HexForward() = default;
                         aris::dynamic::s_vc(34, ee0, ee); //给ee设置ee0的初值
                     }
 
-                    ret = turnPlanTripod(5, count() - 1, &e1, &body_s, input_angle);
+                    ret = turnPlanTripod(3, count() - 1, &e1, &body_s, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
                     //for (int i = 16; i < 34; ++i)
@@ -1215,8 +1152,7 @@ HexForward::~HexForward() = default;
 
 
                     model()->setTime(0.001 * count());
-                    if (ret == 1)
-                        //    std::cout << s1.getTc() * 1000 << std::endl;
+                    //std::cout << ret << std::endl;
                         if (ret == 0) std::cout << count() << std::endl;
                     return ret;
                 }
@@ -1271,9 +1207,7 @@ HexForward::~HexForward() = default;
 
 
                     model()->setTime(0.001 * count());
-                    if (ret == 1)
-                        //    std::cout << s1.getTc() * 1000 << std::endl;
-                        if (ret == 0) std::cout << count() << std::endl;
+                    if (ret == 0) std::cout << count() << std::endl;
                     return ret;
                 }
             }
@@ -1325,19 +1259,19 @@ HexForward::~HexForward() = default;
                     ret = tetrapodPlan(5, count() - 1 - a, &e1, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
-                    for (int i = 0; i < 34; ++i)
-                        lout() << ee[i] << "\t";
-                    lout() << std::endl;
+                    //for (int i = 0; i < 34; ++i)
+                    //    lout() << ee[i] << "\t";
+                    //lout() << std::endl;
 
-                    //model()->setOutputPos(ee);
-                    //if (model()->inverseKinematics())
-                    //{
-                    //    std::cout << "inverse failed!!!" << std::endl;
+                    model()->setOutputPos(ee);
+                    if (model()->inverseKinematics())
+                    {
+                        std::cout << "inverse failed!!!" << std::endl;
                     //    //for (int i = 0; i < 34; ++i) {
                     //    //    std::cout << ee[i] << std::endl;
                     //    //}
                     //    std::cout << "ret = " << ret << std::endl;
-                    //}
+                    }
 
 
                     model()->setTime(0.001 * count());
@@ -1369,15 +1303,15 @@ HexForward::~HexForward() = default;
                 //define joint pos //
                 //此处都是在初始位置下测量,坐标系朝向与Adams一致
                 const double leg1_pe[10][3]{
-                    {FRONTX,    0,          0}, //转轴与底板地面交点，第一个     转动副
+                    {FRONTX,    0,          0}, //转轴与底板底面交点， 即p点，第一个     转动副
                     {0.403,     0.06094,    0}, //y方向推杆，y方向为同步轮底面到原点距离 移动副  1
                     {0.403,     0.02136,    0}, //推杆与曲柄连接的交点    B点   2
                     {0.383,     -0.032,     0}, //A点         3
-                    {0.51325,   0.09644,    0}, //C点  4
-                    {0.54981,   0,          0}, //D点  5
-                    {0.54992,   -0.08428,   0}, //F点  6
+                    {0.51571,   0.0969,     0}, //C点  4
+                    {0.54959,   0,          0}, //D点  5
+                    {0.45992,   -0.08428,   0}, //F点  6
                     {0.41688,   -0.12609,   0}, //G点 注意G点应该有两个转动副   7
-                    {0.38641,   -0.12071,   0}, //H点   8
+                    {0.39214,   -0.12250,   0}, //H点   8
                     {0.321,     -0.1225,    0}, //X向推杆，距离为腿壳的表面圆心到中心的距离 移动副   9
 
                 };
@@ -1387,11 +1321,11 @@ HexForward::~HexForward() = default;
                     {0.2015,    0.0609,     -0.3490},
                     {0.2015,    0.0214,     -0.3490},
                     {0.1915,    -0.0320,    -0.3317},
-                    {0.2566,    0.0964,     -0.4445},
-                    {0.2749,    0,          -0.4761},
-                    {0.2750,    -0.0843,    -0.4762},
+                    {0.2579,    0.0969,     -0.4466},
+                    {0.2748,    0,          -0.4760},
+                    {0.2300,    -0.0843,    -0.3983},
                     {0.2084,    -0.1261,    -0.3610},
-                    {0.1932,    -0.1207,    -0.3346},
+                    {0.1961,    -0.1225,    -0.3396},
                     {0.1605,    -0.1225,    -0.2780}
                 };
 
@@ -1400,25 +1334,25 @@ HexForward::~HexForward() = default;
                     {-0.2015,    0.0609,     -0.3490},
                     {-0.2015,    0.0214,     -0.3490},
                     {-0.1915,    -0.0320,    -0.3317},
-                    {-0.2566,    0.0964,     -0.4445},
-                    {-0.2749,    0,          -0.4761},
-                    {-0.2750,    -0.0843,    -0.4762},
+                    {-0.2579,    0.0969,     -0.4466},
+                    {-0.2748,    0,          -0.4760},
+                    {-0.2300,    -0.0843,    -0.3983},
                     {-0.2084,    -0.1261,    -0.3610},
-                    {-0.1932,    -0.1207,    -0.3346},
+                    {-0.1961,    -0.1225,    -0.3396},
                     {-0.1605,    -0.1225,    -0.2780}
                 };
 
                 const double leg4_pe[10][3]{
-                    {-FRONTX,    0,          0}, //转轴与底板地面交点，第一个     转动副
+                    {-FRONTX,    0,          0}, //转轴与底板底面交点， 即p点，第一个     转动副
                     {-0.403,     0.06094,    0}, //y方向推杆，y方向为同步轮底面到原点距离 移动副  1
                     {-0.403,     0.02136,    0}, //推杆与曲柄连接的交点    B点   2
                     {-0.383,     -0.032,     0}, //A点         3
-                    {-0.51325,   0.09644,    0}, //C点  4
-                    {-0.54981,   0,          0}, //D点  5
-                    {-0.54992,   -0.08428,   0}, //F点  6
+                    {-0.51571,   0.0969,     0}, //C点  4
+                    {-0.54959,   0,          0}, //D点  5
+                    {-0.45992,   -0.08428,   0}, //F点  6
                     {-0.41688,   -0.12609,   0}, //G点 注意G点应该有两个转动副   7
-                    {-0.38641,   -0.12071,   0}, //H点   8
-                    {-0.321,     -0.1225,    0}, //X向推杆，距离为腿壳的里面圆心到中心的距离 移动副   9
+                    {-0.39214,   -0.12250,   0}, //H点   8
+                    {-0.321,     -0.1225,    0}, //X向推杆，距离为腿壳的表面圆心到中心的距离 移动副   9
 
                 };
 
@@ -1427,11 +1361,11 @@ HexForward::~HexForward() = default;
                     {-0.2015,    0.0609,     0.3490},
                     {-0.2015,    0.0214,     0.3490},
                     {-0.1915,    -0.0320,    0.3317},
-                    {-0.2566,    0.0964,     0.4445},
-                    {-0.2749,    0,          0.4761},
-                    {-0.2750,    -0.0843,    0.4762},
+                    {-0.2579,    0.0969,     0.4466},
+                    {-0.2748,    0,          0.4760},
+                    {-0.2300,    -0.0843,    0.3983},
                     {-0.2084,    -0.1261,    0.3610},
-                    {-0.1932,    -0.1207,    0.3346},
+                    {-0.1961,    -0.1225,    0.3396},
                     {-0.1605,    -0.1225,    0.2780}
                 };
 
@@ -1440,11 +1374,11 @@ HexForward::~HexForward() = default;
                     {0.2015,    0.0609,     0.3490},
                     {0.2015,    0.0214,     0.3490},
                     {0.1915,    -0.0320,    0.3317},
-                    {0.2566,    0.0964,     0.4445},
-                    {0.2749,    0,          0.4761},
-                    {0.2750,    -0.0843,    0.4762},
+                    {0.2579,    0.0969,     0.4466},
+                    {0.2748,    0,          0.4760},
+                    {0.2300,    -0.0843,    0.3983},
                     {0.2084,    -0.1261,    0.3610},
-                    {0.1932,    -0.1207,    0.3346},
+                    {0.1961,    -0.1225,    0.3396},
                     {0.1605,    -0.1225,    0.2780}
                 };
 
@@ -1462,17 +1396,17 @@ HexForward::~HexForward() = default;
 
                 //这部分物理参数在最新的模型中还暂未修改
                 //iv:  10x1 惯量矩阵向量[m, cx, cy, cz, Ixx, Iyy, Izz, Ixy, Ixz, Iyz]
-                const double body_iv[10]{ 10.618026,0,0,0,0.355566,0.355183,0.457806,0.000016,0.000036,0.000009 };
+                const double body_iv[10]{ 22.99,0,0,0,0.792149,0.792441,1.201794,0.000323,0.000351,0.000161 };
                 //每条腿都在自己坐标系下，故惯性张量一样，不作区分，单腿重4.208793kg  总重35.872758kg，还有部分组件没有考虑上，估计在50kg左右
-                const double leg_shell_iv[10]{2.792555,0,0,0,0.042320,0.008467,0.048366,0.011936,0.000001,0.000001};
-                const double y_screw_iv[10]{0.169451,0,0,0,0.000258,0.000042,0.000293,0.000052,0.00,0.00};
-                const double top_bar_iv[10]{0.195471,0,0,0,0.000350,0.000496,0.000576,0.000259,0.000001,0.000001};
-                const double longest_bar_iv[10]{0.533153,0,0,0,0.008985,0.001777,0.010588,0.003834,0.000001,0.000001};
-                const double bot_bar_iv[10]{0.113909,0,0,0,0.000182,0.000310,0.000471,0.000223,0.0,0.0};
-                const double crank_iv[10]{0.110257,0,0,0,0.000115,0.000070,0.000175,0.000070,0.0,0.0};
-                const double h_bar_iv[10]{0.118374,0,0,0,0.000110,0.000054,0.000093,0.000029,0.0,0.0};
-                const double shortest_bar_iv[10]{0.028151,0,0,0,0.000006,0.000009,0.000007,0,0,0};
-                const double x_screw_iv[10]{0.147472,0,0,0,0.000015,0.000187,0.000196,0.000011,0.0,0.0};
+                const double leg_shell_iv[10]{5.185207,0,0,0,0.067462,0.016493,0.080198,0.013121,0.000005,0.000012};
+                const double y_screw_iv[10]{0.138307,0,0,0,0.000286,0.000021,0.000302,0.000025,0.00,0.00};
+                const double top_bar_iv[10]{0.206814,0,0,0,0.000519,0.000433,0.000674,0.000315,0.0,0.000001};
+                const double longest_bar_iv[10]{0.566247,0,0,0,0.012401,0.000164,0.012383,0.000681,0.000000,0.000001};
+                const double bot_bar_iv[10]{0.123833,0,0,0,0.000292,0.000226,0.000495,0.000241,0.0,0.0};
+                const double crank_iv[10]{0.117524,0,0,0,0.000175,0.000033,0.000197,0.000043,0.0,0.0};
+                const double h_bar_iv[10]{0.118757,0,0,0,0.000123,0.000042,0.000094,0.000004,0.0,0.0};
+                const double shortest_bar_iv[10]{0.030776,0,0,0,0.000007,0.000009,0.000007,0,0,0};
+                const double x_screw_iv[10]{0.101926,0,0,0,0.000006,0.000232,0.000234,0.000006,0.0,0.0};
 
                 //add part //
                 auto& body = hex->partPool().add<aris::dynamic::Part>("BODY", body_iv);
