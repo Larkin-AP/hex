@@ -490,7 +490,7 @@ auto HexForward::executeRT()->int
 //        this->master()->logFileRawName("file_body");
     }
 
-    TCurve s1(4, 2);
+    TCurve s1(3, 2);
     s1.getCurveParam();
     EllipseTrajectory e1(x_step_, 0.05, 0, s1);
     BodyPose body_s(0, 0, 0, s1);
@@ -553,9 +553,9 @@ auto HexForward::executeRT()->int
 //        }
 
     //给电机发送信号
-//        for (int i = 0; i < 3; ++i) {
-//            controller()->motionPool()[i].setTargetPos(motor_angle[i]);
-//        }
+        for (int i = 0; i < 3; ++i) {
+            controller()->motionPool()[i].setTargetPos(motor_angle[i]);
+        }
         if (ret == 0){
             for (int i = 0; i < 3; ++i) {
                 mout() << controller()->motionPool()[i].actualPos() <<std::endl;
@@ -1850,12 +1850,12 @@ auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>
         };
         double max_acc[18]  //最大加速度
         {
-            3000,  3000,  3000,
-            3000,  3000,  3000,
-            3000,  3000,  3000,
-            3000,  3000,  3000,
-            3000,  3000,  3000,
-            3000,  3000,  3000
+            6000,  6000,  6000,
+            6000,  6000,  6000,
+            6000,  6000,  6000,
+            6000,  6000,  6000,
+            6000,  6000,  6000,
+            6000,  6000,  6000
         };
 
         int phy_id[18]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
