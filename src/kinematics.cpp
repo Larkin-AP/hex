@@ -89,30 +89,13 @@ double PL6[16] =
 	 double vector_AG2 = Gy;
 	 double Hy = -AJ;
 	 double Hx = 0;
-	 //if (Gy < Hy)
-	 //{
-		// double HK = Hy - Gy;
-		// double angle_HGK = asin(HK / GH);
-		// double GK = GH * cos(angle_HGK);
-		// Hx = Gx - GK;
-	 //}
-	 //else if (Gy > Hy)
-	 //{
-		// double GK = Gy - Hy;
-		// double angle_GHK = asin(GK / GH);
-		// double HK = GH * cos(angle_GHK);
-		// Hx = Gx - HK;
-	 //}
-	 //else
-	 //{
-		// Hx = Gx - GH; 
-	 //}
+
 	 double HN = std::sqrt(GH * GH - (Gy - Hy) * (Gy - Hy));
 	 Hx = Gx - HN;
 
 	 double deltaX =-( Hx - H_0x); //x方向推杆变化值，还需要转换到电机的旋转变换值
      //std::cout << "Hx = " << Hx << std::endl;
-	 mot_pos[0] = 26 / 16 * deltaX / 0.0025 * 2 * PI; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量  单位为弧度
+	 mot_pos[0] = 26.0 / 16.0 * deltaX / 0.0025 * 2.0 * PI; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量  单位为弧度
 	 //mot_pos[0] = deltaX; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量
 
 	 
@@ -130,10 +113,10 @@ double PL6[16] =
 	 double FL = vector_AF1 - LM;
 	 double BL = sqrt(BF * BF - FL * FL);
 	 double By = vector_AF2 + BL;
-	 //mot_pos[1] = (By - B_0y); //Y方向推杆  向下推动？ 我也不懂？
+	 
 	 double deltaY = (By - B_0y); //Y方向推杆变化值，还需转换到电机上  向下推动？ 我也不懂？
      /*std::cout << "By = " << By <<std::endl;*/
-	 mot_pos[1] = 26 / 16 * deltaY / 0.0025 * 2 * PI; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量  单位为弧度
+	 mot_pos[1] = 26.0 / 16.0 * deltaY / 0.0025 * 2.0 * PI; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量  单位为弧度
 	 //mot_pos[1] = deltaY; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量
  }
 

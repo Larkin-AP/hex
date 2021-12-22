@@ -483,23 +483,24 @@ auto HexForward::executeRT()->int
 {
     static double begin_angle[18] = { 0 };
     if (count() == 1) {
-        for (int i = 0; i < 3; ++i) {
-            begin_angle[i] = controller()->motionPool()[i].targetPos();
-//            mout() << begin_angle[0] << "\t" << begin_angle[1] << std::endl;
-        }
+//        for (int i = 0; i < 3; ++i) {
+//            begin_angle[i] = controller()->motionPool()[i].targetPos();
+////            mout() << begin_angle[0] << "\t" << begin_angle[1] << std::endl;
+//        }
         this->master()->logFileRawName("hex_forward");
     }
 
-    TCurve s1(2, 1);
+    TCurve s1(4, 2);
     s1.getCurveParam();
-    EllipseTrajectory e1(x_step_, 0.2, 0, s1);
+    EllipseTrajectory e1(x_step_, 0.05, 0, s1);
     BodyPose body_s(0, 0, 0, s1);
     int ret = 0;
     ret = tripodPlan(n_, count() - 1, &e1, input_angle);
+
     double motor_angle[18] ={0};
-    for(int i = 0; i < 3 ;++i){
-        motor_angle[i] = begin_angle[i] + input_angle[i];
-    }
+    //for(int i = 0; i < 3 ;++i){
+    //    motor_angle[i] = begin_angle[i] + input_angle[i];
+    //}
 
     //输出电机角度，用于仿真测试
     {
@@ -542,14 +543,14 @@ auto HexForward::executeRT()->int
 //        }
 
     //给电机发送信号
-        for (int i = 0; i < 3; ++i) {
-            controller()->motionPool()[i].setTargetPos(motor_angle[i]);
-        }
-        if (ret == 0){
-            for (int i = 0; i < 3; ++i) {
-                mout() << controller()->motionPool()[i].actualPos() <<std::endl;
-            }
-        }
+        //for (int i = 0; i < 3; ++i) {
+        //    controller()->motionPool()[i].setTargetPos(motor_angle[i]);
+        //}
+        //if (ret == 0){
+        //    for (int i = 0; i < 3; ++i) {
+        //        mout() << controller()->motionPool()[i].actualPos() <<std::endl;
+        //    }
+        //}
     return ret;
 }
 
@@ -559,8 +560,8 @@ HexForward::HexForward(const std::string& name)
     aris::core::fromXmlString(command(),
         "<Command name=\"forward\">"
         "<GroupParam>"
-        "<Param name=\"step_num\" default=\"5.0\" abbreviation=\"n\"/>"
-        "<Param name=\"x_step\" default=\"0.15\" abbreviation=\"x\"/>"
+        "<Param name=\"step_num\" default=\"2.0\" abbreviation=\"n\"/>"
+        "<Param name=\"x_step\" default=\"0.1\" abbreviation=\"x\"/>"
         "</GroupParam>"
         "</Command>");
 }
@@ -850,9 +851,9 @@ HexForward::~HexForward() = default;
         	auto HexDynamicForwardTest::executeRT()->int
         	{
                 //如果要输出cmd文件，则不能创建储存文件，需要注释掉
-                //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+                if (count() == 1)this->master()->logFileRawName("eeTraj");    
                 //if (count() == 1)this->master()->logFileRawName("inputTraj");
-                if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
+                //if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
                 //if (count() == 1)this->master()->logFileRawName("numInput"); //数值解储存文件
 
                 //a为给机器人缓冲落地的时间设置
@@ -881,24 +882,24 @@ HexForward::~HexForward() = default;
                 }
                 else
                 {
-                    TCurve s1(2, 1);
+                    TCurve s1(4, 2);
                     s1.getCurveParam();
                     EllipseTrajectory e1(0.1, 0.05, 0, s1);
                     BodyPose body_s(0, 0, 0, s1);
 
 
-                    ret = tripodPlan(5, count() - 1-a, &e1, input_angle);
+                    ret = tripodPlan(2, count() - 1-a, &e1, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
                     //末端位置
-                    //for (int i = 0; i < 34; ++i)
-                    //    lout() << ee[i] << "\t";
-                    //lout() << std::endl;
+                    for (int i = 0; i < 34; ++i)
+                        lout() << ee[i] << "\t";
+                    lout() << std::endl;
 
                     //解析解计算得到的输入的角度
-                    for (int i = 0; i < 18; ++i)
-                        lout() << input_angle[i] << "\t";
-                    lout() << std::endl;
+                    //for (int i = 0; i < 18; ++i)
+                    //    lout() << input_angle[i] << "\t";
+                    //lout() << std::endl;
 
                     model()->setOutputPos(ee);
                     //model()->setInputPos(input_angle);

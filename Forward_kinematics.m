@@ -1,6 +1,6 @@
 function [ee_position]=Forward_kinematics(mot_pos)
-clear all
-clc
+% clear all
+% clc
 % ee_position为末端坐标，此处要求传入末端在腿坐标系的位置，按顺序为xyz
 % mot_pos即为驱动杆件的坐标变化值,按顺序为x,y,Rotation
 %末端在初始位置的xyz为[256.8 -360.9 0]
@@ -36,11 +36,11 @@ H_0x = 7.105;%坐标值
 B_0y = 44.7557;
 PA_x=48;
 PA_y=32;
-mot_pos=[0,0,0]; %电机输入量，目前是二维，分别为xy方向电机输入量
+% mot_pos=[0,0,0]; %电机输入量，目前是二维，分别为xy方向电机输入量
 
 
 
-NC = CD + DE;
+
 deltaX=16*2.5/26/2/pi*mot_pos(1);
 deltaY=16*2.5/26/2/pi*mot_pos(2);
 Hx=H_0x+deltaX;
@@ -55,7 +55,7 @@ Gx=AG*sin(angle_GAJ);
 Gy=-AG*cos(angle_GAJ);
 BG=sqrt((Bx-Gx)^2+(By-Gy)^2);
 angle_BGT=atan2(By-Gy,Bx-Gx);
-angle_BGF=acos((BG^2+GF^2-BF^2)/(2*AH*AG));
+angle_BGF=acos((BG^2+GF^2-BF^2)/(2*BG*GF));
 angle_FGT=angle_BGT-angle_BGF;
 Fx=Gx+GF*cos(angle_FGT);
 Fy=Gy+GF*sin(angle_FGT);
