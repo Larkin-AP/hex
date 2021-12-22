@@ -474,13 +474,14 @@ auto HexForward::prepareNrt()->void
 {
     n_ = doubleParam("step_num");
     x_step_ = doubleParam("x_step");
-    for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE | aris::plan::Plan::NOT_CHECK_POS_CONTINUOUS;
+//    for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE | aris::plan::Plan::NOT_CHECK_POS_CONTINUOUS;
+    for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
 }
 auto HexForward::executeRT()->int
 {
     static double begin_angle[18] = { 0 };
     if (count() == 1) {
-        for (int i = 0; i < 18; ++i) {
+        for (int i = 0; i < 3; ++i) {
             begin_angle[i] = controller()->motionPool()[i].targetPos();
 //            mout() << begin_angle[0] << "\t" << begin_angle[1] << std::endl;
         }
@@ -489,22 +490,22 @@ auto HexForward::executeRT()->int
 //        this->master()->logFileRawName("file_body");
     }
 
-    TCurve s1(2, 1);
+    TCurve s1(4, 2);
     s1.getCurveParam();
     EllipseTrajectory e1(x_step_, 0.05, 0, s1);
     BodyPose body_s(0, 0, 0, s1);
     int ret = 0;
     ret = tripodPlan(n_, count() - 1, &e1, input_angle);
     double motor_angle[18] ={0};
-    for(int i = 0; i < 18 ;++i){
+    for(int i = 0; i < 3 ;++i){
         motor_angle[i] = begin_angle[i] + input_angle[i];
     }
     int16_t current[18] ={0};
-    for (int i =0 ; i< 18 ; i++){
-        this->ecController()->motionPool()[i].readPdo(0x6077,0x00,current[i]);
-        lout() << current[i] << "\t";
-    }
-    lout() << std::endl;
+//    for (int i =0 ; i< 3 ; i++){
+//        this->ecController()->motionPool()[i].readPdo(0x6077,0x00,current[i]);
+//        lout() << current[i] << "\t";
+//    }
+//    lout() << std::endl;
 
     //输出电机角度，用于仿真测试
     {
@@ -512,10 +513,10 @@ auto HexForward::executeRT()->int
 //            for (int i = 0; i < 18; ++i) {
 //                lout() << motor_angle[i] << "\t";
 //            }
-//        for (int i = 0; i < 18; ++i) {
-//            lout() << input_angle[i] << "\t";
-//        }
-//        lout() << std::endl;
+        for (int i = 0; i < 18; ++i) {
+            lout() << input_angle[i] << "\t";
+        }
+        lout() << std::endl;
         //log
 //        for (int i =0 ; i< 18; i++){
 //            lout() <<controller()->motionPool()[i].targetPos() << "\t";
@@ -552,11 +553,11 @@ auto HexForward::executeRT()->int
 //        }
 
     //给电机发送信号
-        for (int i = 0; i < 18; ++i) {
-            controller()->motionPool()[i].setTargetPos(motor_angle[i]);
-        }
+//        for (int i = 0; i < 3; ++i) {
+//            controller()->motionPool()[i].setTargetPos(motor_angle[i]);
+//        }
         if (ret == 0){
-            for (int i = 0; i < 18; ++i) {
+            for (int i = 0; i < 3; ++i) {
                 mout() << controller()->motionPool()[i].actualPos() <<std::endl;
             }
             mout() << count() << std::endl;
@@ -1787,7 +1788,7 @@ auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>
 {
     std::unique_ptr<aris::control::Controller> controller(new aris::control::EthercatController);
 
-    for (aris::Size i = 0; i < 18; ++i)
+    for (aris::Size i = 0; i < 3; ++i)
     {
 #ifdef ARIS_USE_ETHERCAT_SIMULATION
         double pos_offset[18]
@@ -1841,11 +1842,11 @@ auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>
         double max_vel[18]  //最大速度
         {
             100 * PI, 100 * PI,  100 * PI,
-            330 / 60 * 2 * PI, 330 / 60 * 2 * PI,  330 / 60 * 2 * PI,
-            330 / 60 * 2 * PI, 330 / 60 * 2 * PI,  330 / 60 * 2 * PI,
-            330 / 60 * 2 * PI, 330 / 60 * 2 * PI,  330 / 60 * 2 * PI,
-            330 / 60 * 2 * PI, 330 / 60 * 2 * PI,  330 / 60 * 2 * PI,
-            330 / 60 * 2 * PI, 330 / 60 * 2 * PI,  330 / 60 * 2 * PI
+            100 * PI, 100 * PI,  100 * PI,
+            100 * PI, 100 * PI,  100 * PI,
+            100 * PI, 100 * PI,  100 * PI,
+            100 * PI, 100 * PI,  100 * PI,
+            100 * PI, 100 * PI,  100 * PI
         };
         double max_acc[18]  //最大加速度
         {

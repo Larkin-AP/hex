@@ -46,13 +46,16 @@ int main(int argc, char *argv[])
 	
 
 	//std::cout << "simulate finished" << std::endl;
+    cs.interfacePool().add<aris::server::ProgramWebInterface>("","5866",aris::core::Socket::WEB);
+    cs.interfacePool().add<aris::server::HttpInterface>("","8001","/home/kaanh/client/build");
+
 
 	//等待终端输入函数，本函数不能去掉，否则实时线程和主线程都会结束//
 	cs.init();
 
 	//开启websocket/socket服务器//
 	cs.open();
-    cs.start();
+//    cs.start();
 	cs.runCmdLine();
 	return 0;
 }
