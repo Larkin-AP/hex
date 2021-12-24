@@ -1,6 +1,7 @@
 function [mot_pos3 ]=Inverse_kinematic(ee_position)
 % clear all
 % clc
+%注意：这里的反解结果是没问题的，但是q0,q1的符号与实际使用的相反%
 %重新修改 3d版本
 % ee_position为末端坐标，此处要求传入末端在腿坐标系的位置，按顺序为xyz
 % mot_pos即为驱动杆件的坐标变化值,按顺序为x,y,Rotation
@@ -62,7 +63,7 @@ HN = sqrt(GH^2- (Gy-Hy)^2);
 Hx = Gx - HN;
 
 deltaX = -(Hx - H_0x);
-q0 = 26.0/16.0*deltaX /2.5*2.0*pi;%X电机
+q0 =- 26.0/16.0*deltaX /2.5*2.0*pi;%X电机
 
 vector_AE = [x y];
 vector_CE = CE/AG*vector_AG;
@@ -74,7 +75,7 @@ FL = vector_AF(1)-LM;
 BL = sqrt(BF^2-FL^2);
 By = vector_AF(2)+BL;
 deltaY = (By-B_0y);
-q1 = 26.0 / 16.0 * deltaY / 2.5 * 2.0 * pi;
+q1 = -26.0 / 16.0 * deltaY / 2.5 * 2.0 * pi;
 mot_pos3=[q0,q1,q2];
 %此处打印的是腿坐标系下的位置
 %fprintf('the ee_position is (zxy)[%8.8f  %8.8f,  %8.8f],the mot_pos3 is (rxy)[%8.8f  %8.8f,  %8.8f]\n',ee_position(1),ee_position(2),ee_position(3),mot_pos3(1),mot_pos3(2),mot_pos3(3));
