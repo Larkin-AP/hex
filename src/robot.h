@@ -4,6 +4,7 @@
 #include<memory>
 #include<aris.hpp>
 
+
 namespace robot
 {
 	//pos_offset记录的是极限位置上电后，prepare位置对应的电机位置

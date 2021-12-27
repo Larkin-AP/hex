@@ -13,9 +13,12 @@ double init_pos_angle[18] = { 0 };
 
 //输出参数，模型曲线测试使用
 double file_current_leg[18] = { 0 };
-double file_current_body[16] = { 0 };
+double file_current_body[16] = { 0};
 double time_test = 0;
+
+
 extern double PI;
+
 
 using namespace aris::dynamic;
 using namespace aris::plan;
@@ -163,12 +166,12 @@ auto Home2::executeRT()->int
         controller()->motionPool()[i].setTargetPos(current_angle[i]);
         mout() << current_angle[i] << std::endl;
     }
-    if (count() % 10 == 0) {
-        for (int i = 0; i < 18; ++i) {
-            mout() << controller()->motionPool()[i].actualPos() << "\t";
-        }
-        mout() << std::endl;
-    }
+//    if (count() % 10 == 0) {
+//        for (int i = 0; i < 18; ++i) {
+//            mout() << controller()->motionPool()[i].actualPos() << "\t";
+//        }
+//        mout() << std::endl;
+//    }
     int ret = time - count();
     return ret;
 }
@@ -198,7 +201,7 @@ auto MoveJointAll::executeRT()->int
         }
     }
 
-
+//    TCurve s1(5,2);
     TCurve2 s1(5, 3, len_);
     s1.getCurveParam();
     //int time = s1.getTc() * 1000;
@@ -208,8 +211,11 @@ auto MoveJointAll::executeRT()->int
         angle[i] = begin_angle[i] +  dir_ * s1.getTCurve(count());
         controller()->motionPool()[i].setTargetPos(angle[i]);
     }
-    //int ret = time - count();
-    //std::cout << "ret = " << ret << std::endl;
+    int ret = s1.getTc()*1000 -count();
+    if (ret ==0){
+    mout() << "count() = " << count() << std::endl;
+    mout() << "Tc = " << s1.getTc() << std::endl;
+    }
     return s1.getTc()*1000 -count();
 }
 
@@ -481,23 +487,21 @@ auto HexForward::executeRT()->int
 {
     static double begin_angle[18] = { 0 };
     if (count() == 1) {
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 18; ++i) {
             begin_angle[i] = controller()->motionPool()[i].targetPos();
-//            mout() << begin_angle[0] << "\t" << begin_angle[1] << std::endl;
         }
         this->master()->logFileRawName("hex_forward");
-//        this->master()->logFileRawName("file_leg");
-//        this->master()->logFileRawName("file_body");
+
     }
 
-    TCurve s1(3, 2);
+    TCurve s1(4,2);
     s1.getCurveParam();
     EllipseTrajectory e1(x_step_, 0.05, 0, s1);
     BodyPose body_s(0, 0, 0, s1);
     int ret = 0;
     ret = tripodPlan(n_, count() - 1, &e1, input_angle);
     double motor_angle[18] ={0};
-    for(int i = 0; i < 3 ;++i){
+    for(int i = 0; i < 18 ;++i){
         motor_angle[i] = begin_angle[i] + input_angle[i];
     }
     int16_t current[18] ={0};
@@ -507,22 +511,28 @@ auto HexForward::executeRT()->int
 //    }
 //    lout() << std::endl;
 
-    //输出电机角度，用于仿真测试
+
+    //log部分，用于文件记录
     {
         //log
-//            for (int i = 0; i < 18; ++i) {
+//            for (int i = 9; i < 12; ++i) {
 //                lout() << motor_angle[i] << "\t";
 //            }
-        for (int i = 0; i < 18; ++i) {
-            lout() << input_angle[i] << "\t";
-        }
-        lout() << std::endl;
+//            lout() << std::endl;
+
         //log
 //        for (int i =0 ; i< 18; i++){
 //            lout() <<controller()->motionPool()[i].targetPos() << "\t";
 //        }
 //        lout() << std::endl;
 
+
+
+    }
+
+
+    //实时打印部分
+    {
         //打印
 //            for (int i = 0; i < 18; ++i) {
 //                mout() << motor_angle[i] << "\t";
@@ -530,8 +540,8 @@ auto HexForward::executeRT()->int
 //            for (int i = 0; i < 18; ++i) {
 //                mout() << input_angle[i+3] << "\t";
 //            }
+        //            mout() << std::endl;
 
-//            mout() << std::endl;
     }
 
     //输出身体和足端曲线，用于仿真测试
@@ -552,22 +562,44 @@ auto HexForward::executeRT()->int
 //            mout() << std::endl;
 //        }
 
+
     //给电机发送信号
-        for (int i = 0; i < 3; ++i) {
+        for (int i = 0; i < 18; ++i) {
             controller()->motionPool()[i].setTargetPos(motor_angle[i]);
         }
-        if (ret == 0){
-            for (int i = 0; i < 3; ++i) {
-                mout() << controller()->motionPool()[i].actualPos() <<std::endl;
+
+
+
+
+        //log and reset frame
+        if (ret ==0){
+            //记录当前身体相对于世界坐标系的位置
+            std::copy(body_position_start_point,body_position_start_point+16,body_related_world);
+
+            //让body_position_start_point and foot_position_start_point 回到初始位置
+            std::copy(body_position_related_body,body_position_related_body+16,body_position_start_point);
+            std::copy(foot_position_related_body,foot_position_related_body+18,foot_position_start_point);
+
+
+            //mout()
+            mout() << "mot_pos is as follow" << std::endl;
+            for(int i=0; i<18; ++i){
+                mout() << controller()->motionPool()[i].actualPos() << "\t";
+                if (i%3==2) mout() << std::endl;
             }
-            mout() << count() << std::endl;
-            for (int i =0 ; i<16; i++){
-                mout() << file_current_body[i] << "\t";
-                if (i%4 == 3){
-                    mout() << std::endl;
-                }
-            }
+            mout() << "Tc = " << s1.getTc() << std::endl;
+            mout() << "count =" << count() << std::endl;
+
+            //            mout() << "body_position_start_point[i]" <<std::endl;
+            //            for (int i =0 ; i<16; i++){
+            //                mout() << body_position_start_point[i] << "\t";
+            //                if (i%4 == 3){
+            //                    mout() << std::endl;
+            //                }
+            //            }
+
         }
+
     return ret;
 }
 
@@ -651,10 +683,35 @@ HexForward::~HexForward() = default;
         for (int i = 0; i < 18; ++i) {
             controller()->motionPool()[i].setTargetPos(motor_angle[i]);
         }
-        if (ret == 0){
-            for (int i = 0; i < 18; ++i) {
-                mout() << controller()->motionPool()[i].actualPos() <<std::endl;
+
+
+        //log and reset frame
+        if (ret ==0){
+            //记录当前身体相对于世界坐标系的位置
+            std::copy(body_position_start_point,body_position_start_point+16,body_related_world);
+
+            //让body_position_start_point and foot_position_start_point 回到初始位置
+            std::copy(body_position_related_body,body_position_related_body+16,body_position_start_point);
+            std::copy(foot_position_related_body,foot_position_related_body+18,foot_position_start_point);
+
+
+            //mout()
+            mout() << "mot_pos is as follow" << std::endl;
+            for(int i=0; i<18; ++i){
+                mout() << controller()->motionPool()[i].actualPos() << "\t";
+                if (i%3==2) mout() << std::endl;
             }
+            mout() << "Tc = " << s1.getTc() << std::endl;
+            mout() << "count =" << count() << std::endl;
+
+            //            mout() << "body_position_start_point[i]" <<std::endl;
+            //            for (int i =0 ; i<16; i++){
+            //                mout() << body_position_start_point[i] << "\t";
+            //                if (i%4 == 3){
+            //                    mout() << std::endl;
+            //                }
+            //            }
+
         }
         return ret;
     }
@@ -740,16 +797,35 @@ HexForward::~HexForward() = default;
             for (int i = 0; i < 18; ++i) {
                 controller()->motionPool()[i].setTargetPos(motor_angle[i]);
             }
-            if (ret == 0){
-                for (int i = 0; i < 18; ++i) {
-                    mout() << controller()->motionPool()[i].actualPos() <<std::endl;
+
+
+            //log and reset frame
+            if (ret ==0){
+                //记录当前身体相对于世界坐标系的位置
+                std::copy(body_position_start_point,body_position_start_point+16,body_related_world);
+
+                //让body_position_start_point and foot_position_start_point 回到初始位置
+                std::copy(body_position_related_body,body_position_related_body+16,body_position_start_point);
+                std::copy(foot_position_related_body,foot_position_related_body+18,foot_position_start_point);
+
+
+                //mout()
+                mout() << "mot_pos is as follow" << std::endl;
+                for(int i=0; i<18; ++i){
+                    mout() << controller()->motionPool()[i].actualPos() << "\t";
+                    if (i%3==2) mout() << std::endl;
                 }
-                for (int i =0 ; i<16; i++){
-                    mout() << file_current_body[i] << "\t";
-                    if (i%4 == 3){
-                        mout() << std::endl;
-                    }
-                }
+                mout() << "Tc = " << s1.getTc() << std::endl;
+                mout() << "count =" << count() << std::endl;
+
+                //            mout() << "body_position_start_point[i]" <<std::endl;
+                //            for (int i =0 ; i<16; i++){
+                //                mout() << body_position_start_point[i] << "\t";
+                //                if (i%4 == 3){
+                //                    mout() << std::endl;
+                //                }
+                //            }
+
             }
             return ret;
         }
@@ -837,10 +913,35 @@ HexForward::~HexForward() = default;
                 for (int i = 0; i < 18; ++i) {
                     controller()->motionPool()[i].setTargetPos(motor_angle[i]);
                 }
-                if (ret == 0){
-                    for (int i = 0; i < 18; ++i) {
-                        mout() << controller()->motionPool()[i].actualPos() <<std::endl;
+
+
+                //log and reset frame
+                if (ret ==0){
+                    //记录当前身体相对于世界坐标系的位置
+                    std::copy(body_position_start_point,body_position_start_point+16,body_related_world);
+
+                    //让body_position_start_point and foot_position_start_point 回到初始位置
+                    std::copy(body_position_related_body,body_position_related_body+16,body_position_start_point);
+                    std::copy(foot_position_related_body,foot_position_related_body+18,foot_position_start_point);
+
+
+                    //mout()
+                    mout() << "mot_pos is as follow" << std::endl;
+                    for(int i=0; i<18; ++i){
+                        mout() << controller()->motionPool()[i].actualPos() << "\t";
+                        if (i%3==2) mout() << std::endl;
                     }
+                    mout() << "Tc = " << s1.getTc() << std::endl;
+                    mout() << "count =" << count() << std::endl;
+
+                    //            mout() << "body_position_start_point[i]" <<std::endl;
+                    //            for (int i =0 ; i<16; i++){
+                    //                mout() << body_position_start_point[i] << "\t";
+                    //                if (i%4 == 3){
+                    //                    mout() << std::endl;
+                    //                }
+                    //            }
+
                 }
                 return ret;
             }
@@ -1788,7 +1889,7 @@ auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>
 {
     std::unique_ptr<aris::control::Controller> controller(new aris::control::EthercatController);
 
-    for (aris::Size i = 0; i < 3; ++i)
+    for (aris::Size i = 0; i < 18; ++i)
     {
 #ifdef ARIS_USE_ETHERCAT_SIMULATION
         double pos_offset[18]
@@ -1841,12 +1942,12 @@ auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>
         };
         double max_vel[18]  //最大速度
         {
-            100 * PI, 100 * PI,  100 * PI,
-            100 * PI, 100 * PI,  100 * PI,
-            100 * PI, 100 * PI,  100 * PI,
-            100 * PI, 100 * PI,  100 * PI,
-            100 * PI, 100 * PI,  100 * PI,
-            100 * PI, 100 * PI,  100 * PI
+            120 * PI, 120 * PI,  120 * PI,
+            120 * PI, 120 * PI,  120 * PI,
+            120 * PI, 120 * PI,  120 * PI,
+            120 * PI, 120 * PI,  120 * PI,
+            120 * PI, 120 * PI,  120 * PI,
+            120 * PI, 120 * PI,  120 * PI
         };
         double max_acc[18]  //最大加速度
         {

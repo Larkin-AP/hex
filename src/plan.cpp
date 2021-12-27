@@ -4,11 +4,20 @@
 #include"kinematics.h"
 #include"plan.h"
 
+
+
+
+
+
+
 using namespace std;
 
 extern double file_current_leg[18];
 extern double file_current_body[16];
+
 extern double PI;
+
+
 //-------------------------------------------------------梯形曲线----------------------------------------------------//
 
 //生成梯形曲线0->1
@@ -246,14 +255,19 @@ auto planLegTripod(int e_1, int n, double* current_leg, int count, EllipseTrajec
 			current_leg[16] = foot_position_start_point[16] + Ellipse->get_y();
 			current_leg[17] = foot_position_start_point[17] + Ellipse->get_z();
 		}
+
 	}
 
 	if (count + 1 == std::floor(Ellipse->get_s().getTc() * 1000)) //floor 函数 向下取整
 	{
+        //std::cout << "foot_position_start_point" << std::endl;
 		for (int i = 0; i < 18; ++i)
 		{
 			foot_position_start_point[i] = current_leg[i];
+
 		}
+
+
 	}
 }
 
@@ -340,10 +354,26 @@ auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajector
 	//每完成一个梯形曲线后记录一次脚的位置
 	if (count + 1 == floor(Ellipse->get_s().getTc() * 1000))
 	{
+
+        std::cout << "foot_position_start_point" << std::endl;
 		for (int i = 0; i < 18; ++i)
 		{
 			foot_position_start_point[i] = current_leg[i];
+
+            std::cout << foot_position_start_point[i] << "\t";
+            if (i%3==2) std::cout << std::endl;
+
+            std::cout << current_leg[i] << "\t";
+            if (i%3==2) std::cout << std::endl;
 		}
+        std::cout << "current_leg" << std::endl;
+
+        for (int i = 0; i < 18; ++i)
+        {
+
+            std::cout << current_leg[i] << "\t";
+            if (i%3==2) std::cout << std::endl;
+        }
 	}
 }
 
@@ -536,6 +566,7 @@ auto planBodyTransformTripod(int e_1, int n, double* current_body, int count, El
 		{
 			body_position_start_point[i] = current_body[i];
 		}
+
 	}
 }
 
@@ -568,7 +599,10 @@ auto planBodyTurn(int count, double* current_body, BodyPose* body_pose_param)->v
 	double tempy[16] = { 0 };
 
 	aris::dynamic::s_pm_dot_pm(body_position_start_point, R_y, tempy); //矩阵相乘。tempy得到的是旋转后的身体位姿
+
 	std::copy(tempy, tempy + 16, current_body); //copy（拷贝内容的首地址，尾地址，拷贝目的地的首地址） 得到current_body
+
+
 
 	//结束时保存变化之后的值
 	if (count + 1 == std::floor(body_pose_param->getTcurve().getTc() * 1000)) //std::floor 向下取整数
@@ -636,6 +670,9 @@ auto planBodyTransformTetrapod(int e_1, int n, double* current_body, int count, 
 //#注意：行走最大速度和加速度还没测试
 auto tripodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->int
 {
+//    if (count ==0){
+//        for (int i =0;i)
+//    }
 
 	int per_step_count = Ellipse->get_s().getTc() * 1000;
 
@@ -712,7 +749,7 @@ auto turnPlanTripod(int n, int count, EllipseTrajectory* Ellipse, BodyPose* body
 	int per_step_count = Ellipse->get_s().getTc() * 1000;
 
 	static double current_leg_in_ground[18] = { 0 };
-	static double current_body_in_ground[16] = { 0 };
+    static double current_body_in_ground[16] = { 0 };
 
 	//判断行走状态
 	int e_1 = count / per_step_count;  //判断当前在走哪一步,腿走一步,e1加1

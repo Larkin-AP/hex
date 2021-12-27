@@ -1,6 +1,13 @@
 #ifndef PLAN_H_
 #define PLAN_H_
 
+//log body position
+static double current_body_point[16] ={
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1
+};
 //T型曲线
 //产生0->1的梯形曲线，可根据输入的加速度和速度判断曲线是梯形还是三角形
 /*

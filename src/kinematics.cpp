@@ -2,6 +2,46 @@
 #include<iostream>
 #include<aris.hpp>
 
+
+//这两个相当于当前身体位姿想对于世界坐标系的矩阵，用于规划
+double foot_position_start_point[18] = {
+    EE1_X,		-HEIGHT,		0,
+    EE6_X,		-HEIGHT,		-EE6_Z,
+   -EE6_X,		-HEIGHT,		-EE6_Z,
+   -EE1_X,		-HEIGHT,		0,
+   -EE6_X,      -HEIGHT,		EE6_Z,
+    EE6_X,		-HEIGHT,		EE6_Z };
+
+double body_position_start_point[16]= {
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1 };
+
+//仅用于记录
+double body_related_world[16] = {
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1 };
+
+
+//这两个相当于当前身体位姿想对于自身坐标系的矩阵，那其实就是单位矩阵，用于执行完指令回零
+const double foot_position_related_body[18] = {
+    EE1_X,		-HEIGHT,		0,
+    EE6_X,		-HEIGHT,		-EE6_Z,
+   -EE6_X,		-HEIGHT,		-EE6_Z,
+   -EE1_X,		-HEIGHT,		0,
+   -EE6_X,      -HEIGHT,		EE6_Z,
+    EE6_X,		-HEIGHT,		EE6_Z };
+
+const double body_position_related_body[16]= {
+    1,0,0,0,
+    0,1,0,0,
+    0,0,1,0,
+    0,0,0,1 };
+
+
 double PI = aris::PI;
 
 //身体在腿坐标系下的变换矩阵，腿坐标系建立在转轴与底板地面的交点上，而非反解中的A点，此处需要注意
