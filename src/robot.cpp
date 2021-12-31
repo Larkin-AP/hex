@@ -86,66 +86,167 @@ TCurve2Test::TCurve2Test(const std::string& name)
 }
 TCurve2Test::~TCurve2Test() = default;
 
+//----------------------home  移动到极限位置并标记零位------------------//
+struct SetActiveMotor { std::vector<int> active_motor; };
 
+#define SELECT_MOTOR_STRING \
+"		<UniqueParam default=\"all\">"\
+"			<Param name=\"all\" abbreviation=\"a\"/>"\
+"			<Param name=\"motion_id\" abbreviation=\"m\" default=\"0\"/>"\
+"		</UniqueParam>"
 
+auto set_active_motor(const std::map<std::string_view, std::string_view> &cmd_params, aris::plan::Plan &plan, SetActiveMotor &param)->void{
 
-//---------------------home指令--------------------//
-//在极限位置上电
-auto Home::prepareNrt()->void
-{
-    for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
-}
-auto Home::executeRT()->int
-{
+    param.active_motor.clear();
+    param.active_motor.resize(plan.controller()->motionPool().size(), 0);
 
-    static double begin_angle[18];
-    if (count() == 1) {
-        for (int i = 0; i < 18; ++i) {
-            begin_angle[i] = controller()->motionPool()[i].targetPos(); //这里的位置应该是0
+    for (auto cmd_param : cmd_params){
+        if (cmd_param.first == "all"){
+            std::fill(param.active_motor.begin(), param.active_motor.end(), 1);
+        }
+        else if (cmd_param.first == "motion_id"){
+            param.active_motor.at(plan.int32Param(cmd_param.first)) = 1;
         }
     }
-
-    TCurve s1(1, 1);
-    s1.getCurveParam();
-    int time = s1.getTc() * 1000;
-
-
-    double current_angle[18] = { 0 };
-    for (int i = 0; i < 18; ++i) {
-        current_angle[i] = begin_angle[i] - (begin_angle[i] - home_offset[i]) * s1.getTCurve(count()) ; //电机的绝对值为pos_offset
-
-       mout() << begin_angle[0] << "\t" << current_angle[0] << std::endl;
-
-
-
-        controller()->motionPool()[i].setTargetPos(current_angle[i]);
-      //  mout() << current_angle[i] << std::endl;
-    }
-//    if (count() % 10 == 0) {
-//        for (int i = 0; i < 18; ++i) {
-//            mout() << controller()->motionPool()[i].actualPos() << "\t";
-//        }
-//        mout() << std::endl;
-//    }
-    int ret = time - count();
-    return ret;
 }
-auto Home::collectNrt()->void {}
-Home::Home(const std::string& name)
+
+class ARIS_API Home : public aris::core::CloneObject<Home, Plan>
 {
-    aris::core::fromXmlString(command(),
-        "<Command name=\"home\">"
-        "</Command>");
-}
-Home::~Home() = default;
+public:
+    auto virtual prepareNrt()->void override;
+    auto virtual executeRT()->int override;
 
-//---------------------home2指令--------------------//
+    virtual ~Home();
+    explicit Home(const std::string &name = "home_plan");
+    ARIS_DECLARE_BIG_FOUR(Home);
+
+private:
+    struct Imp;
+    aris::core::ImpPtr<Imp> imp_;
+};
+
+struct Home::Imp :public SetActiveMotor { std::int32_t limit_time; double offset;};
+    auto Home::prepareNrt()->void
+    {
+        set_active_motor(cmdParams(), *this, *imp_);
+        imp_->limit_time = std::stoi(std::string(cmdParams().at("limit_time")));
+
+        for (aris::Size i = 0; i<imp_->active_motor.size(); ++i)
+        {
+
+            if (imp_->active_motor[i])
+            {
+                std::int32_t offset =0;
+                std::int8_t method = std::stoi(std::string(cmdParams().at("method")));
+                if (method < 1 || method > 35) THROW_FILE_LINE("invalid home method");
+                if(i==0||i==3||i==6||i==9||i==12||i==15)
+                {
+                    imp_->offset = std::stod(std::string(cmdParams().at("offsetX")));
+                    offset = std::stoi(std::string(cmdParams().at("offsetX")));
+                }
+                else if(i==1||i==4||i==7||i==10||i==13||i==16)
+                {
+                    imp_->offset = std::stod(std::string(cmdParams().at("offsetY")));
+                    offset = std::stoi(std::string(cmdParams().at("offsetY")));
+                }
+
+                else if(i==2||i==5||i==8||i==11||i==14||i==17)
+                {
+                    imp_->offset = std::stod(std::string(cmdParams().at("offsetR")));
+                    offset = std::stoi(std::string(cmdParams().at("offsetR")));
+                }
+
+                std::uint32_t high_speed = std::stoi(std::string(cmdParams().at("high_speed")));
+                std::uint32_t low_speed = std::stoi(std::string(cmdParams().at("low_speed")));
+                std::uint32_t acc = std::stoi(std::string(cmdParams().at("acceleration")));
+
+                auto &cm = dynamic_cast<aris::control::EthercatMotor &>(controller()->motionPool()[i]);
+
+
+                cm.writeSdo(0x6098, 0x00, method);
+                std::int8_t method_read;
+                cm.readSdo(0x6098, 0x00, method_read);
+                if (method_read != method)THROW_FILE_LINE("home sdo write failed method");
+                cm.writeSdo(0x607C, 0x00, offset);
+                std::int32_t offset_read;
+                cm.readSdo(0x607C, 0x00, offset_read);
+                if (offset_read != offset)THROW_FILE_LINE("home sdo write failed offset");
+                cm.writeSdo(0x6099, 0x01, high_speed);
+                std::int32_t high_speed_read;
+                cm.readSdo(0x6099, 0x01, high_speed_read);
+                if (high_speed_read != high_speed)THROW_FILE_LINE("home sdo write failed high_speed");
+                cm.writeSdo(0x6099, 0x02, low_speed);
+                std::int32_t low_speed_read;
+                cm.readSdo(0x6099, 0x02, low_speed_read);
+                if (low_speed_read != low_speed)THROW_FILE_LINE("home sdo write failed low_speed");
+                cm.writeSdo(0x609A, 0x00, acc);
+                std::int32_t acc_read;
+                cm.readSdo(0x609A, 0x00, acc_read);
+                if (acc_read != acc)THROW_FILE_LINE("home sdo write failed acc");
+                this->motorOptions()[i] |= NOT_CHECK_MODE;
+            }
+
+
+        }
+
+        std::vector<std::pair<std::string, std::any>> ret_value;
+        ret() = ret_value;
+    }
+    auto Home::executeRT()->int
+    {
+        bool is_all_finished = true;
+        for (std::size_t i = 0; i < controller()->motionPool().size(); ++i)
+        {
+            if (imp_->active_motor[i])
+            {
+                auto &cm = controller()->motionPool().at(i);
+                auto ret = cm.home();
+                if (ret)
+                {
+                    is_all_finished = false;
+
+                    if (count() % 1000 == 0)
+                    {
+                        mout() << "Unhomed motor " << i << ", ret: " << ret << std::endl;
+                    }
+                }
+                else
+                {
+                    imp_->active_motor[i] = false;
+                }
+            }
+        }
+
+        return is_all_finished ? 0 : 1;
+    }
+    Home::~Home() = default;
+    Home::Home(const std::string &name) :imp_(new Imp)
+    {
+        aris::core::fromXmlString(command(),
+            "<Command name=\"hm\">"
+            "	<GroupParam>"
+            "		<Param name=\"method\" default=\"18\"/>"
+            "		<Param name=\"offsetY\" default=\"76394\"/>"
+            "		<Param name=\"offsetX\" default=\"44563\"/>"
+            "		<Param name=\"offsetR\" default=\"38651\"/>"
+            "		<Param name=\"high_speed\" default=\"10000\"/>"
+            "		<Param name=\"low_speed\" default=\"300\"/>"
+            "		<Param name=\"acceleration\" default=\"100000\"/>"
+            "		<Param name=\"limit_time\" default=\"5000\"/>"
+                    SELECT_MOTOR_STRING
+            "	</GroupParam>"
+            "</Command>");
+    }
+    ARIS_DEFINE_BIG_FOUR_CPP(Home);
+
+
+//---------------------Prepare--------------------//
 //在零位上电,home位置所有电机均为0
-auto Home2::prepareNrt()->void
+auto Prepare::prepareNrt()->void
 {
     for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
 }
-auto Home2::executeRT()->int
+auto Prepare::executeRT()->int
 {
 
     TCurve s1(1, 1);
@@ -175,14 +276,14 @@ auto Home2::executeRT()->int
     int ret = time - count();
     return ret;
 }
-auto Home2::collectNrt()->void {}
-Home2::Home2(const std::string& name)
+auto Prepare::collectNrt()->void {}
+Prepare::Prepare(const std::string& name)
 {
     aris::core::fromXmlString(command(),
-        "<Command name=\"home2\">"
+        "<Command name=\"pre\">"
         "</Command>");
 }
-Home2::~Home2() = default;
+Prepare::~Prepare() = default;
 
 
 //---------------------每个电机简单性能测试（梯形曲线移动）--------------------//
@@ -196,7 +297,7 @@ auto MoveJointAll::executeRT()->int
 {
     static double begin_angle[18] = { 0 };
     if (count() == 1) {
-        for (int i = 0; i < 18; ++i) {
+        for (int i = 0; i < 1; ++i) {
             begin_angle[i] = controller()->motionPool()[i].targetPos();
         }
     }
@@ -207,7 +308,7 @@ auto MoveJointAll::executeRT()->int
     //int time = s1.getTc() * 1000;
 
     double angle[18] = { 0 };
-    for (int i = 0; i < 18; ++i) {
+    for (int i = 0; i < 1; ++i) {
         angle[i] = begin_angle[i] +  dir_ * s1.getTCurve(count());
         controller()->motionPool()[i].setTargetPos(angle[i]);
     }
@@ -494,7 +595,7 @@ auto HexForward::executeRT()->int
 
     }
 
-    TCurve s1(4,2);
+    TCurve s1(2,1);
     s1.getCurveParam();
     EllipseTrajectory e1(x_step_, 0.05, 0, s1);
     BodyPose body_s(0, 0, 0, s1);
@@ -515,9 +616,9 @@ auto HexForward::executeRT()->int
     //log部分，用于文件记录
     {
         //log
-//            for (int i = 9; i < 12; ++i) {
-//                lout() << motor_angle[i] << "\t";
-//            }
+            for (int i = 3; i < 6; ++i) {
+                lout() << input_angle[i] << "\t";
+            }
 //            lout() << std::endl;
 
         //log
@@ -547,10 +648,10 @@ auto HexForward::executeRT()->int
     //输出身体和足端曲线，用于仿真测试
 
 //            //log
-//            for (int i = 0; i < 18; ++i) {
-//                lout() << file_current_leg[i] << "\t";
-//            }
-//            lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+            for (int i = 3; i < 6; ++i) {
+                lout() << file_current_leg[i] << "\t";
+            }
+            lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
 
 
 
@@ -1882,9 +1983,6 @@ HexForward::~HexForward() = default;
 
 
 
-
-
-
 auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>
 {
     std::unique_ptr<aris::control::Controller> controller(new aris::control::EthercatController);
@@ -2019,7 +2117,7 @@ auto createPlanHexapod()->std::unique_ptr<aris::plan::PlanRoot>
 
     plan_root->planPool().add<aris::plan::Enable>();
     plan_root->planPool().add<aris::plan::Disable>();
-    plan_root->planPool().add<aris::plan::Home>();
+    plan_root->planPool().add<Home>();
     plan_root->planPool().add<aris::plan::Mode>();
     plan_root->planPool().add<aris::plan::Show>();
     plan_root->planPool().add<aris::plan::Sleep>();
@@ -2042,7 +2140,7 @@ auto createPlanHexapod()->std::unique_ptr<aris::plan::PlanRoot>
     plan_root->planPool().add<ReadCurrentPos>();
     plan_root->planPool().add<TCurve2Test>();
     plan_root->planPool().add<Home>();
-    plan_root->planPool().add<Home2>();
+    plan_root->planPool().add<Prepare>();
     plan_root->planPool().add<MoveJointAll>();
     plan_root->planPool().add<MoveJointAllCos>();
     plan_root->planPool().add<HexForward>();

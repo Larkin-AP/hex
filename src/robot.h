@@ -52,20 +52,6 @@ namespace robot
 	};
 
 
-    //---------------------从任意位置移动到prepare位置,在极限位置上电----------------//
-    //极限位置上电，
-	class Home :public aris::core::CloneObject<Home, aris::plan::Plan>
-	{
-	public:
-		auto virtual prepareNrt()->void;
-		auto virtual executeRT()->int;
-		auto virtual collectNrt()->void;
-
-		virtual ~Home();
-		explicit Home(const std::string& name = "home");
-
-	};
-
     //---------------------test,single motor cos move----------------//
     //极限位置上电，
     class Test :public aris::core::CloneObject<Test, aris::plan::Plan>
@@ -82,15 +68,15 @@ namespace robot
 
     //---------------------从任意位置移动到prepare位置----------------//
     //在零位上电
-    class Home2 :public aris::core::CloneObject<Home2, aris::plan::Plan>
+    class Prepare :public aris::core::CloneObject<Prepare, aris::plan::Plan>
     {
     public:
         auto virtual prepareNrt()->void;
         auto virtual executeRT()->int;
         auto virtual collectNrt()->void;
 
-        virtual ~Home2();
-        explicit Home2(const std::string& name = "home2");
+        virtual ~Prepare();
+        explicit Prepare(const std::string& name = "prepare");
 
     };
 
