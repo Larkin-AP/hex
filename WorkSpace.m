@@ -1,51 +1,103 @@
-% l1=500;l2=600;l3=400;l4=191.03;
-% t1=linspace(-180,180,90)*pi/180;
-% t2=linspace(-90,90,90)*pi/180;
-% d3=linspace(-200,200,90);
-% t4=linspace(-180,180,90)*pi/180;
-% [T1,T2,D3]=ndgrid(t1,t2,d3);  % This will create matrices of 90x90x90 for each variable
-% xM = round((-cos(T1).*cos(T2)).*((D3 + l2 + l3 + l4)));
-% yM = round((-cos(T2).*sin(T1)).*(D3 + l2 + l3 + l4));
-% zM = round((l1 - l4.*sin(T2) - sin(T2).*(D3 + l2 + l3)));
-% % plot3(xM(:),yM(:),zM(:),'.') % This is the plot type you should be using.
-% % With a '.' as an argument to show only locations and not lines
-% % Also, (:) converts any matrix into a list of its elements in one single column.
-
-
 %draw workspace of hexapod
 clear all
 clc
 tic
-x = linspace(-10,10,10);
-y = linspace(-10,10,10);
-r = linspace(-10,10,10);
+
+%此处xyr对应的是电机值
+%x行程是0->78
+%y行程0->-76
+%r行程是正负50°转换为弧度 正负0.872
+%转换到电机值
+%x为0->m0=-delta*26*2*pi/16/2.5=78*26*2*pi/16/2.5=-318.5572
+%y为m1=-delta*26*2*pi/16/2.5=76*26*2*pi/16/2.5=310.3890
+%r为-theta->theta ,theta=m*50*28/19=0.872*50*28/19=64.2526
+x = linspace(0,-318.5572,20);
+y = linspace(0,310.3890,20);
+r = linspace(-64.2526,64.2526,20);
 nx = length(x);
 ny = length(y);
 nr = length(r);
-count = 0;
+
 Mmax=nx*ny*nr;
 ee = zeros(Mmax,3);
 M = 1;
+
 % [X,Y,R] = ndgrid(x,y,r);
 % xE = Forward_kinematics([X,Y,R]);
 % yE = Forward_kinematics([X,Y,R]);
 % rE = Forward_kinematics([X,Y,R]);
-for i=1:nx
-    for j=1:ny
-        for k=1:nr
+%此处坐标做点处理，因为不太会设置三维坐标系位置
+%竖直为y（上为正）水平为x（右为正）纵向为z（外为正）
+figure(1)
+for i=x
+    for j=y
+        for k=r
             ee(M,:) = Forward_kinematics([i,j,k]);
-            plot3(ee(M,1),ee(M,2),ee(M,3),'.')
-            hold on
-            M =M+1;
-            count =count +1
+            M =M+1
         end
     end
 end
+
+figure(1)
+scatter3(ee(:,3),ee(:,1),ee(:,2),3,'.','b');
+axis equal
+axis tight
+grid on;
+xlim([-400,400]);%Z
+ylim([0,600]);%X
+zlim([-600,0]);%Y
+set(gca,'XDir','reverse'); 
+set(gca,'YDir','reverse'); 
+xlabel('Z(mm)');
+ylabel('X(mm)');
+zlabel('Y(mm)');
+view([135,45]);
+
+
+figure(2)
+scatter3(ee(:,3),ee(:,1),ee(:,2),3,'.','b');
+axis equal
+axis tight
+grid on;
+xlim([-400,400]);%Z
+ylim([0,600]);%X
+zlim([-600,0]);%Y
+xlabel('Z(mm)');
+ylabel('X(mm)');
+zlabel('Y(mm)');
+view([0,-90]);
+
+
+figure(3)
+scatter3(ee(:,3),ee(:,1),ee(:,2),3,'.','b');
+axis equal
+axis tight
+grid on;
+xlim([-400,400]);%Z
+ylim([0,600]);%X
+zlim([-600,0]);%Y
+xlabel('Z(mm)');
+ylabel('X(mm)');
+zlabel('Y(mm)');
+view([0,90]);
+
+figure(4)
+scatter3(ee(:,3),ee(:,1),ee(:,2),3,'.','b');
+axis equal
+axis tight
+grid on;
+xlim([-400,400]);%Z
+ylim([0,600]);%X
+zlim([-600,0]);%Y
+set(gca,'XDir','reverse'); 
+set(gca,'YDir','reverse'); 
+xlabel('Z(mm)');
+ylabel('X(mm)');
+zlabel('Y(mm)');
+view([-135,-45]);
+
+
 toc
-% disp('Run time :' ,num2str(toc));
-% plot3(ee(1),ee(2),ee(3),'.')
-            
-% plot3(xE(:),yE(:),rE(:),'.') % This is the plot type you should be usin
 
 
 

@@ -28,24 +28,25 @@ int main(int argc, char *argv[])
 	if (cs.model().forwardKinematics()) THROW_FILE_LINE("forward failed"); //先算正解，得到末端位置
 
 	
-	//auto& adams1 = dynamic_cast<aris::dynamic::AdamsSimulator&>(cs.model().simulatorPool().front());
+	auto& adams1 = dynamic_cast<aris::dynamic::AdamsSimulator&>(cs.model().simulatorPool().front());
 	//adams.saveadams("c:\\users\\jpche\\desktop\\aaa\\hexapod_simulation.cmd"); //这个只是导入模型
 	
 
-	//robot::HexDynamicForwardTest plan;
-	//robot::HexDynamicBackTest plan;
-	//robot::HexDynamicRightTest plan;
-	//robot::HexDynamicLeftTest plan;
-	//robot::HexDynamicTurnRightTest plan;
-	//robot::HexDynamicTurnLeftTest plan;
-	//robot::HexDynamicTetrapodTest plan;
+	//这些仿真运动并没有调用运动学反解，是通过aris库计算得来的解，如果要验证自己的解，将两者对比即可，此处无需纠结
+	//robot::HexDynamicForwardTest plan;        //前进没有修改可以直接使用，运行时间4.5s
+	//robot::HexDynamicBackTest plan;           //后退没有修改可以直接使用，运行时间4.5s
+	//robot::HexDynamicRightTest plan;          //右移没有修改可以直接使用，运行时间4.5s
+	//robot::HexDynamicLeftTest plan;           //左移没有修改可以直接使用，运行时间4.5s
+	robot::HexDynamicTurnRightTest plan;		//右转没有修改可以直接使用，运行时间4.5s，但步长只能是0.1，目前看来就是正负号导致不能更改步长,但问题未找到
+	//robot::HexDynamicTurnLeftTest plan;		//左转没有修改可以直接使用，运行时间4.5s
+	//robot::HexDynamicTetrapodTest plan;		//四足步态没有修改可以直接使用，运行时间6.5s
 
-	//adams1.simulate(plan, cs.model().simResultPool().front());
-	//adams1.saveAdams("C:\\Users\\jpche\\Desktop\\aaa\\hexapod_simulation_with_control.cmd", cs.model().simResultPool().front()); //这个模型还含有运动参数
+	adams1.simulate(plan, cs.model().simResultPool().front());
+	adams1.saveAdams("C:\\Users\\jpche\\Desktop\\aaa\\hexapod_simulation_with_control.cmd", cs.model().simResultPool().front()); //这个模型还含有运动参数
 
 	//
 
-	//std::cout << "simulate finished" << std::endl;
+	std::cout << "simulate finished" << std::endl;
 
 	//等待终端输入函数，本函数不能去掉，否则实时线程和主线程都会结束//
 	cs.init();

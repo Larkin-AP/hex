@@ -312,7 +312,9 @@ auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajector
 		temp_xyz_in_ground[14] = foot_position_start_point[14] + Ellipse->get_z();
 
 		aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 0 * 3, current_leg + 0 * 3);
+		aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 2 * 3, current_leg + 2 * 3);
 		aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 4 * 3, current_leg + 4 * 3);
+
 
 	}
 	else if (e_1 % 2 == 1)  //奇数246迈腿135停

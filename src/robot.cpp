@@ -851,7 +851,7 @@ HexForward::~HexForward() = default;
         	auto HexDynamicForwardTest::executeRT()->int
         	{
                 //如果要输出cmd文件，则不能创建储存文件，需要注释掉
-                if (count() == 1)this->master()->logFileRawName("eeTraj");    
+                //if (count() == 1)this->master()->logFileRawName("eeTraj");    
                 //if (count() == 1)this->master()->logFileRawName("inputTraj");
                 //if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
                 //if (count() == 1)this->master()->logFileRawName("numInput"); //数值解储存文件
@@ -891,10 +891,10 @@ HexForward::~HexForward() = default;
                     ret = tripodPlan(2, count() - 1-a, &e1, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
-                    //末端位置
-                    for (int i = 0; i < 34; ++i)
-                        lout() << ee[i] << "\t";
-                    lout() << std::endl;
+                    ////末端位置
+                    //for (int i = 0; i < 34; ++i)
+                    //    lout() << ee[i] << "\t";
+                    //lout() << std::endl;
 
                     //解析解计算得到的输入的角度
                     //for (int i = 0; i < 18; ++i)
@@ -949,33 +949,53 @@ HexForward::~HexForward() = default;
             }
             auto HexDynamicBackTest::executeRT()->int
             {
-                // if (count() == 1)this->master()->logFileRawName("eeTraj");
-                int ret = 0;
+                //如果要输出cmd文件，则不能创建储存文件，需要注释掉
+                //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+
+                //a为给机器人缓冲落地的时间设置
+                int ret = 0, a = 500;
                 //末端为六个末端的三个坐标和身体的位姿矩阵 3*6+16=34
                 static double ee0[34];
                 double ee[34];
 
-
-                    TCurve s1(5, 2);
-                    s1.getCurveParam();
-                    EllipseTrajectory e1(-0.15,0.05, 0, s1);
-                    BodyPose body_s(0, 0, 0, s1);
+                //落地缓冲时间
+                if (count() <= a)
+                {
+                    ret = 1;
                     if (count() == 1)
                     {
-                        model()->getOutputPos(ee0);
-                        aris::dynamic::s_vc(34, ee0, ee); //给ee设置ee0的初值
+                        model()->getOutputPos(ee0); //初始位置
+                        //s_vc好像是把ee0的数放到ee中，放34个数
+                        aris::dynamic::s_vc(34, ee0, ee);
                     }
+                    aris::dynamic::s_vc(34, ee0, ee);
+                    model()->setOutputPos(ee);
 
-                    ret = tripodPlan(5, count() - 1, &e1, input_angle);
+
+                    if (model()->inverseKinematics()) std::cout << "inverse failed " << std::endl;
+
+                    model()->setTime(0.001 * count());
+                }
+                else
+                {
+                    TCurve s1(4, 2);
+                    s1.getCurveParam();
+                    EllipseTrajectory e1(-0.1, 0.05, 0, s1);
+                    BodyPose body_s(0, 0, 0, s1);
+
+
+                    ret = tripodPlan(2, count() - 1 - a, &e1, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
-                    //for (int i = 16; i < 34; ++i)
-                    //    lout() << ee[i] << "\t";
-                    //lout() << std::endl;
+
 
                     model()->setOutputPos(ee);
+
+
+
                     if (model()->inverseKinematics())
                     {
+
                         std::cout << "inverse failed!!!" << std::endl;
                         //for (int i = 0; i < 34; ++i) {
                         //    std::cout << ee[i] << std::endl;
@@ -983,13 +1003,13 @@ HexForward::~HexForward() = default;
                         std::cout << "ret = " << ret << std::endl;
                     }
 
-
                     model()->setTime(0.001 * count());
-                    if (ret == 1)
-                        //    std::cout << s1.getTc() * 1000 << std::endl;
-                        if (ret == 0) std::cout << count() << std::endl;
-                    return ret;
 
+
+                    if (ret == 0) std::cout << count() << std::endl;
+
+                }
+                return ret;
             }
             HexDynamicBackTest::HexDynamicBackTest(const std::string& name)
             {
@@ -1005,33 +1025,53 @@ HexForward::~HexForward() = default;
             }
             auto HexDynamicRightTest::executeRT()->int
             {
-                // if (count() == 1)this->master()->logFileRawName("eeTraj");
-                int ret = 0;
+                //如果要输出cmd文件，则不能创建储存文件，需要注释掉
+                //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+
+                //a为给机器人缓冲落地的时间设置
+                int ret = 0, a = 500;
                 //末端为六个末端的三个坐标和身体的位姿矩阵 3*6+16=34
                 static double ee0[34];
                 double ee[34];
 
+                //落地缓冲时间
+                if (count() <= a)
                 {
-                    TCurve s1(2, 1);
+                    ret = 1;
+                    if (count() == 1)
+                    {
+                        model()->getOutputPos(ee0); //初始位置
+                        //s_vc好像是把ee0的数放到ee中，放34个数
+                        aris::dynamic::s_vc(34, ee0, ee);
+                    }
+                    aris::dynamic::s_vc(34, ee0, ee);
+                    model()->setOutputPos(ee);
+
+
+                    if (model()->inverseKinematics()) std::cout << "inverse failed " << std::endl;
+
+                    model()->setTime(0.001 * count());
+                }
+                else
+                {
+                    TCurve s1(4, 2);
                     s1.getCurveParam();
                     EllipseTrajectory e1(0, 0.05, 0.1, s1);
                     BodyPose body_s(0, 0, 0, s1);
-                    if (count() == 1)
-                    {
-                        model()->getOutputPos(ee0);
-                        aris::dynamic::s_vc(34, ee0, ee); //给ee设置ee0的初值
-                    }
 
-                    ret = tripodPlan(5, count() - 1, &e1, input_angle);
+
+                    ret = tripodPlan(2, count() - 1 - a, &e1, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
-                    //for (int i = 16; i < 34; ++i)
-                    //    lout() << ee[i] << "\t";
-                    //lout() << std::endl;
+
 
                     model()->setOutputPos(ee);
+
+
+
                     if (model()->inverseKinematics())
                     {
+
                         std::cout << "inverse failed!!!" << std::endl;
                         //for (int i = 0; i < 34; ++i) {
                         //    std::cout << ee[i] << std::endl;
@@ -1039,11 +1079,14 @@ HexForward::~HexForward() = default;
                         std::cout << "ret = " << ret << std::endl;
                     }
 
-
                     model()->setTime(0.001 * count());
+
+
                     if (ret == 0) std::cout << count() << std::endl;
-                    return ret;
+
                 }
+                return ret;
+               
             }
             HexDynamicRightTest::HexDynamicRightTest(const std::string& name)
             {
@@ -1061,33 +1104,53 @@ HexForward::~HexForward() = default;
             }
             auto HexDynamicLeftTest::executeRT()->int
             {
-                // if (count() == 1)this->master()->logFileRawName("eeTraj");
-                int ret = 0;
+                //如果要输出cmd文件，则不能创建储存文件，需要注释掉
+               //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+
+               //a为给机器人缓冲落地的时间设置
+                int ret = 0, a = 500;
                 //末端为六个末端的三个坐标和身体的位姿矩阵 3*6+16=34
                 static double ee0[34];
                 double ee[34];
 
+                //落地缓冲时间
+                if (count() <= a)
                 {
-                    TCurve s1(5, 2);
+                    ret = 1;
+                    if (count() == 1)
+                    {
+                        model()->getOutputPos(ee0); //初始位置
+                        //s_vc好像是把ee0的数放到ee中，放34个数
+                        aris::dynamic::s_vc(34, ee0, ee);
+                    }
+                    aris::dynamic::s_vc(34, ee0, ee);
+                    model()->setOutputPos(ee);
+
+
+                    if (model()->inverseKinematics()) std::cout << "inverse failed " << std::endl;
+
+                    model()->setTime(0.001 * count());
+                }
+                else
+                {
+                    TCurve s1(4, 2);
                     s1.getCurveParam();
                     EllipseTrajectory e1(0, 0.05, -0.1, s1);
                     BodyPose body_s(0, 0, 0, s1);
-                    if (count() == 1)
-                    {
-                        model()->getOutputPos(ee0);
-                        aris::dynamic::s_vc(34, ee0, ee); //给ee设置ee0的初值
-                    }
 
-                    ret = tripodPlan(3, count() - 1, &e1, input_angle);
+
+                    ret = tripodPlan(2, count() - 1 - a, &e1, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
-                    //for (int i = 16; i < 34; ++i)
-                    //    lout() << ee[i] << "\t";
-                    //lout() << std::endl;
+
 
                     model()->setOutputPos(ee);
+
+
+
                     if (model()->inverseKinematics())
                     {
+
                         std::cout << "inverse failed!!!" << std::endl;
                         //for (int i = 0; i < 34; ++i) {
                         //    std::cout << ee[i] << std::endl;
@@ -1095,11 +1158,13 @@ HexForward::~HexForward() = default;
                         std::cout << "ret = " << ret << std::endl;
                     }
 
-
                     model()->setTime(0.001 * count());
+
+
                     if (ret == 0) std::cout << count() << std::endl;
-                    return ret;
+
                 }
+                return ret;
             }
             HexDynamicLeftTest::HexDynamicLeftTest(const std::string& name)
             {
@@ -1116,34 +1181,54 @@ HexForward::~HexForward() = default;
             }
             auto HexDynamicTurnRightTest::executeRT()->int
             {
-                // if (count() == 1)this->master()->logFileRawName("eeTraj");
-                int ret = 0;
+
+                //如果要输出cmd文件，则不能创建储存文件，需要注释掉
+                //if (count() == 1)this->master()->logFileRawName("motInput");    
+
+                //a为给机器人缓冲落地的时间设置
+                int ret = 0, a = 500;
                 //末端为六个末端的三个坐标和身体的位姿矩阵 3*6+16=34
                 static double ee0[34];
                 double ee[34];
 
+                //落地缓冲时间
+                if (count() <= a)
                 {
-                    TCurve s1(2, 1);
-                    s1.getCurveParam();
-                    EllipseTrajectory e1(0, 0.05, 0, s1);
-                    //一步转20°，转n步
-                    BodyPose body_s(0, -20, 0, s1);
+                    ret = 1;
                     if (count() == 1)
                     {
-                        model()->getOutputPos(ee0);
-                        aris::dynamic::s_vc(34, ee0, ee); //给ee设置ee0的初值
+                        model()->getOutputPos(ee0); //初始位置
+                        //s_vc好像是把ee0的数放到ee中，放34个数
+                        aris::dynamic::s_vc(34, ee0, ee);
                     }
+                    aris::dynamic::s_vc(34, ee0, ee);
+                    model()->setOutputPos(ee);
 
-                    ret = turnPlanTripod(3, count() - 1, &e1, &body_s, input_angle);
+
+                    if (model()->inverseKinematics()) std::cout << "inverse failed " << std::endl;
+
+                    model()->setTime(0.001 * count());
+                }
+                else
+                {
+                    TCurve s1(4, 2);
+                    s1.getCurveParam();
+                    EllipseTrajectory e1(0, 0.05, 0, s1);
+                    BodyPose body_s(0, -20, 0, s1); //目前看来就是这个正负号影响步长的改变
+
+
+                    ret = turnPlanTripod(2, count() - 1 - a, &e1, &body_s, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
-                    //for (int i = 16; i < 34; ++i)
-                    //    lout() << ee[i] << "\t";
-                    //lout() << std::endl;
+
 
                     model()->setOutputPos(ee);
+
+
+
                     if (model()->inverseKinematics())
                     {
+
                         std::cout << "inverse failed!!!" << std::endl;
                         //for (int i = 0; i < 34; ++i) {
                         //    std::cout << ee[i] << std::endl;
@@ -1151,12 +1236,21 @@ HexForward::~HexForward() = default;
                         std::cout << "ret = " << ret << std::endl;
                     }
 
+                    // 数值解计算得到的输入的角度
+                    //double input[18];
+                    //model()->getInputPos(input);
+                    //for (int i = 0; i < 18; ++i)
+                    //    lout() << input[i] << "\t";
+                    //lout() << std::endl;
 
                     model()->setTime(0.001 * count());
-                    //std::cout << ret << std::endl;
-                        if (ret == 0) std::cout << count() << std::endl;
-                    return ret;
+
+
+                    if (ret == 0) std::cout << count() << std::endl;
+
                 }
+                return ret;
+
             }
             HexDynamicTurnRightTest::HexDynamicTurnRightTest(const std::string& name)
             {
@@ -1172,33 +1266,53 @@ HexForward::~HexForward() = default;
             }
             auto HexDynamicTurnLeftTest::executeRT()->int
             {
-                // if (count() == 1)this->master()->logFileRawName("eeTraj");
-                int ret = 0;
+                //如果要输出cmd文件，则不能创建储存文件，需要注释掉
+                //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+
+                //a为给机器人缓冲落地的时间设置
+                int ret = 0, a = 500;
                 //末端为六个末端的三个坐标和身体的位姿矩阵 3*6+16=34
                 static double ee0[34];
                 double ee[34];
 
+                //落地缓冲时间
+                if (count() <= a)
                 {
-                    TCurve s1(5, 2);
+                    ret = 1;
+                    if (count() == 1)
+                    {
+                        model()->getOutputPos(ee0); //初始位置
+                        //s_vc好像是把ee0的数放到ee中，放34个数
+                        aris::dynamic::s_vc(34, ee0, ee);
+                    }
+                    aris::dynamic::s_vc(34, ee0, ee);
+                    model()->setOutputPos(ee);
+
+
+                    if (model()->inverseKinematics()) std::cout << "inverse failed " << std::endl;
+
+                    model()->setTime(0.001 * count());
+                }
+                else
+                {
+                    TCurve s1(4, 2);
                     s1.getCurveParam();
                     EllipseTrajectory e1(0, 0.05, 0, s1);
                     BodyPose body_s(0, 20, 0, s1);
-                    if (count() == 1)
-                    {
-                        model()->getOutputPos(ee0);
-                        aris::dynamic::s_vc(34, ee0, ee); //给ee设置ee0的初值
-                    }
 
-                    ret = turnPlanTripod(5, count() - 1, &e1, &body_s, input_angle);
+
+                    ret = turnPlanTripod(2, count() - 1 - a, &e1, &body_s, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
-                    //for (int i = 16; i < 34; ++i)
-                    //    lout() << ee[i] << "\t";
-                    //lout() << std::endl;
+
 
                     model()->setOutputPos(ee);
+
+
+
                     if (model()->inverseKinematics())
                     {
+
                         std::cout << "inverse failed!!!" << std::endl;
                         //for (int i = 0; i < 34; ++i) {
                         //    std::cout << ee[i] << std::endl;
@@ -1206,11 +1320,14 @@ HexForward::~HexForward() = default;
                         std::cout << "ret = " << ret << std::endl;
                     }
 
-
                     model()->setTime(0.001 * count());
+
+
                     if (ret == 0) std::cout << count() << std::endl;
-                    return ret;
+
                 }
+                return ret;
+
             }
             HexDynamicTurnLeftTest::HexDynamicTurnLeftTest(const std::string& name)
             {
@@ -1226,61 +1343,69 @@ HexForward::~HexForward() = default;
             }
             auto HexDynamicTetrapodTest::executeRT()->int
             {
-                 //if (count() == 1)this->master()->logFileRawName("eeTraj");
+
+                //如果要输出cmd文件，则不能创建储存文件，需要注释掉
+                //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+
+                //a为给机器人缓冲落地的时间设置
                 int ret = 0, a = 500;
                 //末端为六个末端的三个坐标和身体的位姿矩阵 3*6+16=34
                 static double ee0[34];
                 double ee[34];
+
+                //落地缓冲时间
                 if (count() <= a)
                 {
                     ret = 1;
                     if (count() == 1)
                     {
-                        model()->getOutputPos(ee0);
+                        model()->getOutputPos(ee0); //初始位置
+                        //s_vc好像是把ee0的数放到ee中，放34个数
                         aris::dynamic::s_vc(34, ee0, ee);
                     }
                     aris::dynamic::s_vc(34, ee0, ee);
                     model()->setOutputPos(ee);
+
+
                     if (model()->inverseKinematics()) std::cout << "inverse failed " << std::endl;
+
                     model()->setTime(0.001 * count());
                 }
                 else
                 {
-                    TCurve s1(1, 1);
+                    TCurve s1(4, 2);
                     s1.getCurveParam();
-                    EllipseTrajectory e1(0.15, 0.05, 0, s1);
+                    EllipseTrajectory e1(0.1, 0.05, 0, s1);
                     BodyPose body_s(0, 0, 0, s1);
 
-                    //if (count() == 1)
-                    //{
-                    //    model()->getOutputPos(ee0);
-                    //    aris::dynamic::s_vc(34, ee0, ee); //给ee设置ee0的初值
-                    //}
 
-                    ret = tetrapodPlan(5, count() - 1 - a, &e1, input_angle);
+                    ret = tetrapodPlan(2, count() - 1 - a, &e1, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
-                    //for (int i = 0; i < 34; ++i)
-                    //    lout() << ee[i] << "\t";
-                    //lout() << std::endl;
+
 
                     model()->setOutputPos(ee);
+
+
+
                     if (model()->inverseKinematics())
                     {
-                        std::cout << "inverse failed!!!" << std::endl;
-                    //    //for (int i = 0; i < 34; ++i) {
-                    //    //    std::cout << ee[i] << std::endl;
-                    //    //}
-                    //    std::cout << "ret = " << ret << std::endl;
-                    }
 
+                        std::cout << "inverse failed!!!" << std::endl;
+                        //for (int i = 0; i < 34; ++i) {
+                        //    std::cout << ee[i] << std::endl;
+                        //}
+                        std::cout << "ret = " << ret << std::endl;
+                    }
 
                     model()->setTime(0.001 * count());
 
 
                     if (ret == 0) std::cout << count() << std::endl;
-                    return ret;
+
                 }
+                return ret;
+
             }
             HexDynamicTetrapodTest::HexDynamicTetrapodTest(const std::string& name)
             {

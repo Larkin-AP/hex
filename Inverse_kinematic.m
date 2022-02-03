@@ -1,6 +1,6 @@
 function [mot_pos3 ]=Inverse_kinematic(ee_position)
-% clear all
-% clc
+clear all
+clc
 %注意：这里的反解结果是没问题的，但是q0,q1的符号与实际使用的相反%
 %重新修改 3d版本
 % ee_position为末端坐标，此处要求传入末端在腿坐标系的位置，按顺序为xyz
@@ -9,6 +9,7 @@ function [mot_pos3 ]=Inverse_kinematic(ee_position)
 %[304.77 -392.91 0]
 %竖直转动轴
 % ee_position = [347.49,-372.52,0];
+ee_position = [580.72,-329.75,0];
 theta0 = atan2(ee_position(3),ee_position(1));
 q2 = 50 * 28 / 19 * theta0; 
 x0=sqrt(ee_position(3)^2+ee_position(1)^2);
@@ -23,8 +24,8 @@ y=y0+PA_y;
 AC = 185;
 CD = 100;
 AG = 100;
-% DE = 392.27;
-DE=375;
+DE = 392.24;
+% DE=375;
 GF = 60;
 GH = 25;
 AJ = 90.5;
@@ -35,8 +36,11 @@ BF = 120;
 %H_0x = 40;
 %y向初始位置,即P点比A点在y方向高出的长度
 %B_0y = 58;
-H_0x = 7.105;%坐标值
-B_0y = 44.7557;
+% H_0x = 7.105;%坐标值
+% B_0y = 44.7557;
+%在x'Ay'坐标系下的坐标值
+H_0x = -20;
+B_0y = 69;
 
 
 
@@ -62,7 +66,7 @@ Hy =-AJ;
 HN = sqrt(GH^2- (Gy-Hy)^2);
 Hx = Gx - HN;
 
-deltaX = -(Hx - H_0x);
+deltaX = (Hx - H_0x);
 q0 =- 26.0/16.0*deltaX /2.5*2.0*pi;%X电机
 
 vector_AE = [x y];
