@@ -855,6 +855,8 @@ HexForward::~HexForward() = default;
                 //if (count() == 1)this->master()->logFileRawName("inputTraj");
                 //if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
                 //if (count() == 1)this->master()->logFileRawName("numInput"); //数值解储存文件
+                //if (count() == 1)this->master()->logFileRawName("leg1MotorPos"); //拿到第1条腿的电机位置
+                if (count() == 1)this->master()->logFileRawName("leg1EndTraj"); //拿到第1条腿的末端位置，要得到腿坐标系下的
 
                 //a为给机器人缓冲落地的时间设置
         		int ret = 0,a=500;
@@ -892,8 +894,16 @@ HexForward::~HexForward() = default;
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
                     ////末端位置
-                    //for (int i = 0; i < 34; ++i)
-                    //    lout() << ee[i] << "\t";
+                    for (int i = 0; i < 34; ++i)
+                        lout() << ee[i] << "\t";
+                    lout() << std::endl;
+
+
+                    //第一条腿电机的位置
+                    //double leg1MotorPos[3] = { 0 };
+                    //for (int i = 0; i < 3; ++i) {
+                    //    lout() << input_angle[i] << "\t";
+                    //}
                     //lout() << std::endl;
 
                     //解析解计算得到的输入的角度
@@ -907,7 +917,6 @@ HexForward::~HexForward() = default;
                     //    std::cout << "Forward failer!" << std::endl;
                     //}
 
-                    
 
                     if (model()->inverseKinematics())
                     {
@@ -1027,6 +1036,8 @@ HexForward::~HexForward() = default;
             {
                 //如果要输出cmd文件，则不能创建储存文件，需要注释掉
                 //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+                //if (count() == 1)this->master()->logFileRawName("leg1MotorPos"); //拿到第1条腿的电机位置
+                //if (count() == 1)this->master()->logFileRawName("leg1EndTraj"); //拿到第1条腿的末端位置，要得到腿坐标系下的
 
                 //a为给机器人缓冲落地的时间设置
                 int ret = 0, a = 500;
@@ -1066,6 +1077,18 @@ HexForward::~HexForward() = default;
 
 
                     model()->setOutputPos(ee);
+
+                    double leg1motorpos[3] = { 0 };
+                    for (int i = 0; i < 3; ++i) {
+                        lout() << input_angle[i] << "\t";
+                    }
+                    lout() << std::endl;
+
+
+                    //末端位置
+                    //for (int i = 0; i < 34; ++i)
+                    //    lout() << ee[i] << "\t";
+                    //lout() << std::endl;
 
 
 
@@ -1226,6 +1249,7 @@ HexForward::~HexForward() = default;
 
 
 
+
                     if (model()->inverseKinematics())
                     {
 
@@ -1345,7 +1369,7 @@ HexForward::~HexForward() = default;
             {
 
                 //如果要输出cmd文件，则不能创建储存文件，需要注释掉
-                //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+                if (count() == 1)this->master()->logFileRawName("eeTraj");    
 
                 //a为给机器人缓冲落地的时间设置
                 int ret = 0, a = 500;
@@ -1379,14 +1403,17 @@ HexForward::~HexForward() = default;
                     BodyPose body_s(0, 0, 0, s1);
 
 
-                    ret = tetrapodPlan(2, count() - 1 - a, &e1, input_angle);
+                    ret = tetrapodPlan(3, count() - 1 - a, &e1, input_angle);
                     aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
                     aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
 
 
                     model()->setOutputPos(ee);
 
-
+                    ////末端位置
+                    for (int i = 0; i < 34; ++i)
+                        lout() << ee[i] << "\t";
+                    lout() << std::endl;
 
                     if (model()->inverseKinematics())
                     {

@@ -15,17 +15,19 @@ function [ee_position]=Forward_kinematics(mot_pos)
 % y=y0+32;
 %末端位置x,y
 %固定杆长
-AC = 185;
-CD = 100;
-AG = 100;
-DE = 392.24;
+
+%单位为m
+AC = 0.185;
+CD = 0.100;
+AG = 0.100;
+DE = 0.39224;
 % DE=375;
-DG = 185;
-GF = 60;
-GH = 25;
-AJ = 90.5;
-LM = 20;
-BF = 120;
+DG = 0.185;
+GF = 0.060;
+GH = 0.025;
+AJ = 0.0905;
+LM = 0.020;
+BF = 0.120;
 CE=CD+DE;
 %固定角度
 %x向初始位置,注意这个初始位置 不是任一点 是H点
@@ -36,22 +38,22 @@ CE=CD+DE;
 % B_0y = 44.7557;
 
 %在x'Ay'坐标系下的坐标值
-H_0x = -20;
-B_0y = 69;
+H_0x = -0.020;
+B_0y = 0.069;
 
-PA_x=48;
-PA_y=32;
+PA_x=0.048;
+PA_y=0.032;
 % mot_pos=[-318.5526,310.3820,-64.2526]; %电机输入量，目前是二维，分别为xy方向电机输入量
 
 
 
 
-deltaX=-16*2.5/26/2/pi*mot_pos(1);
-deltaY=-16*2.5/26/2/pi*mot_pos(2);
+deltaX=-16*0.0025/26/2/pi*mot_pos(1);
+deltaY=-16*0.0025/26/2/pi*mot_pos(2);
 Hx=H_0x+deltaX;
 Hy=-AJ;
 Bx=LM;
-By=B_0y+deltaY;
+By=B_0y+deltaY; %这里注意是减delta
 AH=sqrt(Hx^2+Hy^2);
 angle_GAH=acos((AG^2+AH^2-GH^2)/(2*AH*AG));
 angle_HAJ=atan(Hx/Hy);

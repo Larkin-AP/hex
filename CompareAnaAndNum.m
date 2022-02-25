@@ -196,133 +196,177 @@ zn6=angle2(:,18);
 % suptitle('Comparison of numerical and analytical solutions')
 
 %仅画第一条腿的数值解和解析解，并放在一个图里
-subplot(6,3,1);
-plot(t2,xn1,'r',t2,x1,'--g');
-xlabel('time')
-ylabel('Num and Inv solution');
-legend('xn','x');
-title('Leg1 X Num and Inv Soution');
+% subplot(6,3,1);
+% plot(t2,xn1,'r',t2,x1,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('xn','x');
+% title('Leg1 X Num and Inv Soution');
+% 
+% subplot(6,3,2);
+% plot(t2,yn1,'r',t2,y1,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('yn','y');
+% title('Leg1 Y Num and Inv Soution');
+% 
+% subplot(6,3,3);
+% plot(t2,zn1,'r',t2,z1,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('zn','z');
+% title('Leg1 Z Num and Inv Soution');
+% 
+% %leg2
+% subplot(6,3,4);
+% plot(t2,xn2,'r',t2,x2,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('xn','x');
+% title('Leg2 X Num and Inv Soution');
+% 
+% subplot(6,3,5);
+% plot(t2,yn2,'r',t2,y2,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('yn','y');
+% title('Leg2 Y Num and Inv Soution');
+% 
+% subplot(6,3,6);
+% plot(t2,zn2,'r',t2,z2,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('zn','z');
+% title('Leg2 Z Num and Inv Soution');
+% 
+% %leg3
+% subplot(6,3,7);
+% plot(t2,xn3,'r',t2,x3,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('xn','x');
+% title('Leg3 X Num and Inv Soution');
+% 
+% subplot(6,3,8);
+% plot(t2,yn3,'r',t2,y3,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('yn','y');
+% title('Leg3 Y Num and Inv Soution');
+% 
+% subplot(6,3,9);
+% plot(t2,zn3,'r',t2,z3,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('zn','z');
+% title('Leg3 Z Num and Inv Soution');
+% 
+% %leg4
+% subplot(6,3,10);
+% plot(t2,xn4,'r',t2,x4,'--g');
+% xlabel('time') 
+% ylabel('Num and Inv solution');
+% legend('xn','x');
+% title('Leg4 X Num and Inv Soution');
+% 
+% subplot(6,3,11);
+% plot(t2,yn4,'r',t2,y4,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('yn','y');
+% title('Leg4 Y Num and Inv Soution');
+% 
+% subplot(6,3,12);
+% plot(t2,zn4,'r',t2,z4,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('zn','z');
+% title('Leg4 Z Num and Inv Soution');
+% 
+% %leg5
+% subplot(6,3,13);
+% plot(t2,xn5,'r',t2,x5,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('xn','x');
+% title('Leg5 X Num and Inv Soution');
+% 
+% subplot(6,3,14);
+% plot(t2,yn5,'r',t2,y5,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('yn','y');
+% title('Leg5 Y Num and Inv Soution');
+% 
+% subplot(6,3,15);
+% plot(t2,zn5,'r',t2,z5,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('zn','z');
+% title('Leg5 Z Num and Inv Soution');
+% 
+% %leg6
+% subplot(6,3,16);
+% plot(t2,xn6,'r',t2,x6,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('xn','x');
+% title('Leg6 X Num and Inv Soution');
+% 
+% subplot(6,3,17);
+% plot(t2,yn6,'r',t2,y6,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('yn','y');
+% title('Leg6 Y Num and Inv Soution');
+% 
+% subplot(6,3,18);
+% plot(t2,zn6,'r',t2,z6,'--g');
+% xlabel('time')
+% ylabel('Num and Inv solution');
+% legend('zn','z');
+% title('Leg6 Z Num and Inv Soution');
 
-subplot(6,3,2);
-plot(t2,yn1,'r',t2,y1,'--g');
+%% 获取数值解和解析解符号是否一致
+%仅取第二条腿的的三个方向，放在不同的图，共6张图
+subplot(2,3,1);
+plot(t,x2,'r');
 xlabel('time')
-ylabel('Num and Inv solution');
-legend('yn','y');
-title('Leg1 Y Num and Inv Soution');
+ylabel('Inv solution');
+legend('InvX1');
+title('InvX1');
 
-subplot(6,3,3);
-plot(t2,zn1,'r',t2,z1,'--g');
+subplot(2,3,2);
+plot(t,y2,'r');
 xlabel('time')
-ylabel('Num and Inv solution');
-legend('zn','z');
-title('Leg1 Z Num and Inv Soution');
+ylabel('Inv solution');
+legend('InvY1');
+title('InvY1');
 
-%leg2
-subplot(6,3,4);
-plot(t2,xn2,'r',t2,x2,'--g');
+subplot(2,3,3);
+plot(t,z2,'r');
 xlabel('time')
-ylabel('Num and Inv solution');
-legend('xn','x');
-title('Leg2 X Num and Inv Soution');
+ylabel('Inv solution');
+legend('InvZ1');
+title('InvZ1');
 
-subplot(6,3,5);
-plot(t2,yn2,'r',t2,y2,'--g');
+subplot(2,3,4);
+plot(t2,xn2,'r');
 xlabel('time')
-ylabel('Num and Inv solution');
-legend('yn','y');
-title('Leg2 Y Num and Inv Soution');
+ylabel('Num solution');
+legend('NumX1');
+title('NumX1');
 
-subplot(6,3,6);
-plot(t2,zn2,'r',t2,z2,'--g');
+subplot(2,3,5);
+plot(t2,yn2,'r');
 xlabel('time')
-ylabel('Num and Inv solution');
-legend('zn','z');
-title('Leg2 Z Num and Inv Soution');
+ylabel('Num solution');
+legend('NumY1');
+title('NumY1');
 
-%leg3
-subplot(6,3,7);
-plot(t2,xn3,'r',t2,x3,'--g');
+subplot(2,3,6);
+plot(t2,zn2,'r');
 xlabel('time')
-ylabel('Num and Inv solution');
-legend('xn','x');
-title('Leg3 X Num and Inv Soution');
-
-subplot(6,3,8);
-plot(t2,yn3,'r',t2,y3,'--g');
-xlabel('time')
-ylabel('Num and Inv solution');
-legend('yn','y');
-title('Leg3 Y Num and Inv Soution');
-
-subplot(6,3,9);
-plot(t2,zn3,'r',t2,z3,'--g');
-xlabel('time')
-ylabel('Num and Inv solution');
-legend('zn','z');
-title('Leg3 Z Num and Inv Soution');
-
-%leg4
-subplot(6,3,10);
-plot(t2,xn4,'r',t2,x4,'--g');
-xlabel('time') 
-ylabel('Num and Inv solution');
-legend('xn','x');
-title('Leg4 X Num and Inv Soution');
-
-subplot(6,3,11);
-plot(t2,yn4,'r',t2,y4,'--g');
-xlabel('time')
-ylabel('Num and Inv solution');
-legend('yn','y');
-title('Leg4 Y Num and Inv Soution');
-
-subplot(6,3,12);
-plot(t2,zn4,'r',t2,z4,'--g');
-xlabel('time')
-ylabel('Num and Inv solution');
-legend('zn','z');
-title('Leg4 Z Num and Inv Soution');
-
-%leg5
-subplot(6,3,13);
-plot(t2,xn5,'r',t2,x5,'--g');
-xlabel('time')
-ylabel('Num and Inv solution');
-legend('xn','x');
-title('Leg5 X Num and Inv Soution');
-
-subplot(6,3,14);
-plot(t2,yn5,'r',t2,y5,'--g');
-xlabel('time')
-ylabel('Num and Inv solution');
-legend('yn','y');
-title('Leg5 Y Num and Inv Soution');
-
-subplot(6,3,15);
-plot(t2,zn5,'r',t2,z5,'--g');
-xlabel('time')
-ylabel('Num and Inv solution');
-legend('zn','z');
-title('Leg5 Z Num and Inv Soution');
-
-%leg6
-subplot(6,3,16);
-plot(t2,xn6,'r',t2,x6,'--g');
-xlabel('time')
-ylabel('Num and Inv solution');
-legend('xn','x');
-title('Leg6 X Num and Inv Soution');
-
-subplot(6,3,17);
-plot(t2,yn6,'r',t2,y6,'--g');
-xlabel('time')
-ylabel('Num and Inv solution');
-legend('yn','y');
-title('Leg6 Y Num and Inv Soution');
-
-subplot(6,3,18);
-plot(t2,zn6,'r',t2,z6,'--g');
-xlabel('time')
-ylabel('Num and Inv solution');
-legend('zn','z');
-title('Leg6 Z Num and Inv Soution');
+ylabel('Num solution');
+legend('NumZ1');
+title('NumZ1');
