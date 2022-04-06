@@ -16,12 +16,13 @@ function [ee_position]=Forward_kinematics(mot_pos)
 %末端位置x,y
 %固定杆长
 
+
 %单位为m
 AC = 0.185;
 CD = 0.100;
 AG = 0.100;
-DE = 0.39224;
-% DE=375;
+% DE = 0.39224;
+DE=0.375;
 DG = 0.185;
 GF = 0.060;
 GH = 0.025;
@@ -41,6 +42,7 @@ CE=CD+DE;
 H_0x = -0.020;
 B_0y = 0.069;
 
+
 PA_x=0.048;
 PA_y=0.032;
 % mot_pos=[-318.5526,310.3820,-64.2526]; %电机输入量，目前是二维，分别为xy方向电机输入量
@@ -49,11 +51,11 @@ PA_y=0.032;
 
 
 deltaX=-16*0.0025/26/2/pi*mot_pos(1);
-deltaY=-16*0.0025/26/2/pi*mot_pos(2);
+deltaY=16*0.0025/26/2/pi*mot_pos(2);
 Hx=H_0x+deltaX;
 Hy=-AJ;
 Bx=LM;
-By=B_0y+deltaY; %这里注意是减delta
+By=B_0y+deltaY; 
 AH=sqrt(Hx^2+Hy^2);
 angle_GAH=acos((AG^2+AH^2-GH^2)/(2*AH*AG));
 angle_HAJ=atan(Hx/Hy);

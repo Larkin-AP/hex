@@ -32,36 +32,38 @@ clc
 % dif = [dif_relx(100),dif_rely(100),dif_relz(100)]
 
 %% 读取数据
-% motor = readmatrix('leg1MotorPos.txt');%电机位置单位为rad，采样频率为1000Hz
-% q0=motor(1:end-1,1);
-% q1=motor(1:end-1,2);
-% q2=motor(1:end-1,3);
-% 
-% %速度要转换单位
-% dq0=motor(2:end,1)-motor(1:end-1,1);
-% dq1=motor(2:end,2)-motor(1:end-1,2);
-% dq2=motor(2:end,3)-motor(1:end-1,3);
-% dq0=dq0*1000;  %速度单位为rad/s
-% dq1=dq1*1000;
-% dq2=dq2*1000;
-% 
-% 
-% endTraj=readmatrix('leg1EndTraj.txt'); %这些是世界坐标系下的坐标，最终要得到腿坐标系下末端的速度，故需转换坐标系  单位m
-% ee_in_ground = endTraj(1:end,17:19);
-% ground_P_body = endTraj(1:end,1:16);
-% ee=zeros(size(ee_in_ground,1),3);
-% %先得到腿坐标系下的末端坐标
-% for i=1:size(ee_in_ground,1)
-%     ee(i,:)=coordiTrans(ee_in_ground(i,:),ground_P_body(i,:));
-% end
-% 
-% % 计算末端速度   单位m/s
-% Vx=(ee(2:end,1)-ee(1:end-1,1))*1000;
-% Vy=(ee(2:end,2)-ee(1:end-1,2))*1000;
-% Vz=(ee(2:end,3)-ee(1:end-1,3))*1000;
+motor = readmatrix('leg1MotorPos1.txt');%电机位置单位为rad，采样频率为1000Hz
+q0=motor(2:end,1);
+q1=motor(2:end,2);
+q2=motor(2:end,3);
+
+%速度要转换单位
+dq0=motor(2:end,1)-motor(1:end-1,1);
+dq1=motor(2:end,2)-motor(1:end-1,2);
+dq2=motor(2:end,3)-motor(1:end-1,3);
+dq0=dq0*1000;  %速度单位为rad/s
+dq1=dq1*1000;
+dq2=dq2*1000;
+
+
+endTraj=readmatrix('leg1EndTraj1.txt'); %这些是世界坐标系下的坐标，最终要得到腿坐标系下末端的速度，故需转换坐标系  单位m
+ee_in_ground = endTraj(1:end,17:19);
+ground_P_body = endTraj(1:end,1:16);
+ee=zeros(size(ee_in_ground,1),3);
+%先得到腿坐标系下的末端坐标
+for i=1:size(ee_in_ground,1)
+    ee(i,:)=coordiTrans(ee_in_ground(i,:),ground_P_body(i,:));
+end
+
+% aa=coordiTrans(ee_in_ground(1000,:),ground_P_body(1000,:));
+
+% 计算末端速度   单位m/s
+Vx=(ee(2:end,1)-ee(1:end-1,1))*1000;
+Vy=(ee(2:end,2)-ee(1:end-1,2))*1000;
+Vz=(ee(2:end,3)-ee(1:end-1,3))*1000;
     
 
-syms q0 q1 q2
+
 
  
 
@@ -71,25 +73,33 @@ syms q0 q1 q2
 
 
 
-% q0=1;
-% q1=1;
-% q2=1;
-% dq0=1;
-% dq1=1;
-% dq2=1;
-
-% 
-% mot_pos=[q0 q1 q2];
-% dq=[dq0 dq1 dq2];
-% v=zeros(size(dq,1),3);
-% 
-% for i=1:size(mot_pos,1)
-%     J=CalJac(mot_pos(i,:));
-%     v(i,:)=(J*dq(i,:)')'; % v是末端xyz速度，腿坐标系下
-% end
 
 
-J=CalJac([q0,q1,q2]);
+
+mot_pos=[q0 q1 q2];
+dq=[dq0 dq1 dq2];
+v=zeros(size(dq,1),3);
+lambda=zeros(size(dq,1),3); %特征值
+mu1=zeros(size(dq,1),1);  %各向同性 为条件数开根号 ，mu1越接近1，各向同性越好，趋近无穷大，则机构趋于奇异
+
+mu2=zeros(size(dq,1),1);  %条件数
+
+for i=1:size(mot_pos,1)
+    J=CalJac(mot_pos(i,:));
+    A=J*J';
+    lambda(i,:)=eig(A)';
+    mu2(i,1)=max(lambda(i,:))/min(lambda(i,:));
+%     mu1(i,1)=sqrt(mu2(i,1));
+    mu1(i,1) = 1/mu2(i,1);
+    v(i,:)=(J*dq(i,:)')'; % v是末端xyz速度，腿坐标系下
+end
+
+
+
+% J=CalJac(mot_pos(350,:));
+
+
+
 
 
 
@@ -149,21 +159,101 @@ title('Vy');
 subplot(3,3,9);
 plot(t,Vz);
 title('Vz');
-
-%画腿1的末端轨迹，对比末端速度是否合理
+% 
+% %画腿坐标系下的末端轨迹，对比末端速度是否合理
 figure(5);
-plot(t,ee_in_ground(1:end-1,1),t,Vx);
-legend('ee','Vx');
+subplot(1,3,1);
+plot(t,ee(1:end-1,1));
+legend('ee');
 title('X');
 
-figure(6);
-plot(t,ee_in_ground(1:end-1,2),t,Vy);
-legend('ee','Vy');
+subplot(1,3,2);
+plot(t,ee(1:end-1,2));
+legend('ee');
 title('Y');
 
+subplot(1,3,3);
+plot(t,ee(1:end-1,3));
+legend('ee');
+title('z');
+
+%画世界坐标系下的末端轨迹
+figure(6)
+subplot(1,3,1);
+plot(t,ee_in_ground(1:end-1,1),t,ee(1:end-1,1),'--g');
+legend('ee_in_ground','ee');
+title('X');
+
+subplot(1,3,2);
+plot(t,ee_in_ground(1:end-1,2),t,ee(1:end-1,2),'--g');
+legend('ee_in_ground','ee');
+title('Y');
+
+subplot(1,3,3);
+plot(t,ee_in_ground(1:end-1,3),t,ee(1:end-1,3),'--g');
+legend('ee_in_ground','ee');
+title('Z');
+
+%画条件数
+figure(7)
+plot(t,mu2);
+title('条件数');
+
+figure(8)
+plot(t,mu1);
+title('各向同性');
+
+%% 计算最大速度
+
+%Rb是腿在身体坐标系下的旋转矩阵
+ Rb = [1,0,0;
+     0,1,0;
+     0,0,1];
+
+ Vn=2/3*100*pi; %电机额定转速  单位rad/s
+
+ eb=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
+ ve=zeros(size(mot_pos,1),1);
+ 
+for i=1:size(mot_pos,1)
+    J=CalJac(mot_pos(i,:));
+    Jb=Rb*J; %机身坐标系下的雅可比矩阵
+    temp=(inv(Jb))*eb;
+    ve(i,1)=Vn/norm(temp,Inf);
+
+end
+plot(t,ve);
+title('x方向最大速度  m/s') %最大速度在0.471-0.466m/s之间 100pi
+
+%2000rpm  在0.311-0.314m/s之间
+
+%%  尝试绘制色图
+
+% clc 
+% clear all
+% close all
+% num = 50;
+% a = linspace(0, 2*pi, num);
+% b = linspace(-0.5*pi, 0.5*pi, num);
+% [a, b] = meshgrid(a, b);
+% X = a;
+% Y = b;
+% Z = a.*b;
+% s=surf(X, Z, Y)
+% colorbar;
+% colormap(gca, 'jet')
+% axis equal
+% axis tight
+% s.FaceAlpha = 0.9;
+% s.EdgeColor = 'none';
+% s.FaceColor = 'interp';
+
+%%
 
 
-% syms dq0 dq1 dq2
+
+
+
 
 %% 必要参数计算（正解）
 %雅可比矩阵单位用m作为单位计算的
@@ -173,12 +263,13 @@ q0=mot_pos(1);
 q1=mot_pos(2);
 q2=mot_pos(3);
 
+
 %正解
 AC = 0.185;
 CD = 0.100;
 AG = 0.100;
-DE = 0.39224;
-% DE=375;
+% DE = 0.39224;
+DE=0.375;
 DG = 0.185;
 GF = 0.060;
 GH = 0.025;
@@ -195,8 +286,12 @@ CE=CD+DE;
 % B_0y = 44.7557;
 
 %在x'Ay'坐标系下的坐标值
-H_0x = -0.020;
-B_0y = 0.069;
+% H_0x = -0.020;
+% B_0y = 0.069;
+
+H_0x=0.007105;
+B_0y=0.0447558;
+
 
 PA_x=0.048;
 PA_y=0.032;
@@ -207,14 +302,14 @@ k1=16*0.0025/26/2/pi;
 k2=19/50/28;
 
 deltaX=-k1*q0;
-deltaY=-k1*q1;
+deltaY=k1*q1;
 alpha=k2*q2;
 
 
 Hx=H_0x+deltaX;
 Hy=-AJ;
 Bx=LM;
-By=B_0y+deltaY; %这里注意是减delta
+By=B_0y+deltaY; 
 AH=sqrt(Hx^2+Hy^2);
 angle_GAH=acos((AG^2+AH^2-GH^2)/(2*AH*AG));
 angle_HAJ=atan(Hx/Hy);
@@ -234,6 +329,10 @@ x_tilde=vector_AE(1);
 y_tilde=vector_AE(2);
 x0=x_tilde+PA_x;
 y0=y_tilde-PA_y;
+
+x=x0/sqrt(1+(tan(alpha))^2);
+y=y0;
+z=x0*(tan(alpha))/sqrt(1+(tan(alpha))^2);
 
 
 
@@ -257,21 +356,16 @@ theta2=angle_GAJ;
 theta1=angle_FGT;
 
 
-m1=(-k1*(cos(theta3))^2)/(Bx-Gx);
+m1=(k1*(cos(theta3))^2)/(Bx-Gx);
 n1=(((By-Gy)*cos(theta2)-(Bx-Gx)*sin(theta2))*AG*(cos(theta3))^2)/(Bx-Gx)^2;
 
 
-m2=((GF^2+BG^2-BF^2)/(2*GF*BG^2)-1/GF)/sqrt(1-(GF^2+BG^2-BF^2)^2/(4*GF^2*BG^2))*(-k1*(By-Gy)/(sqrt((Bx-Gx)^2+(By-Gy)^2)));
+m2=((GF^2+BG^2-BF^2)/(2*GF*BG^2)-1/GF)/sqrt(1-(GF^2+BG^2-BF^2)^2/(4*GF^2*BG^2))*(k1*(By-Gy)/(sqrt((Bx-Gx)^2+(By-Gy)^2)));
 n2=((GF^2+BG^2-BF^2)/(2*GF*BG^2)-1/GF)/sqrt(1-(GF^2+BG^2-BF^2)^2/(4*GF^2*BG^2))*(-((By-Gy)*sin(theta2)+(Bx-Gx)*cos(theta2))*AG/(sqrt((Bx-Gx)^2+(By-Gy)^2)));
 
 
 m3=((AG^2+AH^2-GH^2)/(2*AG*AH^2)-1/AG)/sqrt(1-(AG^2+AH^2-GH^2)^2/(4*AG^2*AH^2))*((-Hx*k1)/sqrt(Hx^2+Hy^2));
 m4=-k1/(Hy*((Hx^2/Hy^2)+1));
-
-
-
-
-
 
 
 
@@ -292,6 +386,11 @@ b2=AC*cos(theta1)*(m1-m2);
 a3=tan(alpha)/sqrt(1+(tan(alpha))^2)*((CE*cos(theta2)-AC*sin(theta1)*(n1-n2))*(m3-m4));
 b3=tan(alpha)/sqrt(1+(tan(alpha))^2)*(-AC*sin(theta1)*(m1-m2));
 c3=(x0*sqrt(1+(tan(alpha))^2)-(x0*(tan(alpha))^2)/sqrt(1+(tan(alpha))^2))*k2;
+
+% vx=vpa(a1*dq0+b1*dq1+c1*dq2,5);
+% vy=vpa(a2*dq0+b2*dq1+0*dq2,5);
+% vz=vpa(a3*dq0+b3*dq1+c3*dq2,5);
+
 J=[a1 b1 c1;a2 b2 0;a3 b3 c3];
 
 end
@@ -305,7 +404,7 @@ PL1=[1, 0,  0,  -0.335;
 	 0, 0,  1,	0;
 	 0, 0,  0,  1]; %身体在腿坐标系下的变换矩阵  Leg_P_Body
  
-PL2 = reshape(ground_P_body,[4,4]); %Ground_P_Body
+PL2 = reshape(ground_P_body,[4,4])'; %Ground_P_Body
  %Body_P_Ground
 PL3 = PL1/PL2; %Leg_P_Body * Body_P_Ground = Leg_P_Ground
 temp=[reshape(ee_in_ground,[3,1]);1];

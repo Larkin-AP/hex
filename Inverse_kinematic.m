@@ -10,7 +10,10 @@ function [mot_pos3 ]=Inverse_kinematic(ee_position)
 %竖直转动轴
 % ee_position = [347.49,-372.52,0];
 % ee_position = [580.72,-329.75,0];
+
+
 %单位统一用m
+
 theta0 = atan2(ee_position(3),ee_position(1));
 q2 = 50 * 28 / 19 * theta0; 
 x0=sqrt(ee_position(3)^2+ee_position(1)^2);
@@ -25,8 +28,8 @@ y=y0+PA_y;
 AC = 0.185;
 CD = 0.100;
 AG = 0.100;
-DE = 0.39224;
-% DE=375;
+% DE = 0.39224;
+DE=0.375;
 GF = 0.060;
 GH = 0.025;
 AJ = 0.0905;
@@ -40,8 +43,8 @@ BF = 0.120;
 % H_0x = 7.105;%坐标值
 % B_0y = 44.7557;
 %在x'Ay'坐标系下的坐标值
-H_0x = -0.020;
-B_0y = 0.069;
+H_0x=0.007105;
+B_0y=0.0447558;
 
 
 

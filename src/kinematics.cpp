@@ -67,8 +67,8 @@ double PL6[16] =
 	 //此处坐标原点在 转轴与底板地面的交点
 	 //mot_pos[2] = -atan2(ee_position[2], ee_position[0]); //竖直转动轴 ###此处暂时不加一个负号
 	 double theta0 = atan2(ee_position[2], ee_position[0]);  //竖直转动轴转动的角度，还需要转换到电机轴上
-	 mot_pos[2] = 50 * 28 / 19 * theta0;  //减速箱减速比50：1，带传动比 28：19
-	 //mot_pos[2] = theta0;  //减速箱减速比50：1，带传动比 28：19
+	 //mot_pos[2] = 50 * 28 / 19 * theta0;  //减速箱减速比50：1，带传动比 28：19
+	 mot_pos[2] = -theta0;  //减速箱减速比50：1，带传动比 28：19
 	 double x0 = sqrt(ee_position[2] * ee_position[2] + ee_position[0] * ee_position[0]); //反解所在平面的x值
 	 double y0 = ee_position[1]; //反解所在平面的y值
 
@@ -95,8 +95,8 @@ double PL6[16] =
 
 	 double deltaX =-( Hx - H_0x); //x方向推杆变化值，还需要转换到电机的旋转变换值
      //std::cout << "Hx = " << Hx << std::endl;
-	 mot_pos[0] = 26.0 / 16.0 * deltaX / 0.0025 * 2.0 * PI; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量  单位为弧度
-	 //mot_pos[0] = deltaX; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量
+	 //mot_pos[0] = 26.0 / 16.0 * deltaX / 0.0025 * 2.0 * PI; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量  单位为弧度
+	 mot_pos[0] = -deltaX; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量
 
 	 
 
@@ -116,8 +116,8 @@ double PL6[16] =
 	 
 	 double deltaY = (By - B_0y); //Y方向推杆变化值，还需转换到电机上  向下推动？ 我也不懂？
      /*std::cout << "By = " << By <<std::endl;*/
-	 mot_pos[1] = 26.0 / 16.0 * deltaY / 0.0025 * 2.0 * PI; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量  单位为弧度
-	 //mot_pos[1] = deltaY; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量
+	 //mot_pos[1] = 26.0 / 16.0 * deltaY / 0.0025 * 2.0 * PI; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量  单位为弧度
+	 mot_pos[1] = -deltaY; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量
  }
 
  //在坐标变换后求解反解
