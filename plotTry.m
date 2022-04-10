@@ -140,6 +140,24 @@ xlabel('x');ylabel('y');zlabel('z');
 alpha(1)
 grid on; view([1,1,1]); axis equal; camlight; lighting gouraud
 
+%% try 12
+clear all
+clc
+[x_list,z_list]=meshgrid(0.3:0.01:1.2,-0.8:0.01:0.8);
+[m,n]=size(x_list);
+y=0.2;
+y_list=ones(m,n)*y;
+f_list = x_list.*z_list.^2;
+f_list = nan(m,n);
+surf(x_list,z_list,y_list,f_list,'EdgeColor','none');    
+%% try 13
+a = i
+if ~isreal(a)
+    a=a*2;
+end
+
+
+
 
 %% function 1
 %随便写一个函数

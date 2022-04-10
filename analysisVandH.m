@@ -28,143 +28,12 @@ f=av+bh=av(q)+bh(q)=f(q)
 res应该是21*
 %}
 
-% clear all
-% clc
-% 
-% %确定步长 x，z步长
-% ds = 0.01;
-% %计数器
-% n1=1; %x
-% n2=1; %y
-% n3=1; %z
-% 
-% %预先分配内存
-% dq0=5;
-% dq1=6;
-% dq2=7;
-% %遍历范围,注意此处的遍历范围应该是关节空间的范围而不是坐标系，故用q表示
-% %注意H_0x的的坐标，B_0y的坐标的区别，区分于实际机器人的参数
-% %行程：x推杆0->76mm（坐标系x正方向） y推杆0->-76mm（坐标系y的负方向） R方向正负50°
-% k1=16*0.0025/26/2/pi;
-% k2=19/50/28;
-% 
-% %关节空间
-% abs_max_q0 = -0.076/k1;
-% abs_max_q1 = -0.076/k1;
-% abs_max_q2 = 50/k2;
-% q0 = linspace(0,abs_max_q0,dq0);
-% q1 = linspace(0,abs_max_q1,dq1);
-% q2 = linspace(-abs_max_q2,abs_max_q2,dq2);
-% 
-% 
-% %165.5<x<580.72  -586.68<y<-215.92 -444.86<z<444.86
-% %笛卡尔空间,腿坐标系
-% x =linspace(0.1655,0.58072,dq0);
-% y =linspace(-0.58668,-0.21592,dq1);
-% z =linspace(-0.44486,0.44486,dq2);
-% 
-% %便于切片的计算值
-% % abs_max_q0 = -300;
-% % abs_max_q1 = -300;
-% % abs_max_q2 = 3600;
-% 
-% 
-% 
-% [X,Y,Z]=meshgrid(z,x,y); % 这里相当于绘制网格，还需要把数据转换成对应的形式，
-% %实际上这里的网格应该是三维空间坐标而不是关节空间
-% 
-% res = zeros(dq0,dq2,dq1);%储存结果
-% V =zeros(dq0,dq2); %储存结果
-% 
-% %Rb是腿在身体坐标系下的旋转矩阵
-%  Rb = [1,0,0;
-%      0,1,0;
-%      0,0,1];
-% 
-%  Vn=2/3*100*pi; %电机额定转速  单位rad/s
-% 
-%  eb=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
-% %  eb=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
-% %  eb=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
-%  
-% 
-% 
-% for i=q1
-%     m=1; %横坐标
-%     n=1; %纵坐标
-%     for j=q0
-%         for k=q2
-%             J=CalJac([i,j,k]);
-%             Jb=Rb*J; %机身坐标系下的雅可比矩阵
-%             temp=(inv(Jb))*eb;    
-% %             ve(n,1)=Vn/norm(temp,Inf); 
-%             ve=Vn/norm(temp,Inf); 
-%             V(m,n) = ve;  
-%             n=n+1;
-%         end
-%         n=1;
-%         m=m+1;
-% 
-%     end
-%     res(:,:,n3) =V;
-%     n3=n3+1
-% end
 
 clear all
 clc
 
-%确定步长 x，z步长
-ds = 0.01;
-%计数器
-n1=1; %x
-n2=1; %y
-n3=1; %z
-
-%预先分配内存
-dq0=50;
-dq1=50;
-dq2=50;
-num=dq0*dq1*dq2;
-%遍历范围,注意此处的遍历范围应该是关节空间的范围而不是坐标系，故用q表示
-%注意H_0x的的坐标，B_0y的坐标的区别，区分于实际机器人的参数
-%行程：x推杆0->76mm（坐标系x正方向） y推杆0->-76mm（坐标系y的负方向） R方向正负50°
-k1=16*0.0025/26/2/pi;
-k2=19/50/28;
-
-%关节空间
-abs_max_q0 = -0.076/k1;
-abs_max_q1 = -0.076/k1;
-abs_max_q2 = 50/k2;
-q0 = linspace(0,abs_max_q0,dq0);
-q1 = linspace(0,abs_max_q1,dq1);
-q2 = linspace(-abs_max_q2,abs_max_q2,dq2);
-
-
-
-
-
-%165.5<x<580.72  -586.68<y<-215.92 -444.86<z<444.86
-%笛卡尔空间,腿坐标系
-x =linspace(0.1655,0.58072,dq0);
-y =linspace(-0.58668,-0.21592,dq1);
-z =linspace(-0.44486,0.44486,dq2);
-
-%便于切片的计算值
-% abs_max_q0 = -300;
-% abs_max_q1 = -300;
-% abs_max_q2 = 3600;
-
-
-
-[X,Y,Z]=meshgrid(x,y,z); % 这里相当于绘制网格，还需要把数据转换成对应的形式，
-%实际上这里的网格应该是三维空间坐标而不是关节空间
-
-res = zeros(dq1,dq0,dq2);%储存结果
-V =zeros(dq1,dq0); %储存结果
-val = zeros(dq0*dq1*dq2,4);
-count =1;
-data = zeros(num,4);
-
+[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[m,n]=size(x_list);
 %Rb是腿在身体坐标系下的旋转矩阵
  Rb = [1,0,0;
      0,1,0;
@@ -172,126 +41,104 @@ data = zeros(num,4);
 
  Vn=2/3*100*pi; %电机额定转速  单位rad/s
 
- eb=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
-%  eb=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
-%  eb=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
- 
+ eb_x=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
+ eb_y=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
+ eb_z=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
 
-%如果使用反解解算关节空间的话有个问题是并不是所有的点的组合都可以到达，遍历的空间是立方体，而腿的空间是扇形体，所以此处再试试用运动学正解进行计算
+h1=figure;
+h2=figure;
+h3=figure;
 
-for k=q2
-    m=1; %横坐标
-    n=1; %纵坐标
-    for i=q0
-        for j=q1
-            J=CalJac([i,j,k]);
-            Jb=Rb*J; %机身坐标系下的雅可比矩阵
-            temp=(inv(Jb))*eb;    
-%             ve(n,1)=Vn/norm(temp,Inf); 
-            ve=Vn/norm(temp,Inf); 
-            V(m,n) = ve;  
-            m=m+1;
-            
-            val(count,:)=[i,j,k,ve];
-
-            count = count+1;
+for y=-0.586:0.05:-0.215
+    y_list=ones(m,n)*y;
+    vel_list_x =nan(m,n);
+    vel_list_y =nan(m,n);
+    vel_list_z =nan(m,n);
+    for i=1:m
+        for j=1:n
+            %[x_list(i,j),y,z_list(i,j)]取出来该点
+            %先判断该点是否在工作空间内
+            %用运动学反解，如果是复数，直接跳出本次循环
+            %如果是实数，继续内容
+            %运动学反解求解出关节空间坐标
+            %根据关节空间求解雅可比矩阵和最大速度
+            %把速度赋值给vel_list即可完成本次循环
+            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            if isreal(q) %q为实数，说明该点为工作空间，进入循环
+                J=CalJac(q);
+                Jb=Rb*J;
+                temp_x=(inv(Jb))*eb_x;
+                temp_y=(inv(Jb))*eb_y;
+                temp_z=(inv(Jb))*eb_z;
+                ve_x=Vn/norm(temp_x,Inf);
+                ve_y=Vn/norm(temp_y,Inf);
+                ve_z=Vn/norm(temp_z,Inf);
+                vel_list_x(i,j) =ve_x; 
+                vel_list_y(i,j) =ve_y;    
+                vel_list_z(i,j) =ve_z;    
+            end
+                      
         end
-        m=1;
-        n=n+1;
-        
-
     end
-    res(:,:,n3) =V;
-    n3=n3+1
+    
+    figure(h1);
+    hold on;
+    surf(x_list,z_list,y_list,vel_list_x,'EdgeColor','none');  
+    
+    figure(h2);
+    hold on;
+    surf(x_list,z_list,y_list,vel_list_y,'EdgeColor','none');    
+    
+    figure(h3);
+    hold on;
+    surf(x_list,z_list,y_list,vel_list_z,'EdgeColor','none');
+    
 end
 
-val2 = val(:,4);
-writematrix(val,'data.txt')
+figure(h1);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]); %指定plot输出图片的尺寸，xmin，ymin，width，height
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('Velocity distribution in the x direction')
+caxis([0,1]);
+colorbar;
 
-%% 用等高线绘制看看
-clear all
-clc
+figure(h2);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]);
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('Velocity distribution in the y direction')
+caxis([0,1]);
+colorbar;
 
-
-
-%预先分配内存
-dq0=30;
-dq1=40;
-dq2=80;
-%遍历范围,注意此处的遍历范围应该是关节空间的范围而不是坐标系，故用q表示
-%注意H_0x的的坐标，B_0y的坐标的区别，区分于实际机器人的参数
-%行程：x推杆0->76mm（坐标系x正方向） y推杆0->-76mm（坐标系y的负方向） R方向正负50°
-k1=16*0.0025/26/2/pi;
-k2=19/50/28;
-
-%关节空间
-abs_max_q0 = -0.076/k1;
-abs_max_q1 = -0.076/k1;
-abs_max_q2 = 10/k2;
-q0 = linspace(0,abs_max_q0,dq0);
-q1 = linspace(0,abs_max_q1,dq1);
-q2 = linspace(-abs_max_q2,abs_max_q2,dq2);
-
-%直接用关节空间当坐标
-[X,Y] = meshgrid(q0,q2);
-res = zeros(dq2,dq0);
-
-%Rb是腿在身体坐标系下的旋转矩阵
- Rb = [1,0,0;
-     0,1,0;
-     0,0,1];
-
- Vn=2/3*100*pi; %电机额定转速  单位rad/s
-
- eb=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
-%  eb=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
-%  eb=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
- 
-m=1;%横坐标
-n=1;%纵坐标
-for i=q0
-    for j=q2
-        J=CalJac([i,-0.38,j]);
-        Jb=Rb*J; %机身坐标系下的雅可比矩阵
-        temp=(inv(Jb))*eb;    
-%             ve(n,1)=Vn/norm(temp,Inf); 
-        ve=Vn/norm(temp,Inf); 
-        res(m,n)=ve;
-        m=m+1;
-    end
-    n=n+1;
-    m=1;
-end
-
-%% 绘制等高线图
-contourf(X,Y,res,100)
-colorbar
-xlabel('x');
-ylabel('y');
+figure(h3);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]);
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('Velocity distribution in the z direction')
+caxis([0,1]);
+colorbar;
 
 
 
-
-
-
-%% plot
-%尝试用切片函数去画
-xslice = [] ;
-yslice = [-0.4];
-zslice = [0];
-h=figure(1);
-slice(X,Y,Z,res,xslice,yslice,zslice)
-title('沿x方向的速度最大速度分布')
-% xlabel('z');
-% ylabel('x');
-% zlabel('y');
-
-xlabel('x');
-ylabel('y');
-zlabel('z');
-cb=colorbar;
-set(gca,'xdir','reverse');
-set(gca,'ydir','reverse'); 
 
 %% 获取数据，4列分别对应笛卡尔空间的坐标和其速度值
 clear all
@@ -323,7 +170,7 @@ data = zeros(dq0*dq1*dq2,4);
 
  Vn=2/3*100*pi; %电机额定转速  单位rad/s
 
- eb=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
+ eb_x=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
 %  eb=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
 %  eb=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
  
@@ -333,7 +180,7 @@ for i=q0
         for k=q2
             J=CalJac([i,j,k]);
             Jb=Rb*J; %机身坐标系下的雅可比矩阵
-            temp=(inv(Jb))*eb;    
+            temp=(inv(Jb))*eb_x;    
             ve=Vn/norm(temp,Inf); 
             data(n,1:3) = FKM([i,j,k]);
             data(n,4) = ve;
@@ -494,89 +341,95 @@ end
 
 
 
-%% 计算正解，传入关节空间，计算笛卡尔空间坐标,试试看进行向量化
-
-function [ee_position]=FKM(mot_pos)
+%%
+function [mot_pos3 ]=IKM(ee_position)
 % clear all
 % clc
-% ee_position为末端坐标，此处要求传入末端在腿坐标系的位置，按顺序为xyz
+%注意：这里的反解结果是没问题的，但是q0,q1的符号与实际使用的相反%
+%重新修改 3d版本
+% ee_position为末端坐标，此处要求传入末端在腿坐标系xPy的位置，按顺序为xyz
 % mot_pos即为驱动杆件的坐标变化值,按顺序为x,y,Rotation
 %末端在初始位置的xyz为[256.8 -360.9 0]
 %[304.77 -392.91 0]
 %竖直转动轴
-% ee_position = [304.77 -392.91 0];
-% mot_pos3(3)=atan2(ee_position(3),ee_position(1));%此处暂时加负号，方便理解,记录的是角度
-% x0=sqrt(ee_position(3)^2+ee_position(1)^2);
-% y0=ee_position(2);
-% 
-% x=x0-48;
-% y=y0+32;
+% ee_position = [347.49,-372.52,0];
+% ee_position = [580.72,-329.75,0];
+
+
+%单位统一用m
+
+theta0 = atan2(ee_position(3),ee_position(1));
+q2 = 50 * 28 / 19 * theta0; 
+x0=sqrt(ee_position(3)^2+ee_position(1)^2);
+y0=ee_position(2);
+PA_x=0.048;
+PA_y=0.032;
+
+x=x0-PA_x;
+y=y0+PA_y;
 %末端位置x,y
 %固定杆长
-
-
-%单位为m
 AC = 0.185;
 CD = 0.100;
 AG = 0.100;
 % DE = 0.39224;
 DE=0.375;
-DG = 0.185;
 GF = 0.060;
 GH = 0.025;
 AJ = 0.0905;
 LM = 0.020;
 BF = 0.120;
-CE=CD+DE;
 %固定角度
 %x向初始位置,注意这个初始位置 不是任一点 是H点
-
+%H_0x = 40;
 %y向初始位置,即P点比A点在y方向高出的长度
-
+%B_0y = 58;
 % H_0x = 7.105;%坐标值
 % B_0y = 44.7557;
-
 %在x'Ay'坐标系下的坐标值
 H_0x = -0.020;
 B_0y = 0.069;
 
-PA_x=0.048;
-PA_y=0.032;
-% mot_pos=[-318.5526,310.3820,-64.2526]; %电机输入量，目前是二维，分别为xy方向电机输入量
 
 
-
-
-deltaX=-16*0.0025/26/2/pi*mot_pos(1);
-deltaY=16*0.0025/26/2/pi*mot_pos(2);
-Hx=H_0x+deltaX;
-Hy=-AJ;
+CE = CD + DE;
+AE = sqrt(x^2+y^2);
+angle_ECA = (acos((CE^2+AC^2-AE^2)/2/CE/AC));
+angle_CAE = (acos((AC^2+AE^2-CE^2)/2/AC/AE));
+angle_CAG = pi - angle_ECA;
+angle_EAG = angle_CAG-angle_CAE;
+angle_EAJ = (atan(-x/y));
+angle_GAJ = angle_EAJ - angle_EAG;
+Gx = AG*sin(angle_GAJ);
+Gy = -AG*cos(angle_GAJ);
+vector_AG = [Gx  Gy];
+Hy =-AJ;
 Bx=LM;
-By=B_0y+deltaY; 
-AH=sqrt(Hx^2+Hy^2);
-angle_GAH=acos((AG^2+AH^2-GH^2)/(2*AH*AG));
-angle_HAJ=atan(Hx/Hy);
-angle_GAJ=angle_GAH-angle_HAJ;
-Gx=AG*sin(angle_GAJ);
-Gy=-AG*cos(angle_GAJ);
-BG=sqrt((Bx-Gx)^2+(By-Gy)^2);
-angle_BGT=atan2(By-Gy,Bx-Gx);
-angle_BGF=acos((BG^2+GF^2-BF^2)/(2*BG*GF));
-angle_FGT=angle_BGT-angle_BGF;
-Fx=Gx+GF*cos(angle_FGT);
-Fy=Gy+GF*sin(angle_FGT);
-vector_GF=[GF*cos(angle_FGT),GF*sin(angle_FGT)];
-vector_AG=[Gx,Gy];
-vector_AE=AC/GF*vector_GF+CE/AG*vector_AG;
-x_tilde=vector_AE(1);
-y_tilde=vector_AE(2);
-x0=x_tilde+PA_x;
-y0=y_tilde-PA_y;
-%电机的弧度转化到到平面的弧度
-alpha=19/50/28*mot_pos(3);
-x=x0/sqrt(1+(tan(alpha))^2);
-y=y0;
-z=x0/sqrt(1+(tan(alpha))^2)*tan(alpha);
-ee_position=[x,y,z];
+
+%两种方法都可以
+% GK=abs(Gy-Hy);
+% angle_GHK=asin(GK/GH);
+% HK=GH*cos(angle_GHK);
+% Hx = Gx-HK;
+
+HN = sqrt(GH^2- (Gy-Hy)^2);
+Hx = Gx - HN;
+
+deltaX = -(Hx - H_0x);
+q0 = 26.0/16.0*deltaX /0.0025*2.0*pi;%X电机
+
+vector_AE = [x y];
+vector_CE = CE/AG*vector_AG;
+vector_AC = vector_AE-vector_CE;
+vector_GF = GF/AC*vector_AC;
+vector_AF = vector_AG+vector_GF;
+
+FL = vector_AF(1)-LM;
+BL = sqrt(BF^2-FL^2);
+By = vector_AF(2)+BL;
+deltaY = (By-B_0y);
+q1 = 26.0 / 16.0 * deltaY / 0.0025 * 2.0 * pi;
+mot_pos3=[q0,q1,q2];
 
 end
+
