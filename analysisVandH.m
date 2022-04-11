@@ -49,11 +49,14 @@ h1=figure;
 h2=figure;
 h3=figure;
 
+
+
 for y=-0.586:0.05:-0.215
     y_list=ones(m,n)*y;
     vel_list_x =nan(m,n);
     vel_list_y =nan(m,n);
     vel_list_z =nan(m,n);
+
     for i=1:m
         for j=1:n
             %[x_list(i,j),y,z_list(i,j)]取出来该点
@@ -76,10 +79,10 @@ for y=-0.586:0.05:-0.215
                 vel_list_x(i,j) =ve_x; 
                 vel_list_y(i,j) =ve_y;    
                 vel_list_z(i,j) =ve_z;    
-            end
-                      
+            end               
         end
     end
+
     
     figure(h1);
     hold on;
@@ -108,6 +111,7 @@ zlabel('Y(m)');
 title('Velocity distribution in the x direction')
 caxis([0,1]);
 colorbar;
+colormap turbo;
 
 figure(h2);
 set(gcf,'Units','centimeters','Position',[5 5 16 9]);
@@ -122,6 +126,7 @@ zlabel('Y(m)');
 title('Velocity distribution in the y direction')
 caxis([0,1]);
 colorbar;
+colormap turbo;
 
 figure(h3);
 set(gcf,'Units','centimeters','Position',[5 5 16 9]);
@@ -136,33 +141,28 @@ zlabel('Y(m)');
 title('Velocity distribution in the z direction')
 caxis([0,1]);
 colorbar;
+colormap turbo;
 
 
 
+%% 寻找速度分布中好的空间
+%目标1、先把每层好的区域画出来
 
-%% 获取数据，4列分别对应笛卡尔空间的坐标和其速度值
+
+%想办法把res转换成网格
+%{
+以q0，q1，q2的元素个数分别为21，6，11的情况下进行说明
+我们固定y，网格平面为x*z的平面
+即相当于有6张纸，每张纸为21*11的网格，每个网格对应其中的值
+res应该是21*
+%}
+
+
 clear all
 clc
 
-%预先分配内存
-dq0=30;
-dq1=40;
-dq2=80;
-%遍历范围,注意此处的遍历范围应该是关节空间的范围而不是坐标系，故用q表示
-%注意H_0x的的坐标，B_0y的坐标的区别，区分于实际机器人的参数
-%行程：x推杆0->76mm（坐标系x正方向） y推杆0->-76mm（坐标系y的负方向） R方向正负50°
-k1=16*0.0025/26/2/pi;
-k2=19/50/28;
-
-%关节空间
-abs_max_q0 = -0.076/k1;
-abs_max_q1 = -0.076/k1;
-abs_max_q2 = 10/k2;
-q0 = linspace(0,abs_max_q0,dq0);
-q1 = linspace(0,abs_max_q1,dq1);
-q2 = linspace(-abs_max_q2,abs_max_q2,dq2);
-
-data = zeros(dq0*dq1*dq2,4);
+[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[m,n]=size(x_list);
 %Rb是腿在身体坐标系下的旋转矩阵
  Rb = [1,0,0;
      0,1,0;
@@ -171,24 +171,518 @@ data = zeros(dq0*dq1*dq2,4);
  Vn=2/3*100*pi; %电机额定转速  单位rad/s
 
  eb_x=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
-%  eb=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
-%  eb=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
- 
-n=1;
-for i=q0
-    for j=q1
-        for k=q2
-            J=CalJac([i,j,k]);
-            Jb=Rb*J; %机身坐标系下的雅可比矩阵
-            temp=(inv(Jb))*eb_x;    
-            ve=Vn/norm(temp,Inf); 
-            data(n,1:3) = FKM([i,j,k]);
-            data(n,4) = ve;
-            n=n+1
-            
+ eb_y=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
+ eb_z=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
+
+h1=figure;
+h2=figure;
+h3=figure;
+
+%记录每层切面的速度最大值
+count = 1;
+s = max(size(-0.585:0.05:-0.215));
+max_x_list = nan(1,s);
+max_y_list = nan(1,s);
+max_z_list = nan(1,s);
+
+
+for y=-0.585:0.05:-0.215
+    y_list=ones(m,n)*y;
+    vel_list_x =nan(m,n);
+    vel_list_y =nan(m,n);
+    vel_list_z =nan(m,n);
+
+    %找到当前切面内的速度最大值
+    a=0.5; %目前拟定区间为[a*max,max],a为系数
+
+    for i=1:m
+        for j=1:n
+            %[x_list(i,j),y,z_list(i,j)]取出来该点
+            %先判断该点是否在工作空间内
+            %用运动学反解，如果是复数，直接跳出本次循环
+            %如果是实数，继续内容
+            %运动学反解求解出关节空间坐标
+            %根据关节空间求解雅可比矩阵和最大速度
+            %把速度赋值给vel_list即可完成本次循环
+            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            if isreal(q) %q为实数，说明该点为工作空间，进入循环
+                J=CalJac(q);
+                Jb=Rb*J;
+                temp_x=(inv(Jb))*eb_x;
+                temp_y=(inv(Jb))*eb_y;
+                temp_z=(inv(Jb))*eb_z;
+                ve_x=Vn/norm(temp_x,Inf);
+                ve_y=Vn/norm(temp_y,Inf);
+                ve_z=Vn/norm(temp_z,Inf);
+                vel_list_x(i,j) =ve_x; 
+                vel_list_y(i,j) =ve_y;    
+                vel_list_z(i,j) =ve_z;    
+            end               
         end
     end
+    max_x = max(max(vel_list_x));
+    max_y = max(max(vel_list_y));
+    max_z = max(max(vel_list_z));
+    
+    max_x_list(count) = max_x;
+    max_y_list(count) = max_y;
+    max_z_list(count) = max_z; 
+    count =count+1;
+
+    
+    %筛选出速度分布满足[a*max,max]的空间点集
+    for i=1:m
+        for j=1:n
+            if vel_list_x(i,j)<a*max_x
+                vel_list_x(i,j) =nan;
+            end
+            if vel_list_y(i,j)<a*max_y
+                vel_list_y(i,j) =nan;
+            end
+            if vel_list_z(i,j)<a*max_z
+                vel_list_z(i,j) =nan;
+            end
+        end
+    end
+    
+    
+    
+    figure(h1);
+    hold on;
+    surf(x_list,z_list,y_list,vel_list_x,'EdgeColor','none');  
+    
+    figure(h2);
+    hold on;
+    surf(x_list,z_list,y_list,vel_list_y,'EdgeColor','none');    
+    
+    figure(h3);
+    hold on;
+    surf(x_list,z_list,y_list,vel_list_z,'EdgeColor','none');
+    
 end
+
+figure(h1);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]); %指定plot输出图片的尺寸，xmin，ymin，width，height
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('Velocity distribution in the x direction')
+caxis([0,1]);
+colorbar;
+colormap turbo;
+
+figure(h2);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]);
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('Velocity distribution in the y direction')
+caxis([0,1]);
+colorbar;
+colormap turbo;
+
+figure(h3);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]);
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('Velocity distribution in the z direction')
+caxis([0,1]);
+colorbar;
+colormap turbo;
+
+%% 以切片绘制为单位绘制图
+%目标1、先把每层好的区域画出来
+
+
+%想办法把res转换成网格
+%{
+以q0，q1，q2的元素个数分别为21，6，11的情况下进行说明
+我们固定y，网格平面为x*z的平面
+即相当于有6张纸，每张纸为21*11的网格，每个网格对应其中的值
+res应该是21*
+%}
+
+
+clear all
+clc
+
+[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[m,n]=size(x_list);
+%Rb是腿在身体坐标系下的旋转矩阵
+ Rb = [1,0,0;
+     0,1,0;
+     0,0,1];
+
+ Vn=2/3*100*pi; %电机额定转速  单位rad/s
+
+ eb_x=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
+ eb_y=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
+ eb_z=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
+
+h1=figure;
+h2=figure;
+
+%记录每层切面的速度最大值
+count = 1;
+s = max(size(-0.585:0.05:-0.215));
+max_x_list = nan(1,s);
+max_y_list = nan(1,s);
+max_z_list = nan(1,s);
+
+
+for y=-0.585:0.05:-0.215
+    y_list=ones(m,n)*y;
+    vel_list_x =nan(m,n);
+    vel_list_y =nan(m,n);
+    vel_list_z =nan(m,n);
+
+    %找到当前切面内的速度最大值
+    a=0.5; %目前拟定区间为[a*max,max],a为系数
+
+    for i=1:m
+        for j=1:n
+            %[x_list(i,j),y,z_list(i,j)]取出来该点
+            %先判断该点是否在工作空间内
+            %用运动学反解，如果是复数，直接跳出本次循环
+            %如果是实数，继续内容
+            %运动学反解求解出关节空间坐标
+            %根据关节空间求解雅可比矩阵和最大速度
+            %把速度赋值给vel_list即可完成本次循环
+            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            if isreal(q) %q为实数，说明该点为工作空间，进入循环
+                J=CalJac(q);
+                Jb=Rb*J;
+                temp_x=(inv(Jb))*eb_x;
+                temp_y=(inv(Jb))*eb_y;
+                temp_z=(inv(Jb))*eb_z;
+                ve_x=Vn/norm(temp_x,Inf);
+                ve_y=Vn/norm(temp_y,Inf);
+                ve_z=Vn/norm(temp_z,Inf);
+                vel_list_x(i,j) =ve_x; 
+                vel_list_y(i,j) =ve_y;    
+                vel_list_z(i,j) =ve_z;    
+            end               
+        end
+    end
+    max_x = max(max(vel_list_x));
+    max_y = max(max(vel_list_y));
+    max_z = max(max(vel_list_z));
+    
+    max_x_list(count) = max_x;
+    max_y_list(count) = max_y;
+    max_z_list(count) = max_z; 
+    
+
+    
+    %筛选出速度分布满足[a*max,max]的空间点集
+    for i=1:m
+        for j=1:n
+            if vel_list_x(i,j)<a*max_x
+                vel_list_x(i,j) =nan;
+            end
+            if vel_list_y(i,j)<a*max_y
+                vel_list_y(i,j) =nan;
+            end
+            if vel_list_z(i,j)<a*max_z
+                vel_list_z(i,j) =nan;
+            end
+        end
+    end
+    
+    
+    figure(h1);
+    subplot(2,4,count);
+    surf(x_list,z_list,y_list,vel_list_x,'EdgeColor','none'); 
+    subtitle(['y= ',num2str(y)])
+    view(2);
+    xlabel('X(m)');
+    ylabel('Z(m)');
+    zlabel('Y(m)');
+    caxis([0,1]);
+    colorbar;
+    colormap turbo;
+
+    
+    figure(h2);
+    subplot(2,4,count);
+    surf(x_list,z_list,y_list,vel_list_z,'EdgeColor','none'); 
+    subtitle(['y= ',num2str(y)])
+    view(2);
+    xlabel('X(m)');
+    ylabel('Z(m)');
+    zlabel('Y(m)');
+    caxis([0,1]);
+    colorbar;
+    colormap turbo;
+    
+    
+    count =count+1;
+    
+    
+end
+
+figure(h1);
+suptitle('Velocity distribution in the x direction');
+set(gcf,'Units','centimeters','Position',[5 5 32 18]); %指定plot输出图片的尺寸，xmin，ymin，width，height
+
+figure(h2);
+suptitle('Velocity distribution in the z direction');
+set(gcf,'Units','centimeters','Position',[5 5 32 18]); %指定plot输出图片的尺寸，xmin，ymin，width，height
+
+
+
+
+
+
+%% 寻找交集
+%目标2、先把每层交集画出来
+%先求空间交集，在画每层的速度分布
+
+
+%想办法把res转换成网格
+%{
+以q0，q1，q2的元素个数分别为21，6，11的情况下进行说明
+我们固定y，网格平面为x*z的平面
+即相当于有6张纸，每张纸为21*11的网格，每个网格对应其中的值
+res应该是21*
+%}
+
+
+clear all
+clc
+
+[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[m,n]=size(x_list);
+%Rb是腿在身体坐标系下的旋转矩阵
+ Rb = [1,0,0;
+     0,1,0;
+     0,0,1];
+
+ Vn=2/3*100*pi; %电机额定转速  单位rad/s
+
+ eb_x=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
+ eb_y=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
+ eb_z=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
+
+h1=figure;
+h2=figure;
+h3=figure;
+
+%记录每层切面的速度最大值
+count = 1;
+s = max(size(-0.585:0.05:-0.215));
+max_x_list = nan(1,s);
+max_y_list = nan(1,s);
+max_z_list = nan(1,s);
+
+
+for y=-0.585:0.05:-0.215
+    y_list=ones(m,n)*y;
+    vel_list_x =nan(m,n);
+    vel_list_y =nan(m,n);
+    vel_list_z =nan(m,n);
+    intersection = nan(m,n);%交集，函数值以z的值做表示，
+
+    %找到当前切面内的速度最大值
+    a=0.5; %目前拟定区间为[a*max,max],a为系数
+
+    for i=1:m
+        for j=1:n
+            %[x_list(i,j),y,z_list(i,j)]取出来该点
+            %先判断该点是否在工作空间内
+            %用运动学反解，如果是复数，直接跳出本次循环
+            %如果是实数，继续内容
+            %运动学反解求解出关节空间坐标
+            %根据关节空间求解雅可比矩阵和最大速度
+            %把速度赋值给vel_list即可完成本次循环
+            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            if isreal(q) %q为实数，说明该点为工作空间，进入循环
+                J=CalJac(q);
+                Jb=Rb*J;
+                temp_x=(inv(Jb))*eb_x;
+                temp_y=(inv(Jb))*eb_y;
+                temp_z=(inv(Jb))*eb_z;
+                ve_x=Vn/norm(temp_x,Inf);
+                ve_y=Vn/norm(temp_y,Inf);
+                ve_z=Vn/norm(temp_z,Inf);
+                vel_list_x(i,j) =ve_x; 
+                vel_list_y(i,j) =ve_y;    
+                vel_list_z(i,j) =ve_z;    
+            end               
+        end
+    end
+    max_x = max(max(vel_list_x));
+    max_y = max(max(vel_list_y));
+    max_z = max(max(vel_list_z));
+    
+    max_x_list(count) = max_x;
+    max_y_list(count) = max_y;
+    max_z_list(count) = max_z; 
+    count =count+1;
+
+    
+    %先筛选出速度分布满足[a*max,max]的空间点集
+    %再求空间交集
+    for i=1:m
+        for j=1:n
+            if vel_list_x(i,j)<a*max_x
+                vel_list_x(i,j) =nan;
+            end
+            if vel_list_y(i,j)<a*max_y
+                vel_list_y(i,j) =nan;
+            end
+            if vel_list_z(i,j)<a*max_z
+                vel_list_z(i,j) =nan;
+            end
+            if ~(isnan(vel_list_x(i,j)) || isnan(vel_list_y(i,j)) || isnan(vel_list_z(i,j)))
+                intersection(i,j) = 1; 
+            end
+            %再逐个画出交集对应的速度分布
+            if ~isnan(vel_list_x(i,j)) && isnan(intersection(i,j))
+                vel_list_x(i,j)=nan;
+            end
+            if ~isnan(vel_list_y(i,j)) && isnan(intersection(i,j))
+                vel_list_y(i,j)=nan;
+            end
+            if ~isnan(vel_list_z(i,j)) && isnan(intersection(i,j))
+                vel_list_z(i,j)=nan;
+            end
+            
+                   
+        end
+    end
+    
+    
+    
+    figure(h1);
+    hold on;
+    surf(x_list,z_list,y_list,vel_list_x,'EdgeColor','none');  
+    
+    figure(h2);
+    hold on;
+    surf(x_list,z_list,y_list,vel_list_y,'EdgeColor','none');    
+    
+    figure(h3);
+    hold on;
+    surf(x_list,z_list,y_list,vel_list_z,'EdgeColor','none');
+    
+end
+
+figure(h1);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]); %指定plot输出图片的尺寸，xmin，ymin，width，height
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('Velocity distribution in the x direction')
+caxis([0,1]);
+colorbar;
+colormap turbo;
+
+figure(h2);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]);
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('Velocity distribution in the y direction')
+caxis([0,1]);
+colorbar;
+colormap turbo;
+
+figure(h3);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]);
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('Velocity distribution in the z direction')
+caxis([0,1]);
+colorbar;
+colormap turbo;
+
+
+
+
+%% 获取数据，4列分别对应笛卡尔空间的坐标和其速度值
+% clear all
+% clc
+% 
+% %预先分配内存
+% dq0=30;
+% dq1=40;
+% dq2=80;
+% %遍历范围,注意此处的遍历范围应该是关节空间的范围而不是坐标系，故用q表示
+% %注意H_0x的的坐标，B_0y的坐标的区别，区分于实际机器人的参数
+% %行程：x推杆0->76mm（坐标系x正方向） y推杆0->-76mm（坐标系y的负方向） R方向正负50°
+% k1=16*0.0025/26/2/pi;
+% k2=19/50/28;
+% 
+% %关节空间
+% abs_max_q0 = -0.076/k1;
+% abs_max_q1 = -0.076/k1;
+% abs_max_q2 = 10/k2;
+% q0 = linspace(0,abs_max_q0,dq0);
+% q1 = linspace(0,abs_max_q1,dq1);
+% q2 = linspace(-abs_max_q2,abs_max_q2,dq2);
+% 
+% data = zeros(dq0*dq1*dq2,4);
+% %Rb是腿在身体坐标系下的旋转矩阵
+%  Rb = [1,0,0;
+%      0,1,0;
+%      0,0,1];
+% 
+%  Vn=2/3*100*pi; %电机额定转速  单位rad/s
+% 
+%  eb_x=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
+% %  eb=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
+% %  eb=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
+%  
+% n=1;
+% for i=q0
+%     for j=q1
+%         for k=q2
+%             J=CalJac([i,j,k]);
+%             Jb=Rb*J; %机身坐标系下的雅可比矩阵
+%             temp=(inv(Jb))*eb_x;    
+%             ve=Vn/norm(temp,Inf); 
+%             data(n,1:3) = FKM([i,j,k]);
+%             data(n,4) = ve;
+%             n=n+1
+%             
+%         end
+%     end
+% end
+
+
 
 
 
