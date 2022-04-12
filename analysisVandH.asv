@@ -422,7 +422,6 @@ for y=-0.585:0.05:-0.215
                 vel_list_z(i,j) =ve_z;    
             end               
         end
-    end
         
             
     %筛选出速度分布满足[a*max,max]的空间点集
@@ -439,19 +438,12 @@ for y=-0.585:0.05:-0.215
             end
         end
     end
-    figure(h1);
-    hold on;
-    surf(x_list,z_list,y_list,vel_list_x,'EdgeColor','none');  
-    
-    figure(h2);
-    hold on;
-    surf(x_list,z_list,y_list,vel_list_y,'EdgeColor','none');    
-    
-    figure(h3);
-    hold on;
-    surf(x_list,z_list,y_list,vel_list_z,'EdgeColor','none');
-         
+   
+
             
+            
+        end
+    end
 end
 
 
