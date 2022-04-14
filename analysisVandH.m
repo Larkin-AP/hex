@@ -973,6 +973,132 @@ figure(h4);
 suptitle('Intersection space');
 set(gcf,'Units','centimeters','Position',[5 5 32 18]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 
+%% 尝试求一下极值
+%F = alpha(H/Hmax)+beta(V/Vmax)
+clear all
+clc
+
+alpha =0.5;
+beta = 1-alpha;
+Vmax = 1.6377;%整个空间的z向速度最大值
+y0=0.11;
+% H=y-y0;%涉水高度H
+ymin = -0.585;  %ymin是腿能达到的最远空间
+Hmax = -ymin-y0;
+
+[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[m,n]=size(x_list);
+%Rb是腿在身体坐标系下的旋转矩阵
+ Rb = [1,0,0;
+     0,1,0;
+     0,0,1];
+
+ Vn=2/3*100*pi; %电机额定转速  单位rad/s
+
+%  eb_x=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
+%  eb_y=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
+ eb_z=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
+
+h1=figure;
+% h2=figure;
+% h3=figure;
+F_max_list = nan(38,4);%每一行对应每一层，四列分别该层出现最大值的对应x，y，z坐标以及F函数值
+%记录每层极值出现的时候对应的坐标
+count =1;
+
+
+
+for y=-0.586:0.01:-0.215
+    y_list=ones(m,n)*y;
+    F_list =nan(m,n);
+    ratio_list = nan(m,n);
+
+    for i=1:m
+        for j=1:n
+            %[x_list(i,j),y,z_list(i,j)]取出来该点
+            %先判断该点是否在工作空间内
+            %用运动学反解，如果是复数，直接跳出本次循环
+            %如果是实数，继续内容
+            %运动学反解求解出关节空间坐标
+            %根据关节空间求解雅可比矩阵和最大速度
+            %把速度赋值给vel_list即可完成本次循环
+            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            if isreal(q) %q为实数，说明该点为工作空间，进入循环
+                J=CalJac(q);
+                Jb=Rb*J;
+                temp_z=(inv(Jb))*eb_z;
+                ve_z=Vn/norm(temp_z,Inf);
+                ratio = ve_z/Vmax; 
+                ratio_list(i,j) =ratio;  
+                F = alpha*(-y-y0/Hmax)+beta*ratio;
+                F_list(i,j) =F;  
+                
+            end               
+        end
+    end
+
+    v_max = max(max(F_list));
+    F_max_list(count,4)=v_max;
+    F_max_list(count,2)=y;
+    [row, col] = find(F_list == v_max);
+    F_max_list(count,1)=x_list(row,col);
+    F_max_list(count,3)=z_list(row,col);
+    figure(h1);
+    hold on;
+    surf(x_list,z_list,y_list,F_list,'EdgeColor','none');  
+    count =count+1;
+    
+
+end
+
+figure(h1);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]); %指定plot输出图片的尺寸，xmin，ymin，width，height
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('F distribution in the z direction')
+caxis([0,1]);
+colorbar;
+colormap turbo;
+
+h2 =figure;
+figure(h2);
+y=-0.586:0.01:-0.215;
+F_max_val =F_max_list(:,4)';
+plot(y,F_max_val);
+xlabel('末端y坐标');
+ylabel('F函数值');
+title('F随末端y坐标的变化')
+[val ,pos] = max(F_max_val);
+text(y(pos),F_max_val(pos),['极值点(',num2str(y(pos)),',',num2str(F_max_val(pos)),')']);
+hold on
+plot(y(pos),F_max_val(pos),'-*');
+
+h3 = figure;
+figure(h3);
+scatter3(F_max_list(:,1),F_max_list(:,2),F_max_list(:,2));
+set(gcf,'Units','centimeters','Position',[5 5 16 9]); %指定plot输出图片的尺寸，xmin，ymin，width，height
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('每层最大函数值出现的足端坐标点')
+view(-50,30);
+
+h4 = copy(h3);
+figure(h4);
+view(0,90);
+
+
+
 
 
 %% 获取数据，4列分别对应笛卡尔空间的坐标和其速度值
