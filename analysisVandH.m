@@ -51,7 +51,7 @@ h3=figure;
 
 
 
-for y=-0.586:0.05:-0.215
+for y=-0.585:0.05:-0.215
     y_list=ones(m,n)*y;
     vel_list_x =nan(m,n);
     vel_list_y =nan(m,n);
@@ -973,7 +973,7 @@ figure(h4);
 suptitle('Intersection space');
 set(gcf,'Units','centimeters','Position',[5 5 32 18]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 
-%% 尝试求一下极值
+%% P7 尝试求一下极值
 %F = alpha(H/Hmax)+beta(V/Vmax)
 clear all
 clc
@@ -1008,7 +1008,7 @@ count =1;
 
 
 
-for y=-0.586:0.01:-0.215
+for y=-0.585:0.01:-0.215
     y_list=ones(m,n)*y;
     F_list =nan(m,n);
     ratio_list = nan(m,n);
@@ -1030,7 +1030,7 @@ for y=-0.586:0.01:-0.215
                 ve_z=Vn/norm(temp_z,Inf);
                 ratio = ve_z/Vmax; 
                 ratio_list(i,j) =ratio;  
-                F = alpha*(-y-y0/Hmax)+beta*ratio;
+                F = alpha*((-y-y0)/Hmax)+beta*ratio;
                 F_list(i,j) =F;  
                 
             end               
@@ -1068,7 +1068,7 @@ colormap turbo;
 
 h2 =figure;
 figure(h2);
-y=-0.586:0.01:-0.215;
+y=-0.585:0.01:-0.215;
 F_max_val =F_max_list(:,4)';
 plot(y,F_max_val);
 xlabel('末端y坐标');
@@ -1096,6 +1096,111 @@ view(-50,30);
 h4 = copy(h3);
 figure(h4);
 view(0,90);
+
+%% P8 看一下alpha对函数值大小的影响
+%F = alpha(H/Hmax)+beta(V/Vmax)
+clear all
+clc
+
+Vmax = 1.6377;%整个空间的z向速度最大值
+y0=0.11;
+% H=y-y0;%涉水高度H
+ymin = -0.585;  %ymin是腿能达到的最远空间
+Hmax = -ymin-y0;
+
+[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[m,n]=size(x_list);
+%Rb是腿在身体坐标系下的旋转矩阵
+ Rb = [1,0,0;
+     0,1,0;
+     0,0,1];
+
+ Vn=2/3*100*pi; %电机额定转速  单位rad/s
+
+%  eb_x=[1,0,0]'; %机身坐标系下指定方向（沿x方向）
+%  eb_y=[0,1,0]'; %机身坐标系下指定方向（沿y方向）
+ eb_z=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
+
+h1=figure;
+
+F_max_list = nan(38,11);
+row = 1;
+col = 1;
+
+for alpha = 0:0.1:1
+    beta = 1-alpha;
+    
+    for y=-0.585:0.01:-0.215
+        y_list=ones(m,n)*y;
+        ratio_list = nan(m,n);
+        F_list = nan(m,n);
+        for i=1:m
+            for j=1:n
+                q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+                if isreal(q) %q为实数，说明该点为工作空间，进入循环
+                J=CalJac(q);
+                Jb=Rb*J;
+                temp_z=(inv(Jb))*eb_z;
+                ve_z=Vn/norm(temp_z,Inf);
+                ratio = ve_z/Vmax; 
+                ratio_list(i,j) =ratio;  
+                F = alpha*((-y-y0)/Hmax)+beta*ratio;
+                F_list(i,j) =F;  
+                end             
+            end               
+        end
+        v_max = max(max(F_list)); %每一层切片的最大函数值
+        F_max_list(row,col) = v_max;
+        row = row+1;
+        
+
+    end
+    figure(h1);
+    plot(-0.585:0.01:-0.215,F_max_list(:,col));
+    hold on
+    col=col+1
+    row=1;
+    
+    
+             
+end
+
+
+
+figure(h1);
+title('不同alpha对函数值F的影响');
+xlabel('y(m)');
+ylabel('F');
+col=1;
+for i=1:11
+    
+    alpha =0:0.1:1;
+    leg_str{i} = ['alpha=',num2str(alpha(i))];
+    text(-0.585,F_max_list(1,col),['alpha=',num2str(alpha(i))]);
+    col=col+1;
+end
+legend(leg_str);
+hold on
+plot([-0.465,-0.465],[0,1]);
+text(-0.465,0.6,'x=-0.466');
+hold on
+plot([-0.585,-0.215],[1,1]);
+text(-0.3,1,'y=1');
+hold on
+plot([-0.535,-0.535],[0,1]);
+text(-0.535,0.6,'x=-0.535');
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
