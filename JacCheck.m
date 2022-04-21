@@ -32,7 +32,9 @@ clc
 % dif = [dif_relx(100),dif_rely(100),dif_relz(100)]
 
 %% 读取数据
-motor = readmatrix('leg1MotorPos1.txt');%电机位置单位为rad，采样频率为1000Hz
+% motor = readmatrix('leg1MotorPos1.txt');%电机位置单位为rad，采样频率为1000Hz  ,沿x方向移动
+% motor = readmatrix('leg1MotorPos.txt'); %沿z方向运动
+motor = readmatrix('leg1MotorPos2.txt'); %原地转向
 q0=motor(2:end,1);
 q1=motor(2:end,2);
 q2=motor(2:end,3);
@@ -46,21 +48,26 @@ dq1=dq1*1000;
 dq2=dq2*1000;
 
 
-endTraj=readmatrix('leg1EndTraj1.txt'); %这些是世界坐标系下的坐标，最终要得到腿坐标系下末端的速度，故需转换坐标系  单位m
+% endTraj=readmatrix('leg1EndTraj1.txt');
+% %这些是世界坐标系下的坐标，最终要得到腿坐标系下末端的速度，故需转换坐标系  单位m  沿x方向运动
+% endTraj=readmatrix('leg1EndTraj.txt');  %沿z方向运动
+endTraj=readmatrix('leg1EndTraj2.txt');  %原地转向
 ee_in_ground = endTraj(1:end,17:19);
 ground_P_body = endTraj(1:end,1:16);
-ee=zeros(size(ee_in_ground,1),3);
+ee_in_leg=zeros(size(ee_in_ground,1),3); %只有x方向坐标做了平移
 %先得到腿坐标系下的末端坐标
 for i=1:size(ee_in_ground,1)
-    ee(i,:)=coordiTrans(ee_in_ground(i,:),ground_P_body(i,:));
+    ee_in_leg(i,:)=coordiTrans(ee_in_ground(i,:),ground_P_body(i,:));
 end
 
 % aa=coordiTrans(ee_in_ground(1000,:),ground_P_body(1000,:));
 
-% 计算末端速度   单位m/s
-Vx=(ee(2:end,1)-ee(1:end-1,1))*1000;
-Vy=(ee(2:end,2)-ee(1:end-1,2))*1000;
-Vz=(ee(2:end,3)-ee(1:end-1,3))*1000;
+% 计算末端速度   单位m/s  规划理论值
+
+Vx=(ee_in_leg(2:end,1)-ee_in_leg(1:end-1,1))*1000;
+Vy=(ee_in_leg(2:end,2)-ee_in_leg(1:end-1,2))*1000;
+Vz=(ee_in_leg(2:end,3)-ee_in_leg(1:end-1,3))*1000;
+
     
 
 
@@ -110,17 +117,17 @@ t=0.001:0.001:size(v,1)/1000;
 figure(1)
 plot(t,v(:,1),'r',t,Vx,'--g');
 legend('J*dq','Vx');
-title('Vx')
+title('理论速度和通过雅可比矩阵计算速度对比-Vx')
 
 figure(2)
 plot(t,v(:,2),'r',t,Vy,'--g');
 legend('J*dq','Vy');
-title('Vy')
+title('理论速度和通过雅可比矩阵计算速度对比-Vy')
 
 figure(3)
 plot(t,v(:,3),'r',t,Vz,'--g');
 legend('J*dq','Vz');
-title('Vz')
+title('理论速度和通过雅可比矩阵计算速度对比-Vz')
 
 %分开画
 figure(4)
@@ -142,11 +149,11 @@ title('J*dq - x');
 
 subplot(3,3,5);
 plot(t,v(:,2));
-title('J*dq - x');
+title('J*dq - y');
 
 subplot(3,3,6);
 plot(t,v(:,3));
-title('J*dq - x');
+title('J*dq - z');
 
 subplot(3,3,7);
 plot(t,Vx);
@@ -163,35 +170,35 @@ title('Vz');
 % %画腿坐标系下的末端轨迹，对比末端速度是否合理
 figure(5);
 subplot(1,3,1);
-plot(t,ee(1:end-1,1));
-legend('ee');
+plot(t,ee_in_leg(1:end-1,1));
+legend('ee\_in\_leg');
 title('X');
 
 subplot(1,3,2);
-plot(t,ee(1:end-1,2));
-legend('ee');
+plot(t,ee_in_leg(1:end-1,2));
+legend('ee\_in\_leg');
 title('Y');
 
 subplot(1,3,3);
-plot(t,ee(1:end-1,3));
-legend('ee');
+plot(t,ee_in_leg(1:end-1,3));
+legend('ee\_in\_leg');
 title('z');
 
 %画世界坐标系下的末端轨迹
 figure(6)
 subplot(1,3,1);
-plot(t,ee_in_ground(1:end-1,1),t,ee(1:end-1,1),'--g');
-legend('ee_in_ground','ee');
+plot(t,ee_in_ground(1:end-1,1),t,ee_in_leg(1:end-1,1),'--g');
+legend('ee\_in\_ground','ee\_in\_leg');
 title('X');
 
 subplot(1,3,2);
-plot(t,ee_in_ground(1:end-1,2),t,ee(1:end-1,2),'--g');
-legend('ee_in_ground','ee');
+plot(t,ee_in_ground(1:end-1,2),t,ee_in_leg(1:end-1,2),'--g');
+legend('ee\_in\_ground','ee\_in\_leg');
 title('Y');
 
 subplot(1,3,3);
-plot(t,ee_in_ground(1:end-1,3),t,ee(1:end-1,3),'--g');
-legend('ee_in_ground','ee');
+plot(t,ee_in_ground(1:end-1,3),t,ee_in_leg(1:end-1,3),'--g');
+legend('ee\_in\_ground','ee\_in\_leg');
 title('Z');
 
 %画条件数
@@ -227,28 +234,8 @@ title('x方向最大速度  m/s') %最大速度在0.471-0.466m/s之间 100pi
 
 %2000rpm  在0.311-0.314m/s之间
 
-%%  尝试绘制色图
 
-% clc 
-% clear all
-% close all
-% num = 50;
-% a = linspace(0, 2*pi, num);
-% b = linspace(-0.5*pi, 0.5*pi, num);
-% [a, b] = meshgrid(a, b);
-% X = a;
-% Y = b;
-% Z = a.*b;
-% s=surf(X, Z, Y)
-% colorbar;
-% colormap(gca, 'jet')
-% axis equal
-% axis tight
-% s.FaceAlpha = 0.9;
-% s.EdgeColor = 'none';
-% s.FaceColor = 'interp';
 
-%%
 
 
 

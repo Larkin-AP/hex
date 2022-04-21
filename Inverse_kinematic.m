@@ -89,6 +89,16 @@ BL = sqrt(BF^2-FL^2);
 By = vector_AF(2)+BL;
 deltaY = (By-B_0y);
 q1 = 26.0 / 16.0 * deltaY / 0.0025 * 2.0 * pi;
+
+
+%这些量没有用，只是便于与正解对比
+Fx = vector_GF(1)+Gx;
+Fy = vector_GF(1)+Gy;
+BG=sqrt((Bx-Gx)^2+(By-Gy)^2);
+angle_BGT=atan2(By-Gy,Bx-Gx);
+angle_BGF=acos((BG^2+GF^2-BF^2)/(2*BG*GF));
+angle_FGT=angle_BGT-angle_BGF;
+
 mot_pos3=[q0,q1,q2];
 
 
