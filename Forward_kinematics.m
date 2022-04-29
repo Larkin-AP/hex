@@ -21,8 +21,8 @@ function [ee_position]=Forward_kinematics(mot_pos)
 AC = 0.185;
 CD = 0.100;
 AG = 0.100;
-% DE = 0.39224;
-DE=0.375;
+DE = 0.39224;
+% DE=0.375;
 DG = 0.185;
 GF = 0.060;
 GH = 0.025;
@@ -81,6 +81,8 @@ x=x0/sqrt(1+(tan(alpha))^2);
 y=y0;
 z=x0/sqrt(1+(tan(alpha))^2)*tan(alpha);
 ee_position=[x,y,z];
+
+
 
 
 

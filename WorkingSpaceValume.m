@@ -13,21 +13,27 @@ clc
 %dx=76,dy=-76   ee=(580.72,-329.75)
 %所以外切立方体即为各个方向的最值，加上旋转，实际为类似于扇形的体积
 %165.5<x<580.72  -586.68<y<-215.92 -444.86<z<444.86
-ds=0.01; %ds为步长，设为0.01mm
+ds=0.01; %ds为步长，设为0.01m
 % num=((580.72-165.5)/ds * (-215.92+586.68)/ds * (444.48+444.86)/ds);
+
+coor_Scope = [0.1065,0.5771;
+    -0.5867,-0.2199;
+    -0.4419,0.4419];
 
 
 c=zeros(142045000,3);
 n1=1;
 n2=1;
 %三重循环
-for i=0.165:ds:0.580
-    for j=-0.585:ds:-0.215
-        for k=-0.444:ds:0.444
-            a=Inverse_kinematic([i,j,k]);
+for i=coor_Scope(1,1):ds:coor_Scope(1,2)
+    for j=coor_Scope(2,1):ds:coor_Scope(2,2)
+        for k=coor_Scope(3,1):ds:coor_Scope(3,2)
+            [a,judge]=Inverse_kinematic([i,j,k]);
             if ( imag(a)==0)
-                c(n1,:)=[i,j,k];
-                n1=n1+1
+                if (judge == true)
+                    c(n1,:)=[i,j,k];
+                    n1=n1+1
+                end
 
             end
            
@@ -58,27 +64,31 @@ c(all(c==0,2),:) = [];
 % end
 
 %% 
+%旧
 %当ds=10  V = 0.1097m^3  ita=0.8045
 %当ds=5   V = 0.1081m^3
 %当ds=2   V = 0.1070m^3  ita=0.7844
 %当ds=1   V = 0.1066m^3  ita=0.7816
+
+%新
+%当ds=0.01  V=0.1243
 %计算体积
 V = (n1-1)*ds^3
 %计算实际空间可达率
-ita = V/((0.580-0.165)*(0.585-0.215)*(0.444*2))
+ita = V/((coor_Scope(1,2)-coor_Scope(1,1))*(coor_Scope(2,2)-coor_Scope(2,1))*(coor_Scope(3,2)-coor_Scope(3,1)))
 
 
 
 %% 画指定零方体
 
-A=[0.165,-0.215,0.444;
-0.165,-0.215,-0.444;
-0.580,-0.215,-0.444;
-0.580,-0.215,0.444;
-0.165,-0.585,0.444;
-0.165,-0.585,-0.444;
-0.580,-0.585,-0.444;
-0.580,-0.585,0.444];
+A=[coor_Scope(1,1),coor_Scope(2,2),coor_Scope(3,2);
+coor_Scope(1,1),coor_Scope(2,2),coor_Scope(3,1);
+coor_Scope(1,2),coor_Scope(2,2),coor_Scope(3,1);
+coor_Scope(1,2),coor_Scope(2,2),coor_Scope(3,2);
+coor_Scope(1,1),coor_Scope(2,1),coor_Scope(3,2);
+coor_Scope(1,1),coor_Scope(2,1),coor_Scope(3,1);
+coor_Scope(1,2),coor_Scope(2,1),coor_Scope(3,1);
+coor_Scope(1,2),coor_Scope(2,1),coor_Scope(3,2)];
 d=[1 2 3 4 8 5 6 7 3 2 6 5 1 4 8 7];
 plot3(A(d,3),A(d,1),A(d,2));
 xlabel('z');

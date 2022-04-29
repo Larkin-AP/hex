@@ -1,4 +1,4 @@
-function [mot_pos3 ]=Inverse_kinematic(ee_position)
+function [mot_pos3,judge ]=Inverse_kinematic(ee_position)
 % clear all
 % clc
 %注意：这里的反解结果是没问题的，但是q0,q1的符号与实际使用的相反%
@@ -18,6 +18,8 @@ theta0 = atan2(ee_position(3),ee_position(1));
 q2 = 50 * 28 / 19 * theta0; 
 x0=sqrt(ee_position(3)^2+ee_position(1)^2);
 y0=ee_position(2);
+
+
 PA_x=0.048;
 PA_y=0.032;
 
@@ -28,8 +30,8 @@ y=y0+PA_y;
 AC = 0.185;
 CD = 0.100;
 AG = 0.100;
-% DE = 0.39224;
-DE=0.375;
+DE = 0.39224;
+% DE=0.375;
 GF = 0.060;
 GH = 0.025;
 AJ = 0.0905;
@@ -92,13 +94,22 @@ q1 = 26.0 / 16.0 * deltaY / 0.0025 * 2.0 * pi;
 
 
 %这些量没有用，只是便于与正解对比
-Fx = vector_GF(1)+Gx;
-Fy = vector_GF(1)+Gy;
-BG=sqrt((Bx-Gx)^2+(By-Gy)^2);
-angle_BGT=atan2(By-Gy,Bx-Gx);
-angle_BGF=acos((BG^2+GF^2-BF^2)/(2*BG*GF));
-angle_FGT=angle_BGT-angle_BGF;
+% Fx = vector_GF(1)+Gx;
+% Fy = vector_GF(2)+Gy;
+% BG=sqrt((Bx-Gx)^2+(By-Gy)^2);
+% angle_BGT=atan2(By-Gy,Bx-Gx);
+% angle_BGF=acos((BG^2+GF^2-BF^2)/(2*BG*GF));
+% angle_FGT=angle_BGT-angle_BGF;
+% Fx2=Gx+GF*cos(angle_FGT);
+% Fy2=Gy+GF*sin(angle_FGT);
 
 mot_pos3=[q0,q1,q2];
+
+%反解中deltaX和deltaY都应该是负的，也就是说这两个变量的有效值为0~-0.076之间，再此加一个判据
+if ((-0.076<deltaX) && (deltaX <0) && (-0.076<deltaY) && (deltaY <0) && (-0.8727< theta0) && (theta0<0.8727))
+    judge = true; %judge为真说明该值在行程范围内，可以继续运算
+else
+    judge = false;
+end
 
 

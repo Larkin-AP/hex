@@ -1,24 +1,29 @@
-Gx = 0.0646;
-Gy = -0.0763;
+Gx = 0.0624;
+Gy = -0.0781;
 
 Bx = 0.02;
-By = -0.0358;
+By = -0.0357;
 
-Fx = 0.1036;
-Fy = -0.0373;
+Fx = 0.1048;
+Fy = -0.1206;
 
 
-
+h1=figure;
+figure(h1)
 plot(Gx,Gy,'-*r');
-text(Gx+0.03,Gy+0.03,'G');
-xlim([])
+text(Gx+0.01,Gy+0.01,'G');
+xlim([0,0.6])
+ylim([-0.6,0.1])
+
 hold on
 
 plot(Bx,By,'-*r');
-text(Bx+0.03,By+0.03,'B');
+text(Bx+0.01,By+0.01,'B');
 hold on
 
 plot(Fx,Fy,'-*r');
-text(Fx+0.03,Fy+0.03,'F');
+text(Fx+0.01,Fy+0.01,'F');
 hold on
+
+
 

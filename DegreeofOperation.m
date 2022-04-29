@@ -7,11 +7,12 @@
 根据特征值和特征向量画图
 %}
 
+
 clear all
 clc
 
 %传入坐标
-xyz_coord = [0.475,-0.533,0.017];
+xyz_coord = [0.5665,-0.4667,0.0081];
 %计算反解
 q = Inverse_kinematic(xyz_coord);
 %计算雅可比

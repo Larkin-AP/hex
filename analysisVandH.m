@@ -32,7 +32,7 @@ res应该是21*
 clear all
 clc
 
-[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[x_list,z_list] = meshgrid(0.1065:0.01:0.5771,-0.4419:0.01:0.4419);
 [m,n]=size(x_list);
 %Rb是腿在身体坐标系下的旋转矩阵
  Rb = [1,0,0;
@@ -51,7 +51,7 @@ h3=figure;
 
 
 
-for y=-0.585:0.05:-0.215
+for y=-0.5867:0.05:-0.2199
     y_list=ones(m,n)*y;
     vel_list_x =nan(m,n);
     vel_list_y =nan(m,n);
@@ -66,19 +66,21 @@ for y=-0.585:0.05:-0.215
             %运动学反解求解出关节空间坐标
             %根据关节空间求解雅可比矩阵和最大速度
             %把速度赋值给vel_list即可完成本次循环
-            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            [q,judge]=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
             if isreal(q) %q为实数，说明该点为工作空间，进入循环
-                J=CalJac(q);
-                Jb=Rb*J;
-                temp_x=(inv(Jb))*eb_x;
-                temp_y=(inv(Jb))*eb_y;
-                temp_z=(inv(Jb))*eb_z;
-                ve_x=Vn/norm(temp_x,Inf);
-                ve_y=Vn/norm(temp_y,Inf);
-                ve_z=Vn/norm(temp_z,Inf);
-                vel_list_x(i,j) =ve_x; 
-                vel_list_y(i,j) =ve_y;    
-                vel_list_z(i,j) =ve_z;    
+                if judge ==true
+                    J=CalJac(q);
+                    Jb=Rb*J;
+                    temp_x=(inv(Jb))*eb_x;
+                    temp_y=(inv(Jb))*eb_y;
+                    temp_z=(inv(Jb))*eb_z;
+                    ve_x=Vn/norm(temp_x,Inf);
+                    ve_y=Vn/norm(temp_y,Inf);
+                    ve_z=Vn/norm(temp_z,Inf);
+                    vel_list_x(i,j) =ve_x; 
+                    vel_list_y(i,j) =ve_y;    
+                    vel_list_z(i,j) =ve_z;    
+                end
             end               
         end
     end
@@ -161,7 +163,7 @@ res应该是21*
 clear all
 clc
 
-[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[x_list,z_list] = meshgrid(0.1065:0.01:0.5771,-0.4419:0.01:0.4419);
 [m,n]=size(x_list);
 %Rb是腿在身体坐标系下的旋转矩阵
  Rb = [1,0,0;
@@ -180,13 +182,13 @@ h3=figure;
 
 %记录每层切面的速度最大值
 count = 1;
-s = max(size(-0.585:0.05:-0.215));
+s = max(size(-0.5867:0.05:-0.2199));
 max_x_list = nan(1,s);
 max_y_list = nan(1,s);
 max_z_list = nan(1,s);
 
 
-for y=-0.585:0.05:-0.215
+for y=-0.5867:0.05:-0.2199
     y_list=ones(m,n)*y;
     vel_list_x =nan(m,n);
     vel_list_y =nan(m,n);
@@ -204,19 +206,21 @@ for y=-0.585:0.05:-0.215
             %运动学反解求解出关节空间坐标
             %根据关节空间求解雅可比矩阵和最大速度
             %把速度赋值给vel_list即可完成本次循环
-            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            [q,judge]=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
             if isreal(q) %q为实数，说明该点为工作空间，进入循环
-                J=CalJac(q);
-                Jb=Rb*J;
-                temp_x=(inv(Jb))*eb_x;
-                temp_y=(inv(Jb))*eb_y;
-                temp_z=(inv(Jb))*eb_z;
-                ve_x=Vn/norm(temp_x,Inf);
-                ve_y=Vn/norm(temp_y,Inf);
-                ve_z=Vn/norm(temp_z,Inf);
-                vel_list_x(i,j) =ve_x; 
-                vel_list_y(i,j) =ve_y;    
-                vel_list_z(i,j) =ve_z;    
+                if judge == true 
+                    J=CalJac(q);
+                    Jb=Rb*J;
+                    temp_x=(inv(Jb))*eb_x;
+                    temp_y=(inv(Jb))*eb_y;
+                    temp_z=(inv(Jb))*eb_z;
+                    ve_x=Vn/norm(temp_x,Inf);
+                    ve_y=Vn/norm(temp_y,Inf);
+                    ve_z=Vn/norm(temp_z,Inf);
+                    vel_list_x(i,j) =ve_x; 
+                    vel_list_y(i,j) =ve_y;    
+                    vel_list_z(i,j) =ve_z;    
+                end
             end               
         end
     end
@@ -314,7 +318,7 @@ colormap turbo;
 clear all
 clc
 
-[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[x_list,z_list] = meshgrid(0.1065:0.01:0.5771,-0.4419:0.01:0.4419);
 [m,n]=size(x_list);
 %Rb是腿在身体坐标系下的旋转矩阵
  Rb = [1,0,0;
@@ -333,13 +337,13 @@ h3=figure;
 
 %记录每层切面的速度最大值
 count = 1;
-s = max(size(-0.585:0.05:-0.215));
+s = max(size(-0.5867:0.01:-0.2199));
 max_x_list = nan(1,s);
 max_y_list = nan(1,s);
 max_z_list = nan(1,s);
 
 
-for y=-0.585:0.05:-0.215
+for y=-0.5867:0.01:-0.2199
     y_list=ones(m,n)*y;
     vel_list_x =nan(m,n);
     vel_list_y =nan(m,n);
@@ -357,19 +361,21 @@ for y=-0.585:0.05:-0.215
             %运动学反解求解出关节空间坐标
             %根据关节空间求解雅可比矩阵和最大速度
             %把速度赋值给vel_list即可完成本次循环
-            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            [q,judge]=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
             if isreal(q) %q为实数，说明该点为工作空间，进入循环
-                J=CalJac(q);
-                Jb=Rb*J;
-                temp_x=(inv(Jb))*eb_x;
-                temp_y=(inv(Jb))*eb_y;
-                temp_z=(inv(Jb))*eb_z;
-                ve_x=Vn/norm(temp_x,Inf);
-                ve_y=Vn/norm(temp_y,Inf);
-                ve_z=Vn/norm(temp_z,Inf);
-                vel_list_x(i,j) =ve_x; 
-                vel_list_y(i,j) =ve_y;    
-                vel_list_z(i,j) =ve_z;    
+                if judge == true
+                    J=CalJac(q);
+                    Jb=Rb*J;
+                    temp_x=(inv(Jb))*eb_x;
+                    temp_y=(inv(Jb))*eb_y;
+                    temp_z=(inv(Jb))*eb_z;
+                    ve_x=Vn/norm(temp_x,Inf);
+                    ve_y=Vn/norm(temp_y,Inf);
+                    ve_z=Vn/norm(temp_z,Inf);
+                    vel_list_x(i,j) =ve_x; 
+                    vel_list_y(i,j) =ve_y;    
+                    vel_list_z(i,j) =ve_z;    
+                end
             end               
         end
     end
@@ -390,7 +396,7 @@ max_z_all = max(max_z_list);
 
 
 
-for y=-0.585:0.05:-0.215
+for y=-0.5867:0.01:-0.2199
     y_list=ones(m,n)*y;
     vel_list_x =nan(m,n);
     vel_list_y =nan(m,n);
@@ -518,7 +524,7 @@ res应该是21*
 clear all
 clc
 
-[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[x_list,z_list] = meshgrid(0.1065:0.01:0.5771,-0.4419:0.01:0.4419);
 [m,n]=size(x_list);
 %Rb是腿在身体坐标系下的旋转矩阵
  Rb = [1,0,0;
@@ -536,13 +542,13 @@ h2=figure;
 
 %记录每层切面的速度最大值
 count = 1;
-s = max(size(-0.585:0.05:-0.215));
+s = max(size(-0.5867:0.05:-0.2199));
 max_x_list = nan(1,s);
 max_y_list = nan(1,s);
 max_z_list = nan(1,s);
 
 
-for y=-0.585:0.05:-0.215
+for y=-0.5867:0.05:-0.2199
     y_list=ones(m,n)*y;
     vel_list_x =nan(m,n);
     vel_list_y =nan(m,n);
@@ -560,19 +566,21 @@ for y=-0.585:0.05:-0.215
             %运动学反解求解出关节空间坐标
             %根据关节空间求解雅可比矩阵和最大速度
             %把速度赋值给vel_list即可完成本次循环
-            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            [q,judge]=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
             if isreal(q) %q为实数，说明该点为工作空间，进入循环
-                J=CalJac(q);
-                Jb=Rb*J;
-                temp_x=(inv(Jb))*eb_x;
-                temp_y=(inv(Jb))*eb_y;
-                temp_z=(inv(Jb))*eb_z;
-                ve_x=Vn/norm(temp_x,Inf);
-                ve_y=Vn/norm(temp_y,Inf);
-                ve_z=Vn/norm(temp_z,Inf);
-                vel_list_x(i,j) =ve_x; 
-                vel_list_y(i,j) =ve_y;    
-                vel_list_z(i,j) =ve_z;    
+                if judge == true
+                    J=CalJac(q);
+                    Jb=Rb*J;
+                    temp_x=(inv(Jb))*eb_x;
+                    temp_y=(inv(Jb))*eb_y;
+                    temp_z=(inv(Jb))*eb_z;
+                    ve_x=Vn/norm(temp_x,Inf);
+                    ve_y=Vn/norm(temp_y,Inf);
+                    ve_z=Vn/norm(temp_z,Inf);
+                    vel_list_x(i,j) =ve_x; 
+                    vel_list_y(i,j) =ve_y;    
+                    vel_list_z(i,j) =ve_z;    
+                end
             end               
         end
     end
@@ -645,7 +653,7 @@ set(gcf,'Units','centimeters','Position',[5 5 32 18]); %指定plot输出图片�
 clear all
 clc
 
-[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[x_list,z_list] = meshgrid(0.1065:0.01:0.5771,-0.4419:0.01:0.4419);
 [m,n]=size(x_list);
 %Rb是腿在身体坐标系下的旋转矩阵
  Rb = [1,0,0;
@@ -663,13 +671,13 @@ h1=figure;
 
 %记录每层切面的速度最大值
 count = 1;
-s = max(size(-0.585:0.05:-0.215));
+s = max(size(-0.5867:0.05:-0.2199));
 max_x_list = nan(1,s);
 max_y_list = nan(1,s);
 max_z_list = nan(1,s);
 
 
-for y=-0.585:0.05:-0.215
+for y=-0.5867:0.05:-0.2199
     y_list=ones(m,n)*y;
     vel_list_x =nan(m,n);
     vel_list_y =nan(m,n);
@@ -787,7 +795,7 @@ res应该是21*
 clear all
 clc
 
-[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[x_list,z_list] = meshgrid(0.1065:0.01:0.5771,-0.4419:0.01:0.4419);
 [m,n]=size(x_list);
 %Rb是腿在身体坐标系下的旋转矩阵
  Rb = [1,0,0;
@@ -808,13 +816,13 @@ h4=figure;
 
 %记录每层切面的速度最大值
 count = 1;
-s = max(size(-0.585:0.05:-0.215));
+s = max(size(-0.5867:0.05:-0.2199));
 max_x_list = nan(1,s);
 max_y_list = nan(1,s);
 max_z_list = nan(1,s);
 
 
-for y=-0.585:0.05:-0.215
+for y=-0.5867:0.05:-0.2199
     y_list=ones(m,n)*y;
     vel_list_x =nan(m,n);
     vel_list_y =nan(m,n);
@@ -833,19 +841,21 @@ for y=-0.585:0.05:-0.215
             %运动学反解求解出关节空间坐标
             %根据关节空间求解雅可比矩阵和最大速度
             %把速度赋值给vel_list即可完成本次循环
-            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            [q,judge]=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
             if isreal(q) %q为实数，说明该点为工作空间，进入循环
-                J=CalJac(q);
-                Jb=Rb*J;
-                temp_x=(inv(Jb))*eb_x;
-                temp_y=(inv(Jb))*eb_y;
-                temp_z=(inv(Jb))*eb_z;
-                ve_x=Vn/norm(temp_x,Inf);
-                ve_y=Vn/norm(temp_y,Inf);
-                ve_z=Vn/norm(temp_z,Inf);
-                vel_list_x(i,j) =ve_x; 
-                vel_list_y(i,j) =ve_y;    
-                vel_list_z(i,j) =ve_z;    
+                if judge == true
+                    J=CalJac(q);
+                    Jb=Rb*J;
+                    temp_x=(inv(Jb))*eb_x;
+                    temp_y=(inv(Jb))*eb_y;
+                    temp_z=(inv(Jb))*eb_z;
+                    ve_x=Vn/norm(temp_x,Inf);
+                    ve_y=Vn/norm(temp_y,Inf);
+                    ve_z=Vn/norm(temp_z,Inf);
+                    vel_list_x(i,j) =ve_x; 
+                    vel_list_y(i,j) =ve_y;    
+                    vel_list_z(i,j) =ve_z;    
+                end
             end               
         end
     end
@@ -978,15 +988,16 @@ set(gcf,'Units','centimeters','Position',[5 5 32 18]); %指定plot输出图片�
 clear all
 clc
 
-alpha =0;
+alpha =0.5;
 beta = 1-alpha;
-Vmax = 1.6377;%整个空间的z向速度最大值
+Vmax = 1.6968;%整个空间的z向速度最大值，间隔为0.01
 y0=0.11;
 % H=y-y0;%涉水高度H
-ymin = -0.585;  %ymin是腿能达到的最远空间
+ymin = -0.5867;  %ymin是腿能达到的最远空间
 Hmax = -ymin-y0;
 
-[x_list,z_list] = meshgrid(0.165:0.002:0.580,-0.444:0.002:0.444);
+[x_list,z_list] = meshgrid(0.1065:0.01:0.580,-0.4419:0.01:0.4419);
+
 [m,n]=size(x_list);
 %Rb是腿在身体坐标系下的旋转矩阵
  Rb = [1,0,0;
@@ -1002,13 +1013,14 @@ Hmax = -ymin-y0;
 h1=figure;
 % h2=figure;
 % h3=figure;
-F_max_list = nan(75,4);%每一行对应每一层，四列分别该层出现最大值的对应x，y，z坐标以及F函数值
+F_max_list = nan(74,4);%每一行对应每一层，四列分别该层出现最大值的对应x，y，z坐标以及F函数值
 %记录每层极值出现的时候对应的坐标
 count =1;
+fuck=1;
 
 
 
-for y=-0.585:0.005:-0.215
+for y=-0.5867:0.05:-0.2199
     y_list=ones(m,n)*y;
     F_list =nan(m,n);
     ratio_list = nan(m,n);
@@ -1022,33 +1034,49 @@ for y=-0.585:0.005:-0.215
             %运动学反解求解出关节空间坐标
             %根据关节空间求解雅可比矩阵和最大速度
             %把速度赋值给vel_list即可完成本次循环
-            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
-            if isreal(q) %q为实数，说明该点为工作空间，进入循环
-                J=CalJac(q);
-                Jb=Rb*J;
-                temp_z=(inv(Jb))*eb_z;
-                ve_z=Vn/norm(temp_z,Inf);
-                ratio = ve_z/Vmax; 
-                ratio_list(i,j) =ratio;  
-                F = alpha*((-y-y0)/Hmax)+beta*ratio;
-                F_list(i,j) =F;  
+            [q,judge]=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+
                 
+            if isreal(q) %q为实数，说明该点为工作空间，进入循环
+                if judge==true
+                    
+                    J=CalJac(q);
+                    Jb=Rb*J;
+                    temp_z=(inv(Jb))*eb_z;
+                    ve_z=Vn/norm(temp_z,Inf);
+                    ratio = ve_z/Vmax; 
+                    ratio_list(i,j) =ratio;  
+                    F = alpha*((-y-y0)/Hmax)+beta*ratio;
+                    F_list(i,j) =F; 
+                    fuck=fuck+1
+                end
+%                 J=CalJac(q);
+%                 Jb=Rb*J;
+%                 temp_z=(inv(Jb))*eb_z;
+%                 ve_z=Vn/norm(temp_z,Inf);
+%                 ratio = ve_z/Vmax; 
+%                 ratio_list(i,j) =ratio;  
+%                 F = alpha*((-y-y0)/Hmax)+beta*ratio;
+%                 F_list(i,j) =F;  
+                
+
+
             end               
         end
     end
 
-    v_max = max(max(F_list));
-    F_max_list(count,4)=v_max;
-    F_max_list(count,2)=y;
-    [row, col] = find(F_list == v_max);
-    row=row(1);
-    col=col(1);
-    F_max_list(count,1)=x_list(row,col);
-    F_max_list(count,3)=z_list(row,col);
-    figure(h1);
-    hold on;
-    surf(x_list,z_list,y_list,F_list,'EdgeColor','none');  
-    count =count+1;
+%     v_max = max(max(F_list));
+%     F_max_list(count,4)=v_max;
+%     F_max_list(count,2)=y;
+%     [row, col] = find(F_list == v_max);
+%     row=row(1);
+%     col=col(1);
+%     F_max_list(count,1)=x_list(row,col);
+%     F_max_list(count,3)=z_list(row,col);
+%     figure(h1);
+%     hold on;
+%     surf(x_list,z_list,y_list,F_list,'EdgeColor','none');  
+%     count =count+1;
     
 
 end
@@ -1070,16 +1098,23 @@ colormap turbo;
 
 h2 =figure;
 figure(h2);
-y=-0.585:0.005:-0.215;
+y=-0.5867:0.005:-0.2199;
 F_max_val =F_max_list(:,4)';
 plot(y,F_max_val);
+[kmax,id] = findkmax(F_max_val,3);
 xlabel('末端y坐标');
 ylabel('F函数值');
 title('F随末端y坐标的变化')
-[val ,pos] = max(F_max_val);
-text(y(pos),F_max_val(pos),['极值点(',num2str(y(pos)),',',num2str(F_max_val(pos)),')']);
-hold on
-plot(y(pos),F_max_val(pos),'-*');
+% [val ,pos] = max(F_max_val);
+% text(y(pos),F_max_val(pos),['极值点(',num2str(y(pos)),',',num2str(F_max_val(pos)),')']);
+for i=1:3
+    text(y(id(i)),F_max_val(id(i))-(i-1)*0.03,['极值点',num2str(i),'(',num2str(y(id(i))),',',num2str(F_max_val(id(i))),')'])
+    hold on
+    plot(y(id(i)),F_max_val(id(i)),'-*');
+end
+
+% hold on
+% plot(y(pos),F_max_val(pos),'-*');
 
 h3 = figure;
 figure(h3);
@@ -1104,13 +1139,13 @@ view(0,90);
 clear all
 clc
 
-Vmax = 1.6377;%整个空间的z向速度最大值
+Vmax = 1.6968;%整个空间的z向速度最大值，这个vmax和y的取值间隔有关系，注意保持一致
 y0=0.11;
 % H=y-y0;%涉水高度H
-ymin = -0.585;  %ymin是腿能达到的最远空间
+ymin = -0.5867;  %ymin是腿能达到的最远空间
 Hmax = -ymin-y0;
 
-[x_list,z_list] = meshgrid(0.165:0.01:0.580,-0.444:0.01:0.444);
+[x_list,z_list] = meshgrid(0.1065:0.01:0.5771,-0.4419:0.01:0.4419);
 [m,n]=size(x_list);
 %Rb是腿在身体坐标系下的旋转矩阵
  Rb = [1,0,0;
@@ -1125,14 +1160,14 @@ Hmax = -ymin-y0;
 
 h1=figure;
 
-F_max_list = nan(38,11);
+F_max_list = nan(37,11);
 row = 1;
 col = 1;
 
 for alpha = 0:0.1:1
     beta = 1-alpha;
     
-    for y=-0.585:0.01:-0.215
+    for y=-0.5867:0.005:-0.2199
         y_list=ones(m,n)*y;
         ratio_list = nan(m,n);
         F_list = nan(m,n);
@@ -1158,7 +1193,7 @@ for alpha = 0:0.1:1
 
     end
     figure(h1);
-    plot(-0.585:0.01:-0.215,F_max_list(:,col));
+    plot(-0.5867:0.005:-0.2199,F_max_list(:,col));
     hold on
     col=col+1
     row=1;
@@ -1183,14 +1218,21 @@ for i=1:11
 end
 legend(leg_str);
 hold on
-plot([-0.465,-0.465],[0,1]);
-text(-0.465,0.6,'y=-0.466');
+plot([-0.4667,-0.4667],[0,1]);
+text(-0.465,0.6,'y=-0.4667');
 hold on
 plot([-0.585,-0.215],[1,1]);
 text(-0.3,1,'y=1');
 hold on
-plot([-0.535,-0.535],[0,1]);
-text(-0.535,0.6,'y=-0.535');
+
+%交点
+point1 = [-0.5267,0.874135];
+point2 = [-0.5167,0.853157];
+point3 = [-0.5267,0.849547];
+point4 = [-0.5167,0.866277];
+[insec_node(1),insec_node(2)] = node(point1,point2,point3,point4);
+plot(insec_node(1),insec_node(2),'-*r');
+text(insec_node(1)-0.01,insec_node(2)+0.05,['P (',num2str(insec_node),')']);
 
 %% P9 求极值平面
 %F = alpha(H/Hmax)+beta(V/Vmax)
@@ -1199,13 +1241,13 @@ clc
 
 alpha =0.5;
 beta = 1-alpha;
-Vmax = 1.6377;%整个空间的z向速度最大值
+Vmax = 1.6968;%整个空间的z向速度最大值
 y0=0.11;
 % H=y-y0;%涉水高度H
-ymin = -0.585;  %ymin是腿能达到的最远空间
+ymin = -0.5867;  %ymin是腿能达到的最远空间
 Hmax = -ymin-y0;
 
-[x_list,z_list] = meshgrid(0.165:0.001:0.580,-0.444:0.001:0.444);
+[x_list,z_list] = meshgrid(0.1065:0.001:0.5771,-0.4419:0.001:0.4419);
 [m,n]=size(x_list);
 %Rb是腿在身体坐标系下的旋转矩阵
  Rb = [1,0,0;
@@ -1224,7 +1266,7 @@ h1=figure;
 
 
 
-y=-0.535;
+y=-0.4667;
 y_list=ones(m,n)*y;
 F_list =nan(m,n);
 ratio_list = nan(m,n);
@@ -1273,7 +1315,8 @@ z_coord = z_list(row,col);
 plot(x_coord,z_coord,'-*k');
 
 h2=figure; %保留[amax,max]范围内的值的平面
-a=0.9;
+
+a=0.5;
 for i =1:m
     for j = 1:n
         if F_list(i,j) >=a*F_max
@@ -1293,6 +1336,95 @@ caxis([0,1]);
 colorbar;
 colormap turbo;
 hold on
+
+%% P10 看下三维空间中可操作度椭球体积的分布
+clear all
+clc
+
+[x_list,z_list] = meshgrid(0.1065:0.005:0.5771,-0.4419:0.005:0.4419);
+[m,n]=size(x_list);
+
+h1=figure;
+h2=figure;
+count =1;
+
+for y=-0.5867:0.025:-0.2199
+    y_list=ones(m,n)*y;
+    V_ellipsoid_list =nan(m,n);
+
+
+    for i=1:m
+        for j=1:n
+            %[x_list(i,j),y,z_list(i,j)]取出来该点
+            %先判断该点是否在工作空间内
+            %用运动学反解，如果是复数，直接跳出本次循环
+            %如果是实数，继续内容
+            %运动学反解求解出关节空间坐标
+            %根据关节空间求解雅可比矩阵和最大速度
+            %把速度赋值给vel_list即可完成本次循环
+            q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            if isreal(q) %q为实数，说明该点为工作空间，进入循环
+                J=CalJac(q);
+                A=J*J';
+                [V,D] = eig(A);
+                D = diag(D);
+                V_ellipsoid = sqrt(det(A)); %椭球体积正比于该值，并不完全代表椭球体积
+
+                V_ellipsoid_list(i,j) =V_ellipsoid*10^7.5;    
+            end               
+        end
+    end
+
+    
+    figure(h1);
+    hold on;
+    surf(x_list,z_list,y_list,V_ellipsoid_list,'EdgeColor','none');  
+    
+    figure(h2);
+    subplot(4,4,count);
+    surf(x_list,z_list,y_list,V_ellipsoid_list,'EdgeColor','none');  
+    subtitle(['y= ',num2str(y)])
+    view(2);
+    xlabel('X(m)');
+    ylabel('Z(m)');
+    zlabel('Y(m)');
+    caxis([0,1]);
+    colorbar;
+    colormap turbo;
+    
+    
+    count =count +1;
+    
+end
+
+figure(h1);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]); %指定plot输出图片的尺寸，xmin，ymin，width，height
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('可操作度椭球体积在三维空间中的分布*10^7')
+caxis([0,1]);
+colorbar;
+% colormap turbo;
+
+
+
+
+
+%% 计算直线交点
+clear all
+clc
+point1 = [-0.5267,0.874135];
+point2 = [-0.5167,0.853157];
+point3 = [-0.5267,0.849547];
+point4 = [-0.5167,0.866277];
+
+[insec_node(1),insec_node(2)] = node(point1,point2,point3,point4);
 
 
 
@@ -1390,8 +1522,8 @@ q2=mot_pos(3);
 AC = 0.185;
 CD = 0.100;
 AG = 0.100;
-% DE = 0.39224;
-DE=0.375;
+DE = 0.39224;
+% DE=0.375;
 DG = 0.185;
 GF = 0.060;
 GH = 0.025;
@@ -1418,6 +1550,10 @@ B_0y = 0.069;
 PA_x=0.048;
 PA_y=0.032;
 % mot_pos=[-318.5526,310.3820,-64.2526]; %电机输入量，目前是二维，分别为xy方向电机输入量
+
+
+k1=16*0.0025/26/2/pi;
+k2=19/50/28;
 
 
 
@@ -1520,7 +1656,7 @@ end
 
 
 %%
-function [mot_pos3 ]=IKM(ee_position)
+function [mot_pos3,judge]=IKM(ee_position)
 % clear all
 % clc
 %注意：这里的反解结果是没问题的，但是q0,q1的符号与实际使用的相反%
@@ -1550,8 +1686,8 @@ y=y0+PA_y;
 AC = 0.185;
 CD = 0.100;
 AG = 0.100;
-% DE = 0.39224;
-DE=0.375;
+DE = 0.39224;
+% DE=0.375;
 GF = 0.060;
 GH = 0.025;
 AJ = 0.0905;
@@ -1609,5 +1745,62 @@ deltaY = (By-B_0y);
 q1 = 26.0 / 16.0 * deltaY / 0.0025 * 2.0 * pi;
 mot_pos3=[q0,q1,q2];
 
+%反解中deltaX和deltaY都应该是负的，也就是说这两个变量的有效值为0~-0.076之间，再此加一个判据
+if ((-0.076<deltaX) && (deltaX <0) && (-0.076<deltaY) && (deltaY <0) && (-0.8727< theta0) && (theta0<0.8727))
+    judge = true; %judge为真说明该值在行程范围内，可以继续运算
+else
+    judge = false;
 end
+    
+
+end
+
+
+%% 已知两条直线的两个端点，求其交点坐标
+% 背景：
+% 1、已知：平面上的四个点 X1，Y1，X2，Y2
+%         其中，X1与Y1确定一条直线，X2与Y2确定一条直线
+% 2、任务：求解X1与Y1确定的直线，X2与Y2确定的直线的交点
+
+function [X, Y]= node( X1,Y1,X2,Y2 )
+
+if X1(1)==Y1(1)
+   X=X1(1);
+   k2=(Y2(2)-X2(2))/(Y2(1)-X2(1));
+   b2=X2(2)-k2*X2(1); 
+   Y=k2*X+b2;
+end
+if X2(1)==Y2(1)
+   X=X2(1);
+   k1=(Y1(2)-X1(2))/(Y1(1)-X1(1));
+   b1=X1(2)-k1*X1(1);
+   Y=k1*X+b1;
+end
+if X1(1)~=Y1(1)&X2(1)~=Y2(1)
+   k1=(Y1(2)-X1(2))/(Y1(1)-X1(1));
+   k2=(Y2(2)-X2(2))/(Y2(1)-X2(1));
+   b1=X1(2)-k1*X1(1);
+   b2=X2(2)-k2*X2(1);
+    if k1==k2
+      X=[];
+      Y=[];
+   else
+   X=(b2-b1)/(k1-k2);
+   Y=k1*X+b1;
+   end
+end
+end
+
+%% 寻找数组中前k大的数
+function [value, idx]=findkmax(x,k)
+value = zeros(1,k);
+idx   = zeros(1,k);
+m = min(x);
+for j = 1:k
+    [value(j), idx(j)] = max(x);
+    x(idx(j))=m;
+end
+end
+
+
 
