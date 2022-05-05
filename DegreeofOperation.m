@@ -12,9 +12,9 @@ clear all
 clc
 
 %传入坐标
-xyz_coord = [0.5665,-0.4667,0.0081];
+xyz_coord = [0.4435,-0.4877,0];
 %计算反解
-q = Inverse_kinematic(xyz_coord);
+[q,judge] = Inverse_kinematic(xyz_coord);
 %计算雅可比
 J = CalJac(q);
 
@@ -48,5 +48,6 @@ plot(gtEllip);
 view(90,0);
 
 suptitle('Degree of Operation');
+judge
 
 
