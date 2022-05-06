@@ -1,4 +1,4 @@
-#include<algorithm>
+﻿#include<algorithm>
 #include<array>
 #include<stdlib.h>
 #include<string>
@@ -595,7 +595,7 @@ auto HexForward::executeRT()->int
 
     }
 
-    TCurve s1(2,1);
+    TCurve s1(3,1.5);
     s1.getCurveParam();
     EllipseTrajectory e1(x_step_, 0.05, 0, s1);
     BodyPose body_s(0, 0, 0, s1);
@@ -736,7 +736,7 @@ HexForward::~HexForward() = default;
             this->master()->logFileRawName("hex_lateral");
         }
 
-        TCurve s1(2, 1);
+        TCurve s1(3, 1.5);
         s1.getCurveParam();
         EllipseTrajectory e1(0, 0.05, z_step_, s1);
         BodyPose body_s(0, 0, 0, s1);
@@ -850,7 +850,7 @@ HexForward::~HexForward() = default;
                 this->master()->logFileRawName("hex_turn1");
             }
 
-            TCurve s1(2, 1);
+            TCurve s1(3, 1.5);
             s1.getCurveParam();
             EllipseTrajectory e1(0, 0.03, 0, s1);
             BodyPose body_s(0, turn_yaw_, 0, s1);
@@ -966,7 +966,7 @@ HexForward::~HexForward() = default;
                 }
 
 
-                TCurve s1(2, 1);
+                TCurve s1(3, 1.5);
                 s1.getCurveParam();
                 EllipseTrajectory e1(x_step_, 0.03, 0, s1);
                 BodyPose body_s(0, 0, 0, s1);
