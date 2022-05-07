@@ -1,4 +1,4 @@
-#ifndef ROBOT_H_
+﻿#ifndef ROBOT_H_
 #define ROBOT_H_
 
 #include<memory>
@@ -173,6 +173,28 @@ namespace robot
 		int n_;
 	};
 
+
+
+
+    //  驅動----指定單腿坐標
+    class SingleLegEndCoordinate :public aris::core::CloneObject<SingleLegEndCoordinate, aris::plan::Plan>
+    {
+    public:
+        auto virtual prepareNrt()->void;
+        auto virtual executeRT()->int;
+        auto virtual collectNrt()->void;
+
+        virtual ~SingleLegEndCoordinate();
+        explicit SingleLegEndCoordinate(const std::string& name = "turn");
+    private:
+        double x_coord_;
+        double y_coord_;
+        double z_coord_;
+    };
+
+
+
+
 	//--------------------测试TCurve2-----------------------//
 	class TCurve2Test :public aris::core::CloneObject<TCurve2Test, aris::plan::Plan>
 	{
@@ -266,6 +288,9 @@ namespace robot
 		virtual ~HexDynamicTetrapodTest();
 		explicit HexDynamicTetrapodTest(const std::string& name = "hex_tetrapod");
 	};
+
+
+
 
 
 	auto createModelHexapod()->std::unique_ptr<aris::dynamic::Model>;

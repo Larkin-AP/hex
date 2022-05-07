@@ -1,4 +1,4 @@
-#include"plan.h"
+﻿#include"plan.h"
 #include"kinematics.h"
 #include<aris.hpp>
 #include"robot.h"
@@ -9,9 +9,9 @@ extern double file_current_body[16];
 int main(int argc, char *argv[])
 {
 
-	auto& cs = aris::server::ControlServer::instance();
-	cs.resetController(robot::createControllerHexapod().release());
-	cs.resetPlanRoot(robot::createPlanHexapod().release());
+    auto& cs = aris::server::ControlServer::instance();
+    cs.resetController(robot::createControllerHexapod().release());
+    cs.resetPlanRoot(robot::createPlanHexapod().release());
     //cs.resetModel(robot::createModelHexapod().release());
 
 	// 设置模型初始位置，给关节角度  注：相对的位置是模型Quad里设置的关节轴和末端  初始位置电机输入为0 //
@@ -51,11 +51,11 @@ int main(int argc, char *argv[])
 
 
 	//等待终端输入函数，本函数不能去掉，否则实时线程和主线程都会结束//
-	cs.init();
+    cs.init();
 
 	//开启websocket/socket服务器//
-	cs.open();
+    cs.open();
 //    cs.start();
-	cs.runCmdLine();
+    cs.runCmdLine();
 	return 0;
 }

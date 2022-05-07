@@ -1,4 +1,4 @@
-#include"kinematics.h"
+﻿#include"kinematics.h"
 #include<iostream>
 #include<aris.hpp>
 
@@ -105,7 +105,6 @@ double PL6[16] =
  auto legInverseKinematics(double *ee_position, double *mot_pos)->void
  {
 	 //此处坐标原点在 转轴与底板地面的交点
-	 //mot_pos[2] = -atan2(ee_position[2], ee_position[0]); //竖直转动轴 ###此处暂时不加一个负号
      double theta0 = atan2(ee_position[2], ee_position[0]);  //竖直转动轴转动的角度，还需要转换到电机轴上
      mot_pos[2] =  50 * 28 / 19 * theta0;  //减速箱减速比50：1，带传动比 28：19
 	 double x0 = sqrt(ee_position[2] * ee_position[2] + ee_position[0] * ee_position[0]); //反解所在平面的x值
@@ -115,13 +114,13 @@ double PL6[16] =
 	 double y = y0 + PA_Y;
 	 
 
-	 double AN = sqrt(x * x + y * y);
-	 double angle_NCA = (acos((NC * NC + AC * AC - AN * AN) / 2 / NC / AC));
-	 double angle_CAN = (acos((AC * AC + AN * AN - NC * NC) / 2 / AC / AN));
-	 double angle_CAG = PI - angle_NCA;
-	 double angle_NAG = angle_CAG - angle_CAN;
-	 double angle_NAJ = (atan(-x / y));
-	 double angle_GAJ = angle_NAJ - angle_NAG;
+     double AE = sqrt(x * x + y * y);
+     double angle_ECA = (acos((EC * EC + AC * AC - AE * AE) / 2 / EC / AC));
+     double angle_CAE = (acos((AC * AC + AE * AE - EC * EC) / 2 / AC / AE));
+     double angle_CAG = PI - angle_ECA;
+     double angle_EAG = angle_CAG - angle_CAE;
+     double angle_EAJ = (atan(-x / y));
+     double angle_GAJ = angle_EAJ - angle_EAG;
 	 double Gx = AG * sin(angle_GAJ);
 	 double Gy = -AG * cos(angle_GAJ);
 	 double vector_AG1 = Gx;
@@ -138,12 +137,12 @@ double PL6[16] =
 
 	 
 
-	 double vector_AN1 = x;
-	 double vector_AN2 = y;
-	 double vector_CN1 = NC / AG * vector_AG1;
-	 double vector_CN2 = NC / AG * vector_AG2;
-	 double vector_AC1 = vector_AN1 - vector_CN1;
-	 double vector_AC2 = vector_AN2 - vector_CN2;
+     double vector_AE1 = x;
+     double vector_AE2 = y;
+     double vector_CE1 = EC / AG * vector_AG1;
+     double vector_CE2 = EC / AG * vector_AG2;
+     double vector_AC1 = vector_AE1 - vector_CE1;
+     double vector_AC2 = vector_AE2 - vector_CE2;
 	 double vector_GF1 = GF / AC * vector_AC1;
 	 double vector_GF2 = GF / AC * vector_AC2;
 	 double vector_AF1 = vector_AG1 + vector_GF1;

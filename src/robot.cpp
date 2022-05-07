@@ -226,9 +226,9 @@ struct Home::Imp :public SetActiveMotor { std::int32_t limit_time; double offset
             "<Command name=\"hm\">"
             "	<GroupParam>"
             "		<Param name=\"method\" default=\"18\"/>"
-            "		<Param name=\"offsetY\" default=\"76394\"/>"
-            "		<Param name=\"offsetX\" default=\"44563\"/>"
-            "		<Param name=\"offsetR\" default=\"38651\"/>"
+            "		<Param name=\"offsetY\" default=\"76394\"/>" //120*2000/pi offset val is rad of motor times 2000/pi(offset coefficient)
+            "		<Param name=\"offsetX\" default=\"44563\"/>" //70*2000/pi
+            "		<Param name=\"offsetR\" default=\"35332\"/>" //55.5*2000/pi
             "		<Param name=\"high_speed\" default=\"10000\"/>"
             "		<Param name=\"low_speed\" default=\"300\"/>"
             "		<Param name=\"acceleration\" default=\"100000\"/>"
@@ -1060,6 +1060,91 @@ HexForward::~HexForward() = default;
                     "</Command>");
             }
             HexTetrapod::~HexTetrapod() = default;
+
+
+            //---------------------驅動-------指定單腿坐標--------------------//
+            //默认值是xz在极限位置
+            auto SingleLegEndCoordinate::prepareNrt()->void
+            {
+                x_coord_ = doubleParam("x_coord_");
+                y_coord_ = doubleParam("y_coord_");
+                z_coord_ = doubleParam("z_coord_");
+                for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE |aris::plan::Plan::NOT_CHECK_POS_CONTINUOUS ;
+            }
+            auto SingleLegEndCoordinate::executeRT()->int
+            {
+                static double begin_angle[3] = { 0 };
+                if (count() == 1) {
+                    for (int i = 0; i < 3; ++i) {
+                        begin_angle[i] = controller()->motionPool()[i].targetPos();
+                    }
+                    this->master()->logFileRawName("single_leg_end_coordinate");
+                }
+
+
+                TCurve s1(0.3, 0.2);
+                s1.getCurveParam();
+                double ee[3] = {x_coord_,y_coord_,z_coord_};
+                double mot[3] = {0};
+                legInverseKinematics(ee,mot);
+                double motor_angle[3] ={0};
+                for(int i = 0; i < 3 ;++i){
+                    motor_angle[i] = begin_angle[i] + (mot[i]-begin_angle[i])*s1.getTCurve(count());
+                    std::cout << mot[i] << std::endl;
+                }
+
+                //输出电机角度，用于仿真测试
+//                {
+//                    //log
+                    for (int i = 0; i < 3; ++i) {
+                        lout() << motor_angle[i] << "\t";
+                    }
+                    lout() << std::endl;
+
+                    //打印
+                    for (int i = 0; i < 3; ++i) {
+                        mout() << motor_angle[i] << "\t";
+                    }
+                    mout() << std::endl;
+
+                    for (int i = 0; i < 3; ++i) {
+                        mout() << mot[i] << "\t";
+                    }
+                    mout() << std::endl;
+//                }
+
+
+
+                //给电机发送信号
+                for (int i = 0; i < 3; ++i) {
+                    controller()->motionPool()[i].setTargetPos(motor_angle[i]);
+                }
+
+
+
+
+
+                return s1.getTc() * 1000-count();
+//                return 0;
+
+            }
+
+            auto SingleLegEndCoordinate::collectNrt()->void {}
+
+
+            SingleLegEndCoordinate::SingleLegEndCoordinate(const std::string& name)
+            {
+                aris::core::fromXmlString(command(),
+                    "<Command name=\"footend\">"
+                    "<GroupParam>"
+                    "<Param name=\"x_coord_\" default=\"0.4435\" abbreviation=\"x\"/>"
+                    "<Param name=\"y_coord_\" default=\"-0.4877\" abbreviation=\"y\"/>"
+                    "<Param name=\"z_coord_\" default=\"0.0\" abbreviation=\"z\"/>"
+                    "</GroupParam>"
+                    "</Command>");
+            }
+            SingleLegEndCoordinate::~SingleLegEndCoordinate() = default;
+
 
 
 
@@ -2148,6 +2233,7 @@ auto createPlanHexapod()->std::unique_ptr<aris::plan::PlanRoot>
     plan_root->planPool().add<HexTurn>();
     plan_root->planPool().add<HexTetrapod>();
     plan_root->planPool().add<Test>();
+    plan_root->planPool().add<SingleLegEndCoordinate>();
 
 
     return plan_root;
