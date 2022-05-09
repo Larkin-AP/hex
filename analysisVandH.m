@@ -1412,10 +1412,10 @@ clc
 
 alpha =0.5;
 beta = 1-alpha;
-Vmax = 1.6968;%整个空间的z向速度最大值，间隔为0.01
+Vmax = 1.6157;%整个空间的z向速度最大值，间隔为0.01
 y0=0.11;
 % H=y-y0;%涉水高度H
-ymin = -0.5867;  %ymin是腿能达到的最远空间
+ymin = -0.5467;  %ymin是腿能达到的最远空间
 Hmax = -ymin-y0;
 
 [x_list,y_list] = meshgrid(0.1065:0.001:0.580,-0.5867:0.001:-0.2199);
@@ -1510,11 +1510,14 @@ colorbar;
 colormap turbo;
 hold on
 scatter(F_max_list(:,1),F_max_list(:,2));
+hold on
+plot(0.4465,-0.4517,'-r*')
 
 
 
 
 figure(h2);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 y=y_list(:,1)';
 F_max_val =F_max_list(:,4)';
 plot(y,F_max_val);
@@ -1547,6 +1550,102 @@ view(-50,30);
 h4 = copy(h3);
 figure(h4);
 view(0,90);
+
+
+%% P12 求在给定范围内的速度最大值Vmax和Hmin（此处最大范围是考虑实机能否到达，也就是IK的judge为true）
+clear all
+clc
+
+%整个空间的网格范围是远大于设定范围的，所以目前看来有judge的情况下，应该不会影响我判断Vmax和Hmin
+[x_list,z_list] = meshgrid(0.1065:0.005:0.5771,-0.4419:0.005:0.4419);
+[m,n]=size(x_list);
+%Rb是腿在身体坐标系下的旋转矩阵
+ Rb = [1,0,0;
+     0,1,0;
+     0,0,1];
+
+ Vn=2/3*100*pi; %电机额定转速  单位rad/s
+
+ eb_z=[0,0,1]'; %机身坐标系下指定方向（沿z方向）
+
+h1=figure;
+count =1;
+y_range=-0.5867:0.005:-0.2199;
+y_size = max(size(y_range));
+V_max_list=nan(y_size,4); %xyzVmax
+
+
+for y=y_range
+    y_list=ones(m,n)*y;
+    vel_list_z =nan(m,n);
+
+
+    for i=1:m
+        for j=1:n
+            %[x_list(i,j),y,z_list(i,j)]取出来该点
+            %先判断该点是否在工作空间内
+            %用运动学反解，如果是复数，直接跳出本次循环
+            %如果是实数，继续内容
+            %运动学反解求解出关节空间坐标
+            %根据关节空间求解雅可比矩阵和最大速度
+            %把速度赋值给vel_list即可完成本次循环
+            [q,judge]=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+            if isreal(q) %q为实数，说明该点为工作空间，进入循环
+                if judge ==true
+                    J=CalJac(q);
+                    Jb=Rb*J;
+                    temp_z=(inv(Jb))*eb_z;
+                    ve_z=Vn/norm(temp_z,Inf);
+                    vel_list_z(i,j) =ve_z;    
+                end
+            end               
+        end
+    end
+    
+    v_max = max(max(vel_list_z));
+    if ~isnan(v_max)
+        [row, col]=find(vel_list_z==v_max);
+        x_coord = x_list(row,col);
+        z_coord = z_list(row,col);
+        V_max_list(count,4) = v_max;
+        V_max_list(count,1) = x_coord;
+        V_max_list(count,3) = z_coord;
+        V_max_list(count,2) = y;
+        
+    end
+    
+
+    
+    figure(h1);
+    hold on;
+    surf(x_list,z_list,y_list,vel_list_z,'EdgeColor','none');  
+    
+    count =count+1;
+    
+    
+end
+
+figure(h1);
+set(gcf,'Units','centimeters','Position',[5 5 16 9]); %指定plot输出图片的尺寸，xmin，ymin，width，height
+set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+    ...,'xgrid','on','ygrid','on','zgrid','on'...
+    ,'yDir','reverse');
+view(-50,30);
+xlabel('X(m)');
+ylabel('Z(m)');
+zlabel('Y(m)');
+title('Velocity distribution in the x direction')
+caxis([0,1]);
+colorbar;
+colormap turbo;
+
+Vmax = max(V_max_list(:,4));
+ymin = min(V_max_list(:,2));  %ymin是腿能达到的最远空间
+
+
+
+
 
 
 
@@ -1881,7 +1980,7 @@ q1 = 26.0 / 16.0 * deltaY / 0.0025 * 2.0 * pi;
 mot_pos3=[q0,q1,q2];
 
 %反解中deltaX和deltaY都应该是负的，也就是说这两个变量的有效值为0~-0.076之间，再此加一个判据
-if ((-0.076<deltaX) && (deltaX <0) && (-0.076<deltaY) && (deltaY <0) && (-0.8727< theta0) && (theta0<0.8727))
+if ((-0.076<deltaX) && (deltaX <0) && (-0.065<deltaY) && (deltaY <0) && (-0.8727< theta0) && (theta0<0.8727))
     judge = true; %judge为真说明该值在行程范围内，可以继续运算
 else
     judge = false;

@@ -6,17 +6,16 @@
 #define AC  0.185
 #define CD  0.100
 #define AG  0.100
-#define DE  0.155
-#define EN  0.220
+#define DE  0.39224
 #define DG  0.185
 #define GF  0.060
 #define GH  0.025
 #define AJ  0.0905
 #define LM  0.020
-#define EC  0.475
 #define BF  0.120
-//NC = CD + DE + EN
-//#define R   0.60477 //1腿末端到身体原点的平面投影距离，即末端旋转的半径R
+
+const double EC = CD + DE;
+
 
 
 //x,y方向的初始值(注意是哪两个面之间的距离)？？
@@ -25,8 +24,12 @@
 //#define B_0y 0.05336
 
 //这两个初始值是让输出在初始时刻为0测量出的值
-#define H_0x 0.007105
-#define B_0y 0.0447558
+//暂时先不动初始值，需要测试一下再看看初始值
+//#define H_0x 0.007105
+//#define B_0y 0.0447558
+
+#define H_0x -0.020
+#define B_0y 0.069
 
 
 //身体长宽高设置，单位m
@@ -64,6 +67,7 @@ static double body_position_start_point[16] = {
 
 /**********函数声明**********/
 auto inverseLeg(double *Ground_xyz_ee, double *Ground_P_Body, double *input)->int;
+auto legInverseKinematics(double* ee_position, double* mot_pos)->void;
 
 #endif
 

@@ -106,7 +106,7 @@ q1 = 26.0 / 16.0 * deltaY / 0.0025 * 2.0 * pi;
 mot_pos3=[q0,q1,q2];
 
 %反解中deltaX和deltaY都应该是负的，也就是说这两个变量的有效值为0~-0.076之间，再此加一个判据
-if ((-0.076<deltaX) && (deltaX <0) && (-0.076<deltaY) && (deltaY <0) && (-0.8727< theta0) && (theta0<0.8727))
+if ((-0.076<deltaX) && (deltaX <0) && (-0.065<deltaY) && (deltaY <0) && (-0.8727< theta0) && (theta0<0.8727))
     judge = true; %judge为真说明该值在行程范围内，可以继续运算
 else
     judge = false;
