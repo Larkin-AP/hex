@@ -80,6 +80,7 @@ extern const double body_position_related_body[16];
 /**********函数声明**********/
 auto inverseLeg(double *Ground_xyz_ee, double *Ground_P_Body, double *input)->int;
 auto legInverseKinematics(double *ee_position, double *mot_pos)->void;
+auto legForwardKinematics(double *mot, double *ee_position)->void;
 
 #endif
 

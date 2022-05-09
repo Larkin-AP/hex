@@ -226,8 +226,8 @@ struct Home::Imp :public SetActiveMotor { std::int32_t limit_time; double offset
             "<Command name=\"hm\">"
             "	<GroupParam>"
             "		<Param name=\"method\" default=\"18\"/>"
-            "		<Param name=\"offsetY\" default=\"76394\"/>" //120*2000/pi offset val is rad of motor times 2000/pi(offset coefficient)
-            "		<Param name=\"offsetX\" default=\"44563\"/>" //70*2000/pi
+            "		<Param name=\"offsetX\" default=\"100551.865\"/>" //120*2000/pi offset val is rad of motor times 2000/pi(offset coefficient)
+            "		<Param name=\"offsetY\" default=\"168958.888\"/>" //70*2000/pi
             "		<Param name=\"offsetR\" default=\"35332\"/>" //55.5*2000/pi
             "		<Param name=\"high_speed\" default=\"10000\"/>"
             "		<Param name=\"low_speed\" default=\"300\"/>"
@@ -249,7 +249,7 @@ auto Prepare::prepareNrt()->void
 auto Prepare::executeRT()->int
 {
 
-    TCurve s1(1, 1);
+    TCurve s1(0.5, 0.3);
     s1.getCurveParam();
     int time = s1.getTc() * 1000;
 
@@ -616,10 +616,13 @@ auto HexForward::executeRT()->int
     //log部分，用于文件记录
     {
         //log
-            for (int i = 3; i < 6; ++i) {
+            for (int i = 0; i < 3; ++i) {
                 lout() << input_angle[i] << "\t";
             }
-//            lout() << std::endl;
+            for (int i = 0; i < 3; ++i) {
+                lout() << motor_angle[i] << "\t";
+            }
+            lout() << std::endl;
 
         //log
 //        for (int i =0 ; i< 18; i++){
@@ -648,10 +651,10 @@ auto HexForward::executeRT()->int
     //输出身体和足端曲线，用于仿真测试
 
 //            //log
-            for (int i = 3; i < 6; ++i) {
-                lout() << file_current_leg[i] << "\t";
-            }
-            lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
+//            for (int i = 3; i < 6; ++i) {
+//                lout() << file_current_leg[i] << "\t";
+//            }
+//            lout() << file_current_body[3] << "\t" << file_current_body[7] << "\t" << file_current_body[11] << std::endl;
 
 
 
@@ -665,9 +668,9 @@ auto HexForward::executeRT()->int
 
 
     //给电机发送信号
-        for (int i = 0; i < 18; ++i) {
-            controller()->motionPool()[i].setTargetPos(motor_angle[i]);
-        }
+//        for (int i = 0; i < 18; ++i) {
+//            controller()->motionPool()[i].setTargetPos(motor_angle[i]);
+//        }
 
 
 
@@ -1062,7 +1065,7 @@ HexForward::~HexForward() = default;
             HexTetrapod::~HexTetrapod() = default;
 
 
-            //---------------------驅動-------指定單腿坐標--------------------//
+            //---------------------驅動-------指定單腿1坐標(in leg frame and print ee coordinate and motor angle)--------------------//
             //默认值是xz在极限位置
             auto SingleLegEndCoordinate::prepareNrt()->void
             {
@@ -1093,13 +1096,11 @@ HexForward::~HexForward() = default;
                     std::cout << mot[i] << std::endl;
                 }
 
+                int ret = s1.getTc() * 1000-count();
+
                 //输出电机角度，用于仿真测试
 //                {
-//                    //log
-                    for (int i = 0; i < 3; ++i) {
-                        lout() << motor_angle[i] << "\t";
-                    }
-                    lout() << std::endl;
+
 
                     //打印
                     for (int i = 0; i < 3; ++i) {
@@ -1107,25 +1108,33 @@ HexForward::~HexForward() = default;
                     }
                     mout() << std::endl;
 
-                    for (int i = 0; i < 3; ++i) {
-                        mout() << mot[i] << "\t";
-                    }
-                    mout() << std::endl;
 //                }
 
 
 
+
                 //给电机发送信号
-                for (int i = 0; i < 3; ++i) {
-                    controller()->motionPool()[i].setTargetPos(motor_angle[i]);
+//                for (int i = 0; i < 3; ++i) {
+//                    controller()->motionPool()[i].setTargetPos(motor_angle[i]);
+//                }
+                if (ret == 0){
+                    mout() << "ee coordinate is as follow(xyz in leg frame):" << std::endl;
+                    mout() << x_coord_<<"\t" << y_coord_<<"\t"<< z_coord_<<std::endl;
+                    mout() << "motor angle is as follow(IK solver):" << std::endl;
+                    for(int i=0;i<3;i++){
+                        mout() << mot[i] << "\t";
+                    }
+                    mout() << std::endl;
                 }
 
 
 
 
 
-                return s1.getTc() * 1000-count();
-//                return 0;
+
+
+                return ret;
+
 
             }
 

@@ -211,3 +211,42 @@ double PL6[16] =
  }
 
 
+ //Forward kinematics to calculate the ee coordinate
+ auto legForwardKinematics(double *mot, double *ee_position)->void{
+     double deltaX=-16*0.0025/26/2/PI*mot[0];
+     double deltaY=16*0.0025/26/2/PI*mot[1];
+     double Hx=H_0x+deltaX;
+     double Hy=-AJ;
+     double Bx=LM;
+     double By=B_0y+deltaY;
+     double AH=sqrt(Hx*Hx+Hy*Hy);
+     double angle_GAH=acos((AG*AG+AH*AH-GH*GH)/(2*AH*AG));
+     double angle_HAJ=atan(Hx/Hy);
+     double angle_GAJ=angle_GAH-angle_HAJ;
+     double Gx=AG*sin(angle_GAJ);
+     double Gy=-AG*cos(angle_GAJ);
+     double BG=sqrt((Bx-Gx)*(Bx-Gx)+(By-Gy)*(By-Gy));
+     double angle_BGT=atan2(By-Gy,Bx-Gx);
+     double angle_BGF=acos((BG*BG+GF*GF-BF*BF)/(2*BG*GF));
+     double angle_FGT=angle_BGT-angle_BGF;
+     double vector_GF1=GF*cos(angle_FGT);
+     double vector_GF2=GF*sin(angle_FGT);
+     double vector_AG1=Gx;
+     double vector_AG2=Gy;
+     double vector_AE1=AC/GF*vector_GF1+EC/AG*vector_AG1;
+     double vector_AE2=AC/GF*vector_GF2+EC/AG*vector_AG2;
+     double x_tilde=vector_AE1;
+     double y_tilde=vector_AE2;
+     double x0=x_tilde+PA_X;
+     double y0=y_tilde-PA_Y;
+     double alpha=19.0/50.0/28.0*mot[2];
+     double x=x0/sqrt(1+(tan(alpha))*(tan(alpha)));
+     double y=y0;
+     double z=x0/sqrt(1+(tan(alpha))*(tan(alpha)))*tan(alpha);
+     ee_position[0]=x;
+     ee_position[1]=y;
+     ee_position[2]=z;
+
+ }
+
+
