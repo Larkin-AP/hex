@@ -8,6 +8,13 @@ extern double file_current_leg[18];
 extern double file_current_body[16];
 int main(int argc, char *argv[])
 {
+//    double mot[3] = {0};
+//    double ee[3] = {0.4465,-0.4517,0};
+//    legInverseKinematics(ee,mot);
+//    for(int i=0;i<3;i++){
+//        std::cout << mot[i] << "\t";
+//    }
+//    std::cout << std::endl;
 
 
     auto& cs = aris::server::ControlServer::instance();

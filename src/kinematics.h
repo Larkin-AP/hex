@@ -27,8 +27,12 @@ const double EC = CD+DE;
 //#define H_0x 0.007105
 //#define B_0y 0.0447558
 
+//这个参数是刚好触发传感器的Hx和By坐标
 #define H_0x -0.020
 #define B_0y 0.069
+
+
+
 
 
 //身体长宽高设置，单位m
@@ -69,8 +73,12 @@ const double EC = CD+DE;
 extern double foot_position_start_point[18];
 extern double body_position_start_point[16];
 extern double body_related_world[16];
-extern const double foot_position_related_body[18];
-extern const double body_position_related_body[16];
+extern double foot_position_related_body[18];
+extern double body_position_related_body[16];
+
+
+extern double ans[2];
+
 
 
 
@@ -79,8 +87,10 @@ extern const double body_position_related_body[16];
 
 /**********函数声明**********/
 auto inverseLeg(double *Ground_xyz_ee, double *Ground_P_Body, double *input)->int;
-auto legInverseKinematics(double *ee_position, double *mot_pos)->void;
+auto legInverseKinematics(double *ee_position, double *mot_pos)->void;//用于运动规划
 auto legForwardKinematics(double *mot, double *ee_position)->void;
+auto legInverseKinematics2(double *ee_position, double *mot_pos,double *ans)->void;//用于setInitPos，计算初始设立末端位置的电机值，不参与运动规划,ans[2] = {Hx,By}
+auto calHxAndBy(double *mot, double *ans)->void; //用于获取设立初值后，计算获得Hx和By
 
 #endif
 

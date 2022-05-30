@@ -66,6 +66,31 @@ namespace robot
 
     };
 
+
+    //设立腿1末端初始位置
+    class SetInitPos :public aris::core::CloneObject<SetInitPos, aris::plan::Plan>
+    {
+    public:
+        auto virtual prepareNrt()->void;
+        auto virtual executeRT()->int;
+        auto virtual collectNrt()->void;
+
+        virtual ~SetInitPos();
+        explicit SetInitPos(const std::string& name = "setInitPos");
+
+        auto calculateInitPos()->void; //根据腿1末端坐标来计算其他其他腿坐标从而确定foot_start_pos
+
+
+    private:
+        double x_in_leg1_frame_;
+        double y_in_leg1_frame_;
+        double z_in_leg1_frame_;
+
+    };
+
+
+
+
     //---------------------从任意位置移动到prepare位置----------------//
     //在零位上电
     class Prepare :public aris::core::CloneObject<Prepare, aris::plan::Plan>

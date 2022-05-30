@@ -40,6 +40,13 @@ auto ReadCurrentPos::executeRT()->int
         lout() << current_pos[i] << std::endl;
     }
 
+    for(int i=0;i<18;i++){
+        std::cout << foot_position_start_point[i] << "\t";
+        if(i%3 ==2){
+            std::cout << std::endl;
+        }
+    }
+
     return 0;
 }
 auto ReadCurrentPos::collectNrt()->void {}
@@ -226,9 +233,9 @@ struct Home::Imp :public SetActiveMotor { std::int32_t limit_time; double offset
             "<Command name=\"hm\">"
             "	<GroupParam>"
             "		<Param name=\"method\" default=\"18\"/>"
-            "		<Param name=\"offsetX\" default=\"100551.865\"/>" //120*2000/pi offset val is rad of motor times 2000/pi(offset coefficient)
-            "		<Param name=\"offsetY\" default=\"168958.888\"/>" //70*2000/pi
-            "		<Param name=\"offsetR\" default=\"35332\"/>" //55.5*2000/pi
+            "		<Param name=\"offsetX\" default=\"100551.865\" abbreviation=\"x\"/>"   //120*2000/pi offset val is rad of motor times 2000/pi(offset coefficient)
+            "		<Param name=\"offsetY\" default=\"168958.888\" abbreviation=\"y\"/>"
+            "		<Param name=\"offsetR\" default=\"35332\" abbreviation=\"r\"/>"
             "		<Param name=\"high_speed\" default=\"10000\"/>"
             "		<Param name=\"low_speed\" default=\"300\"/>"
             "		<Param name=\"acceleration\" default=\"100000\"/>"
@@ -574,6 +581,96 @@ MoveJointAllCos::~MoveJointAllCos() = default;
 
 
 
+//-------------------设立腿1末端初始位置----------------------//
+//以腿1为参考，设立在腿1坐标系下的腿1坐标，其他腿的坐标可以由此推导得到//
+//实际操作其实是把foot_position_start_point(末端相对于身体原点的坐标)改为设立值，并且输出hm的offset
+auto SetInitPos::prepareNrt()->void
+{
+    x_in_leg1_frame_ = doubleParam("x_in_leg1");
+    y_in_leg1_frame_ = doubleParam("y_in_leg1");
+    z_in_leg1_frame_ = doubleParam("z_in_leg1");
+
+//    for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE | aris::plan::Plan::NOT_CHECK_POS_CONTINUOUS;
+    for (auto& m : motorOptions()) m = aris::plan::Plan::NOT_CHECK_ENABLE;
+}
+auto SetInitPos::executeRT()->int
+{
+    double ee[3] ={x_in_leg1_frame_,y_in_leg1_frame_,z_in_leg1_frame_}; //ee是末端在腿坐标系下的坐标
+
+    foot_position_start_point[0] = ee[0]+FRONTX;
+    foot_position_start_point[1] = ee[1];
+    foot_position_start_point[2] = ee[2];
+
+    SetInitPos::calculateInitPos();
+    double mot[3] ={0};
+
+
+
+    legInverseKinematics2(ee,mot,ans);
+
+    std::cout << "foot_position_start_point is as follows:" <<std::endl;
+
+    for(int i=0;i<18;i++){
+        std::cout << foot_position_start_point[i] <<"\t";
+        if (i%3==2){
+            std::cout << std::endl;
+        }
+    }
+
+    std::cout << "mot_pos is as follows:" <<std::endl;
+    for(int i=0;i<3;i++){
+        std::cout << mot[i] <<"\t";
+    }
+    std::cout << std::endl;
+
+    std::cout << "hm offset is as follows:" <<std::endl;
+    for(int i=0;i<3;i++){
+        std::cout << -mot[i]*2000.0/PI <<"\t";
+    }
+    std::cout << std::endl;
+    std::cout << "H_0x1 = " << ans[0] << "\t" << "B_0y1 = " << ans[1] << std::endl;
+    legInverseKinematics(ee,mot);
+
+
+    return 0;
+}
+
+auto SetInitPos::collectNrt()->void {}
+
+auto SetInitPos::calculateInitPos()->void
+{
+    double ry60[16] = {cos(PI/3),0,sin(PI/3),0,
+                     0,1,0,0,
+                     -sin(PI/3),0,cos(PI/3),0,
+                     0,0,0,1};
+
+    aris::dynamic::s_pp2pp(ry60, foot_position_start_point + 0 * 3, foot_position_start_point + 1 * 3); //leg2
+    aris::dynamic::s_pp2pp(ry60, foot_position_start_point + 1 * 3, foot_position_start_point + 2 * 3); //leg3
+    aris::dynamic::s_pp2pp(ry60, foot_position_start_point + 2 * 3, foot_position_start_point + 3 * 3); //leg4
+    aris::dynamic::s_pp2pp(ry60, foot_position_start_point + 3 * 3, foot_position_start_point + 4 * 3); //leg5
+    aris::dynamic::s_pp2pp(ry60, foot_position_start_point + 4 * 3, foot_position_start_point + 5 * 3); //leg6
+    std::copy(foot_position_start_point,foot_position_start_point+18,foot_position_related_body);
+
+
+}
+
+SetInitPos::SetInitPos(const std::string& name)
+{
+    aris::core::fromXmlString(command(),
+        "<Command name=\"set_init_pos\">"
+        "<GroupParam>"
+        "<Param name=\"x_in_leg1\" default=\"0.4465\" abbreviation=\"x\"/>"
+        "<Param name=\"y_in_leg1\" default=\"-0.4517\" abbreviation=\"y\"/>"
+        "<Param name=\"z_in_leg1\" default=\"0\" abbreviation=\"z\"/>"
+        "</GroupParam>"
+        "</Command>");
+}
+SetInitPos::~SetInitPos() = default;
+
+
+
+
+
 
 //---------------------hex 前进/后退--------------------//
 //-x是正值是前进，-x是负值是后退，默认是前进-x=0.1
@@ -591,13 +688,13 @@ auto HexForward::executeRT()->int
         for (int i = 0; i < 18; ++i) {
             begin_angle[i] = controller()->motionPool()[i].targetPos();
         }
-        this->master()->logFileRawName("hex_forward");
+        this->master()->logFileRawName("hex_forward_change_prm4");
 
     }
 
-    TCurve s1(3,1.5);
+    TCurve s1(1,1);
     s1.getCurveParam();
-    EllipseTrajectory e1(x_step_, 0.05, 0, s1);
+    EllipseTrajectory e1(x_step_, 0.02, 0, s1);
     BodyPose body_s(0, 0, 0, s1);
     int ret = 0;
     ret = tripodPlan(n_, count() - 1, &e1, input_angle);
@@ -622,7 +719,10 @@ auto HexForward::executeRT()->int
             for (int i = 0; i < 3; ++i) {
                 lout() << motor_angle[i] << "\t";
             }
+
             lout() << std::endl;
+
+
 
         //log
 //        for (int i =0 ; i< 18; i++){
@@ -668,9 +768,9 @@ auto HexForward::executeRT()->int
 
 
     //给电机发送信号
-//        for (int i = 0; i < 18; ++i) {
-//            controller()->motionPool()[i].setTargetPos(motor_angle[i]);
-//        }
+        for (int i = 0; i < 3; ++i) {
+            controller()->motionPool()[i].setTargetPos(motor_angle[i]);
+        }
 
 
 
@@ -2243,6 +2343,7 @@ auto createPlanHexapod()->std::unique_ptr<aris::plan::PlanRoot>
     plan_root->planPool().add<HexTetrapod>();
     plan_root->planPool().add<Test>();
     plan_root->planPool().add<SingleLegEndCoordinate>();
+    plan_root->planPool().add<SetInitPos>();
 
 
     return plan_root;
