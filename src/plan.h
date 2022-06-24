@@ -135,8 +135,39 @@ public:
 	~BodyPose() {};
 };
 
+
+
+// 腿部直线运动
+class StraightTrajectory
+{
+private:
+	double x_;//末端腿坐标
+	double y_;
+	double z_;
+	double a_;//xyz要移动的距离对应abc
+	double b_;
+	double c_;
+	TCurve s_;
+
+public:
+	auto getStraightTraj(int count)->void;
+	auto get_x()->double { return x_; };
+	auto get_y()->double { return y_; };
+	auto get_z()->double { return z_; };
+	auto get_a()->double { return a_; };
+	auto get_b()->double { return b_; };
+	auto get_c()->double { return c_; };
+	auto get_s()->TCurve { return s_; };
+
+	StraightTrajectory(double a, double b, double c, TCurve& s) : a_(a), b_(b), c_(c), s_(s), x_(0), y_(0), z_(0) {};
+	~StraightTrajectory() {}
+};
+
+
 /*************************函数声明/*************************/
 auto tripodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->int;
 auto turnPlanTripod(int n, int count, EllipseTrajectory* Ellipse, BodyPose* body_pose_param, double* input)->int;
 auto tetrapodPlan(int n, int count, EllipseTrajectory* Ellipse, double* input)->int;
+auto legStaightMovePlan(int count, int leg_num, StraightTrajectory* legCurve)->int;
+
 #endif

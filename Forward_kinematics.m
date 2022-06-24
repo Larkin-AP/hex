@@ -42,7 +42,8 @@ CE=CD+DE;
 % H_0x = -0.020;
 % B_0y = 0.069;
 
-H_0x = -0.002536;
+%起始位置为（0.3，-0.4，0）
+H_0x = -0.002537;
 B_0y = 0.04847;
 
 
@@ -79,7 +80,7 @@ y_tilde=vector_AE(2);
 x0=x_tilde+PA_x;
 y0=y_tilde-PA_y;
 %电机的弧度转化到到平面的弧度
-alpha=19/50/28*mot_pos(3);
+% alpha=19/50/28*mot_pos(3);
 x=x0/sqrt(1+(tan(alpha))^2);
 y=y0;
 z=x0/sqrt(1+(tan(alpha))^2)*tan(alpha);

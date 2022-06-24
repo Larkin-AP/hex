@@ -1132,10 +1132,10 @@ view(0,90);
 clear all
 clc
 
-Vmax = 1.6968;%整个空间的z向速度最大值，这个vmax和y的取值间隔有关系，注意保持一致
+Vmax = 1.6016;%整个空间的z向速度最大值，这个vmax和y的取值间隔有关系，注意保持一致
 y0=0.11;
 % H=y-y0;%涉水高度H
-ymin = -0.5867;  %ymin是腿能达到的最远空间
+ymin = -0.5267;  %ymin是腿能达到的最远空间
 Hmax = -ymin-y0;
 
 [x_list,z_list] = meshgrid(0.1065:0.01:0.5771,-0.4419:0.01:0.4419);
@@ -1166,16 +1166,18 @@ for alpha = 0:0.1:1
         F_list = nan(m,n);
         for i=1:m
             for j=1:n
-                q=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
+                [q,judge]=IKM([x_list(i,j),y,z_list(i,j)]); %q是向量
                 if isreal(q) %q为实数，说明该点为工作空间，进入循环
-                J=CalJac(q);
-                Jb=Rb*J;
-                temp_z=(inv(Jb))*eb_z;
-                ve_z=Vn/norm(temp_z,Inf);
-                ratio = ve_z/Vmax; 
-                ratio_list(i,j) =ratio;  
-                F = alpha*((-y-y0)/Hmax)+beta*ratio;
-                F_list(i,j) =F;  
+                    if judge == true
+                        J=CalJac(q);
+                        Jb=Rb*J;
+                        temp_z=(inv(Jb))*eb_z;
+                        ve_z=Vn/norm(temp_z,Inf);
+                        ratio = ve_z/Vmax; 
+                        ratio_list(i,j) =ratio;  
+                        F = alpha*((-y-y0)/Hmax)+beta*ratio;
+                        F_list(i,j) =F;  
+                    end
                 end             
             end               
         end
@@ -1197,35 +1199,35 @@ end
 
 
 
+
 figure(h1);
-title('不同alpha对函数值F的影响');
-xlabel('y(m)');
-ylabel('F');
+set(gcf,'Units','centimeters','Position',[5 5 50 30]); %指定plot输出图片的尺寸，xmin，ymin，width，height
+title('The effect of different \alpha on the function value F','FontSize',30,'FontWeight','bold');
+xlabel('y(m)','FontSize',25);
+ylabel('F','FontSize',25);
 col=1;
+axis([-0.55,-0.18,0.2,1.05])
+
+
+
+%交点
+point1 = [-0.4417,0.796016];
+point2 = [-0.4367,0.784017];
+point3 = [-0.4417,0.77843];
+point4 = [-0.4367,0.78839];
+[insec_node(1),insec_node(2)] = node(point1,point2,point3,point4);
+plot(insec_node(1),insec_node(2),'*','MarkerSize',20,'Color','r','LineWidth',1.2);
+text(insec_node(1)-0.005,insec_node(2)+0.03,['P (',num2str(insec_node),')'],'FontSize',16,'FontWeight','bold','Color','black');
 for i=1:11
     
     alpha =0:0.1:1;
-    leg_str{i} = ['alpha=',num2str(alpha(i))];
+    leg_str{i} = ['\alpha=',num2str(alpha(i))];
 %     text(-0.585,F_max_list(1,col),['alpha=',num2str(alpha(i))]);
     col=col+1;
 end
-legend(leg_str);
+lgd = legend(leg_str,'FontSize',16,'TextColor','black')
+% legend(leg_str);
 hold on
-plot([-0.4667,-0.4667],[0,1]);
-text(-0.465,0.6,'y=-0.4667');
-hold on
-plot([-0.585,-0.215],[1,1]);
-text(-0.3,1,'y=1');
-hold on
-
-%交点
-point1 = [-0.5267,0.874135];
-point2 = [-0.5167,0.853157];
-point3 = [-0.5267,0.849547];
-point4 = [-0.5167,0.866277];
-[insec_node(1),insec_node(2)] = node(point1,point2,point3,point4);
-plot(insec_node(1),insec_node(2),'-*r');
-text(insec_node(1)-0.01,insec_node(2)+0.05,['P (',num2str(insec_node),')']);
 
 %% P9 求极值平面
 %F = alpha(H/Hmax)+beta(V/Vmax)
@@ -1412,10 +1414,10 @@ clc
 
 alpha =0.5;
 beta = 1-alpha;
-Vmax = 1.6157;%整个空间的z向速度最大值，间隔为0.01
+Vmax = 1.5874;%整个空间的z向速度最大值，间隔为0.005
 y0=0.11;
 % H=y-y0;%涉水高度H
-ymin = -0.5467;  %ymin是腿能达到的最远空间
+ymin = -0.5067;  %ymin是腿能达到的最远空间
 Hmax = -ymin-y0;
 
 [x_list,y_list] = meshgrid(0.1065:0.001:0.580,-0.5867:0.001:-0.2199);
@@ -1435,7 +1437,7 @@ Hmax = -ymin-y0;
 h1=figure;
 h2=figure;
 h3=figure;
-F_max_list = nan(m,4);%每一行对应每一层，四列分别该层出现最大值的对应x，y，z坐标以及F函数值
+F_max_list = nan(m,6);%每一行对应每一层，四列分别该层出现最大值的对应x，y，z坐标以及,H,V,F函数值
 F_max_list(:,3)=0;
 %记录每层极值出现的时候对应的坐标
 
@@ -1444,6 +1446,9 @@ F_max_list(:,3)=0;
 count =1;
 
 F_list =nan(m,n);
+V_list =nan(m,n);
+H_list =nan(m,n);
+
 ratio_list = nan(m,n);
 
 for i=1:m
@@ -1468,23 +1473,47 @@ for i=1:m
                 ratio_list(i,j) =ratio;  
                 F = alpha*((-y_list(i,j)-y0)/Hmax)+beta*ratio;
                 F_list(i,j) =F; 
+                V_list(i,j) =ve_z;
+                H_list(i,j) =(-y_list(i,j)-y0);
 
             end
         end               
     end
 end
 
-[max_a,index]=max(F_list,[],2); %每一行最大值
-F_max_list(:,4) = max_a;
+[max_a,index]=max(F_list,[],2); %每一行最大值以及最大值的列位置
+F_max_list(:,6) = max_a; %F_max_list 每一列分别对应 x y z 和H,V,F值
+index_size = max(size(index));
+
+H_list_col = nan(index_size,1);
+V_list_col = nan(index_size,1);
+sum_list_col = nan(index_size,1);
+
+for i=1:index_size
+   H_list_col(i,1) = H_list(i,index(i));
+   V_list_col(i,1) = V_list(i,index(i));
+   sum_list_col(i,1) = 0.5*V_list_col(i,1)/Vmax+0.5*H_list_col(i,1)/Hmax;
+end
+
+F_max_list(:,4) = H_list_col;
+F_max_list(:,5) = V_list_col;
+
+% F_max_list(:,4) = H_list(:,index');
+% F_max_list(:,5) = V_list(:,index');
 F_max_list(:,2) = y_list(:,1);
 for i =1:m
-    if isnan(F_max_list(i,4))
+    if isnan(F_max_list(i,6))
         F_max_list(i,:) = nan;
     else
         F_max_list(i,1) = x_list(i,index(i));
     end
     
 end
+[Fmax,row]=max(F_max_list(:,6),[],1);
+Fmax_x = F_max_list(row,1)
+Fmax_y = F_max_list(row,2)
+Fmax_h = F_max_list(row,4)
+Fmax_v = F_max_list(row,5)
 
 
 figure(h1);
@@ -1496,32 +1525,33 @@ surf(x_list,y_list,F_list,'EdgeColor','none');
 
 
 figure(h1);
-set(gcf,'Units','centimeters','Position',[5 5 16 9]); %指定plot输出图片的尺寸，xmin，ymin，width，height
-set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
-    ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
-    ...,'xgrid','on','ygrid','on','zgrid','on'...
-    );
-
-xlabel('X(m)');
-ylabel('Y(m)');
-title('F distribution in the z direction(z=0)')
+set(gcf,'Units','centimeters','Position',[5 5 25 14]); %指定plot输出图片的尺寸，xmin，ymin，width，height
+% set(gca,'DataAspectRatio',[1,1,1],'PlotBoxAspectRatio',[1,1,1]...,'xLim',[0,1.2],'yLim',[-0.8,0.8],'zLim',[-0.7,0]...
+%     ...,'xtick',0.3:0.1:1.2,'ytick',-0.6:0.1:0.6,'ztick',-0.7:0.1:0 ...
+%     ...,'xgrid','on','ygrid','on','zgrid','on'...
+%     );
+title('F distribution in the z direction(z=0)','FontSize',20,'FontWeight','bold');
+xlabel('x(m)','FontSize',15);
+ylabel('y(m)','FontSize',15);
 caxis([0,1]);
 colorbar;
 colormap turbo;
 hold on
-scatter(F_max_list(:,1),F_max_list(:,2));
+scatter(F_max_list(:,1),F_max_list(:,2),[],'blue');
 hold on
-plot(0.4465,-0.4517,'-r*')
-
-
+plot(Fmax_x,Fmax_y,'*','MarkerSize',20,'Color','r','LineWidth',2)
+hold on
+text(Fmax_x,Fmax_y,'\leftarrow F_{max}','FontSize',20)
+Fmax_x
+Fmax_y
 
 
 figure(h2);
 set(gcf,'Units','centimeters','Position',[5 5 16 9]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 y=y_list(:,1)';
-F_max_val =F_max_list(:,4)';
+F_max_val =F_max_list(:,6)';
 plot(y,F_max_val);
-[kmax,id] = findkmax(F_max_val,3);
+[kmax,id] = findkmax(F_max_val,3);%(寻找前k个最大值点)
 xlabel('末端y坐标');
 ylabel('F函数值');
 title('F随末端y坐标的变化')
@@ -1640,8 +1670,8 @@ caxis([0,1]);
 colorbar;
 colormap turbo;
 
-Vmax = max(V_max_list(:,4));
-ymin = min(V_max_list(:,2));  %ymin是腿能达到的最远空间
+Vmax = max(V_max_list(:,4))
+ymin = min(V_max_list(:,2))  %这里的数据就是经过筛选的数据了
 
 
 
@@ -1980,7 +2010,7 @@ q1 = 26.0 / 16.0 * deltaY / 0.0025 * 2.0 * pi;
 mot_pos3=[q0,q1,q2];
 
 %反解中deltaX和deltaY都应该是负的，也就是说这两个变量的有效值为0~-0.076之间，再此加一个判据
-if ((-0.076<deltaX) && (deltaX <0) && (-0.065<deltaY) && (deltaY <0) && (-0.8727< theta0) && (theta0<0.8727))
+if ((-0.076<deltaX) && (deltaX <0) && (-0.065*0.8<deltaY) && (deltaY <0) && (-0.8727< theta0) && (theta0<0.8727))
     judge = true; %judge为真说明该值在行程范围内，可以继续运算
 else
     judge = false;

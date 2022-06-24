@@ -7,6 +7,46 @@ double PI = aris::PI;
 //身体在腿坐标系下的变换矩阵，腿坐标系建立在转轴与底板地面的交点上，而非反解中的A点，此处需要注意
 //身体坐标系在1腿的下的变换矩阵，腿的坐标系均与地面坐标系朝向一致  即Leg_P_Body
 
+double ans[2] = { 0.0186738,0.00401575 };
+
+
+double foot_position_start_point[18] = {
+	EE1_X,		-HEIGHT,		0,
+	EE6_X,		-HEIGHT,		-EE6_Z,
+   -EE6_X,		-HEIGHT,		-EE6_Z,
+   -EE1_X,		-HEIGHT,		0,
+   -EE6_X,      -HEIGHT,		EE6_Z,
+	EE6_X,		-HEIGHT,		EE6_Z };
+
+double body_position_start_point[16] = {
+	1,0,0,0,
+	0,1,0,0,
+	0,0,1,0,
+	0,0,0,1 };
+
+//仅用于记录
+double body_related_world[16] = {
+	1,0,0,0,
+	0,1,0,0,
+	0,0,1,0,
+	0,0,0,1 };
+
+
+//这两个相当于当前身体位姿想对于自身坐标系的矩阵，那其实就是单位矩阵，用于执行完指令回零
+double foot_position_related_body[18] = {
+	EE1_X,		-HEIGHT,		0,
+	EE6_X,		-HEIGHT,		-EE6_Z,
+   -EE6_X,		-HEIGHT,		-EE6_Z,
+   -EE1_X,		-HEIGHT,		0,
+   -EE6_X,      -HEIGHT,		EE6_Z,
+	EE6_X,		-HEIGHT,		EE6_Z };
+
+double body_position_related_body[16] = {
+	1,0,0,0,
+	0,1,0,0,
+	0,0,1,0,
+	0,0,0,1 };
+
 
 double PL1[16] =
 {
@@ -75,6 +115,9 @@ double PL6[16] =
 	 //xy坐标及以后的坐标都在x'Ay'坐标系中
 	 double x = x0 - PA_X;
 	 double y = y0 + PA_Y;
+
+	 double H_0x1 = ans[0];
+	 double B_0y1 = ans[1];
 	 
 	 
 	 double AE = sqrt(x * x + y * y);
@@ -120,6 +163,70 @@ double PL6[16] =
 	 mot_pos[1] = 26.0 / 16.0 * deltaY / 0.0025 * 2.0 * PI; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量  单位为弧度
 	 //mot_pos[1] = -deltaY; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量
  }
+
+
+
+ //用于setInitPos，计算初始设立末端位置的电机值，不参与运动规划
+ auto legInverseKinematics2(double* ee_position, double* mot_pos, double* ans)->void
+ {
+	 //此处坐标原点在 转轴与底板地面的交点
+	 double theta0 = atan2(ee_position[2], ee_position[0]);  //竖直转动轴转动的角度，还需要转换到电机轴上
+	 mot_pos[2] = 50 * 28 / 19 * theta0;  //减速箱减速比50：1，带传动比 28：19
+	 double x0 = sqrt(ee_position[2] * ee_position[2] + ee_position[0] * ee_position[0]); //反解所在平面的x值
+	 double y0 = ee_position[1]; //反解所在平面的y值
+
+	 double x = x0 - PA_X;
+	 double y = y0 + PA_Y;
+
+
+	 double AE = sqrt(x * x + y * y);
+	 double angle_ECA = (acos((EC * EC + AC * AC - AE * AE) / 2 / EC / AC));
+	 double angle_CAE = (acos((AC * AC + AE * AE - EC * EC) / 2 / AC / AE));
+	 double angle_CAG = PI - angle_ECA;
+	 double angle_EAG = angle_CAG - angle_CAE;
+	 double angle_EAJ = (atan(-x / y));
+	 double angle_GAJ = angle_EAJ - angle_EAG;
+	 double Gx = AG * sin(angle_GAJ);
+	 double Gy = -AG * cos(angle_GAJ);
+	 double vector_AG1 = Gx;
+	 double vector_AG2 = Gy;
+	 double Hy = -AJ;
+	 double Hx = 0;
+
+	 double HN = std::sqrt(GH * GH - (Gy - Hy) * (Gy - Hy));
+	 Hx = Gx - HN;
+	 //mot_pos[0] = Hx - H_0x; //X方向推杆
+	 double deltaX = -(Hx - H_0x); //x方向推杆变化值，还需要转换到电机的旋转变换值
+	 //std::cout << "Hx = " << Hx << std::endl;
+	 mot_pos[0] = 2.0 * PI * 26.0 / 16.0 * deltaX / 0.0025; //导程为2.5mm，转换到m，带传动传动比为26:16  电机输出量
+
+
+
+	 double vector_AE1 = x;
+	 double vector_AE2 = y;
+	 double vector_CE1 = EC / AG * vector_AG1;
+	 double vector_CE2 = EC / AG * vector_AG2;
+	 double vector_AC1 = vector_AE1 - vector_CE1;
+	 double vector_AC2 = vector_AE2 - vector_CE2;
+	 double vector_GF1 = GF / AC * vector_AC1;
+	 double vector_GF2 = GF / AC * vector_AC2;
+	 double vector_AF1 = vector_AG1 + vector_GF1;
+	 double vector_AF2 = vector_AG2 + vector_GF2;
+	 double FL = vector_AF1 - LM;
+	 double BL = sqrt(BF * BF - FL * FL);
+	 double By = vector_AF2 + BL;
+	 //mot_pos[1] = -(By - B_0y); //Y方向推杆  向下推动？ 我也不懂？
+	 double deltaY = (By - B_0y); //Y方向推杆变化值，还需转换到电机上  向下推动？ 我也不懂？
+	 //std::cout << "By = " << By <<std::endl;
+	 mot_pos[1] = 2.0 * PI * 26.0 / 16.0 * deltaY / 0.0025; //导程为2.5mm，转换到m，带传动传动比为26:16   电机输出量
+
+	 ans[0] = Hx;
+	 ans[1] = By;
+
+
+ }
+
+
 
  //在坐标变换后求解反解
  //input是输入的末端坐标（世界坐标系下）
@@ -168,6 +275,18 @@ double PL6[16] =
 	 
 
 	 return 0;
+ }
+
+
+ auto coutMatrix18(double* data)->void
+ {
+	 for (int i = 0; i < 18; i++) {
+		 std::cout << data[i] << "\t";
+		 if (i % 3 == 2) {
+			 std::cout << std ::endl;
+		 }
+	 }
+	 std::cout << std::endl;
  }
 
 

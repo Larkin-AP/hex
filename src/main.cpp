@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 	if (cs.model().forwardKinematics()) THROW_FILE_LINE("forward failed"); //先算正解，得到末端位置
 
 	
-	//auto& adams1 = dynamic_cast<aris::dynamic::AdamsSimulator&>(cs.model().simulatorPool().front());
+	auto& adams1 = dynamic_cast<aris::dynamic::AdamsSimulator&>(cs.model().simulatorPool().front());
 	//adams.saveadams("c:\\users\\jpche\\desktop\\aaa\\hexapod_simulation.cmd"); //这个只是导入模型
 	
 
@@ -41,13 +41,16 @@ int main(int argc, char *argv[])
 	//robot::HexDynamicTurnRightTest plan;		//右转没有修改可以直接使用，运行时间4.5s，但步长只能是0.1，目前看来就是正负号导致不能更改步长,但问题未找到
 	//robot::HexDynamicTurnLeftTest plan;		//左转没有修改可以直接使用，运行时间4.5s
 	//robot::HexDynamicTetrapodTest plan;		//四足步态没有修改可以直接使用，运行时间6.5s
+	robot::HexWalkingPrmTest plan;
+	//robot::HexLateralPrmTest plan;
+	//robot::HexTurnPrmTest plan;
 
 	//adams1.simulate(plan, cs.model().simResultPool().front());
 	//adams1.saveAdams("C:\\Users\\jpche\\Desktop\\aaa\\hexapod_simulation_with_control.cmd", cs.model().simResultPool().front()); //这个模型还含有运动参数
 
 	//
 
-	//std::cout << "simulate finished" << std::endl;
+	std::cout << "simulate finished" << std::endl;
 
 	//等待终端输入函数，本函数不能去掉，否则实时线程和主线程都会结束//
 	cs.init();

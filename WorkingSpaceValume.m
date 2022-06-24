@@ -16,9 +16,10 @@ clc
 ds=0.01; %ds为步长，设为0.01m
 % num=((580.72-165.5)/ds * (-215.92+586.68)/ds * (444.48+444.86)/ds);
 
-coor_Scope = [0.1065,0.5771;
-    -0.5867,-0.2199;
-    -0.4419,0.4419];
+%这个范围是怎么产生的
+coor_Scope = [0.2065,0.5765;
+    -0.5867,-0.2267;
+    -0.4419,0.4381];
 
 
 c=zeros(142045000,3);
@@ -42,7 +43,14 @@ for i=coor_Scope(1,1):ds:coor_Scope(1,2)
 end
 % a(all(a==0,2),:) = [];  %去掉里面的全0行，避免无效筛选
 c(all(c==0,2),:) = []; 
-            
+
+min(c(:,1))
+min(c(:,2))
+min(c(:,3)) 
+
+max(c(:,1))
+max(c(:,2))
+max(c(:,3)) 
 
 
 % %% a为要验证的数组，传入数组a，运行后得到的a即为剔除复数剩下的数组
@@ -91,14 +99,45 @@ coor_Scope(1,2),coor_Scope(2,1),coor_Scope(3,1);
 coor_Scope(1,2),coor_Scope(2,1),coor_Scope(3,2)];
 d=[1 2 3 4 8 5 6 7 3 2 6 5 1 4 8 7];
 plot3(A(d,3),A(d,1),A(d,2));
-xlabel('z');
-ylabel('x');
-zlabel('y');
+xlabel('z(m)');
+ylabel('x(m)');
+zlabel('y(m)');
 hold on
 set(gca,'XDir','reverse');        %将x轴方向设置为反向(从右到左递增)。
 set(gca,'YDir','reverse');        %将x轴方向设置为反向(从右到左递增)。
-scatter3(c(:,3),c(:,1),c(:,2),3,'.','b');
+% scatter3(c(:,3),c(:,1),c(:,2),3,'.','b');
 % view(3);
-view([-135,-45]);
+shp = alphaShape(c(:,3),c(:,1),c(:,2));
+shp.Alpha =0.2
+h=plot(shp,'FaceColor',	'#D95319')
+% colormap hot
+axis equal
+view([-130,30]);
 rotate3d;
 
+
+%% 
+% shp = alphaShape(c(:,1),c(:,2),c(:,3),10);
+% c_size = max(size(c));
+% col = linspace(0,1,c_size)';
+% 
+% shp.Alpha =0.1;
+% pl=plot(shp)
+% pl.Facecolor = 'r'
+% 
+% 
+% % plot(shp,'FaceColor',yellowgreen)
+% % plot(shp)
+% % colormap('winter')
+% % plot(shp,'color',[col col col]);
+% 
+% 
+% % h.FaceColor = 'r'
+% axis equal
+% 
+% % k=128
+% colormap(summer(k));
+
+% a= linspace(1,256,256);
+% b= linspace(1,256,256);
+% plot(a,b,'Color',[0,1,1])

@@ -28,8 +28,14 @@ const double EC = CD + DE;
 //#define H_0x 0.007105
 //#define B_0y 0.0447558
 
-#define H_0x -0.020
-#define B_0y 0.069
+//#define H_0x -0.020
+//#define B_0y 0.069
+
+#define H_0x 0.00914
+#define B_0y 0.0533600
+
+
+
 
 
 //身体长宽高设置，单位m
@@ -50,24 +56,34 @@ const double EC = CD + DE;
 //地面坐标系与底板底面圆心重合
 //初始时脚在地面坐标系下的位置
 //按照x正方向的点开始，逆时针旋转排序123456  坐标分别为xyz
-static double foot_position_start_point[18] = {
-	EE1_X,		-HEIGHT,		0,
-	EE6_X,		-HEIGHT,		-EE6_Z,
-   -EE6_X,		-HEIGHT,		-EE6_Z,
-   -EE1_X,		-HEIGHT,		0,
-   -EE6_X,      -HEIGHT,		EE6_Z,
-	EE6_X,		-HEIGHT,		EE6_Z };
+//static double foot_position_start_point[18] = {
+//	EE1_X,		-HEIGHT,		0,
+//	EE6_X,		-HEIGHT,		-EE6_Z,
+//   -EE6_X,		-HEIGHT,		-EE6_Z,
+//   -EE1_X,		-HEIGHT,		0,
+//   -EE6_X,      -HEIGHT,		EE6_Z,
+//	EE6_X,		-HEIGHT,		EE6_Z };
+//
+////初始身体坐标系与地面坐标系重合
+//static double body_position_start_point[16] = {
+//	1,0,0,0,
+//	0,1,0,0,
+//	0,0,1,0,
+//	0,0,0,1 };
 
-//初始身体坐标系与地面坐标系重合
-static double body_position_start_point[16] = {
-	1,0,0,0,
-	0,1,0,0,
-	0,0,1,0,
-	0,0,0,1 };
+
+//当身体需要转动加移动时，需要记录改变当前身体的位置
+extern double foot_position_start_point[18];
+extern double body_position_start_point[16];
+extern double body_related_world[16];
+extern double foot_position_related_body[18];
+extern double body_position_related_body[16];
+extern double ans[2];
 
 /**********函数声明**********/
 auto inverseLeg(double *Ground_xyz_ee, double *Ground_P_Body, double *input)->int;
 auto legInverseKinematics(double* ee_position, double* mot_pos)->void;
-
+auto legInverseKinematics2(double* ee_position, double* mot_pos, double* ans)->void;//用于setInitPos，计算初始设立末端位置的电机值，不参与运动规划,ans[2] = {Hx,By}
+auto coutMatrix18(double* data)->void;
 #endif
 

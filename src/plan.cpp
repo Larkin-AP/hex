@@ -9,6 +9,9 @@ using namespace std;
 extern double file_current_leg[18];
 extern double file_current_body[16];
 extern double PI;
+
+
+static double current_leg_in_ground2[18] = { 0 };
 //-------------------------------------------------------梯形曲线----------------------------------------------------//
 
 //生成梯形曲线0->1
@@ -139,6 +142,65 @@ auto EllipseTrajectory::getEllipseTrajectory(int count)->void
 	z_ = c_ * (1 + cos(PI - PI * s_.getTCurve(count))) / 2.0;
 	//std::cout << y << std::endl;
 }
+
+
+auto StraightTrajectory::getStraightTraj(int count)->void
+{
+	x_ = a_ * s_.getTCurve(count);
+	y_ = b_ * s_.getTCurve(count);
+	z_ = c_ * s_.getTCurve(count);
+}
+
+
+auto planLegTransformOnlyLegMove(double* current_leg, int leg_num, int count, StraightTrajectory* legCurve)->void
+{
+	legCurve->getStraightTraj(count);
+	//leg_num是第几条腿
+
+	current_leg[leg_num * 3 + 0] = foot_position_start_point[leg_num * 3 + 0] + legCurve->get_x();
+	current_leg[leg_num * 3 + 1] = foot_position_start_point[leg_num * 3 + 1] + legCurve->get_y();
+	current_leg[leg_num * 3 + 2] = foot_position_start_point[leg_num * 3 + 2] + legCurve->get_z();
+
+
+}
+
+
+//把一条腿一步移动到某个位置
+auto legStaightMovePlan(int count, int leg_num, StraightTrajectory* legCurve)->int
+{
+
+	int per_step_count = legCurve->get_s().getTc() * 1000;
+
+	//规划腿
+	planLegTransformOnlyLegMove(current_leg_in_ground2, leg_num, count, legCurve); //current_leg是记录在一个梯形曲线周期内的变化值，temp_leg是起始值，故每个周期结束后，要更新temp_leg
+	//把变化的腿的坐标传入file_current_leg
+
+	//给特殊腿赋变化值
+	file_current_leg[leg_num * 3 + 0] = current_leg_in_ground2[leg_num * 3 + 0];
+	file_current_leg[leg_num * 3 + 1] = current_leg_in_ground2[leg_num * 3 + 1];
+	file_current_leg[leg_num * 3 + 2] = current_leg_in_ground2[leg_num * 3 + 2];
+
+
+	int tempret = per_step_count - count - 1;
+
+
+	if (tempret == 0) {
+		//更新参考坐标值
+		//temp_leg_pos[leg_num * 3 + 0] = temp_leg_pos[leg_num * 3 + 0] + legCurve->get_a();
+		//temp_leg_pos[leg_num * 3 + 1] = temp_leg_pos[leg_num * 3 + 1] + legCurve->get_b();
+		//temp_leg_pos[leg_num * 3 + 2] = temp_leg_pos[leg_num * 3 + 2] + legCurve->get_c();
+
+
+
+	}
+
+	//模型测试使用
+	return tempret;
+
+}
+
+
+
 
 
 

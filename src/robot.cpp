@@ -854,7 +854,7 @@ HexForward::~HexForward() = default;
                 //如果要输出cmd文件，则不能创建储存文件，需要注释掉
                 //if (count() == 1)this->master()->logFileRawName("eeTraj");    
                 //if (count() == 1)this->master()->logFileRawName("inputTraj");
-                if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
+                //if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
                 //if (count() == 1)this->master()->logFileRawName("numInput"); //数值解储存文件
                 //if (count() == 1)this->master()->logFileRawName("leg1MotorPos1"); //拿到第1条腿的电机位置
                 //if (count() == 1)this->master()->logFileRawName("leg1EndTraj1"); //拿到第1条腿的末端位置，要得到腿坐标系下的
@@ -885,7 +885,7 @@ HexForward::~HexForward() = default;
                 }
                 else
                 {
-                    TCurve s1(4, 2);
+                    TCurve s1(3, 1.5);
                     s1.getCurveParam();
                     EllipseTrajectory e1(0.1, 0.05, 0, s1);
                     BodyPose body_s(0, 0, 0, s1);
@@ -908,9 +908,9 @@ HexForward::~HexForward() = default;
                     //lout() << std::endl;
 
                     //解析解计算得到的输入的角度
-                    for (int i = 0; i < 18; ++i)
-                        lout() << input_angle[i] << "\t";
-                    lout() << std::endl;
+                    //for (int i = 0; i < 18; ++i)
+                    //    lout() << input_angle[i] << "\t";
+                    //lout() << std::endl;
 
                     model()->setOutputPos(ee);
                     //model()->setInputPos(input_angle);
@@ -950,6 +950,556 @@ HexForward::~HexForward() = default;
                     "<Command name=\"hex_forward\"/>");
             }
             HexDynamicForwardTest::~HexDynamicForwardTest() = default;
+
+
+
+
+            //步行参数测试
+            auto HexWalkingPrmTest::prepareNrt()->void
+            {
+
+            }
+            auto HexWalkingPrmTest::executeRT()->int
+            {
+                //数值解和实际解xyr相差一个负号
+                //如果要输出cmd文件，则不能创建储存文件，需要注释掉
+                //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+                if (count() == 1)this->master()->logFileRawName("inputTraj");
+                //if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
+                //if (count() == 1)this->master()->logFileRawName("numInput"); //数值解储存文件
+                //if (count() == 1)this->master()->logFileRawName("leg1MotorPos1"); //拿到第1条腿的电机位置
+                //if (count() == 1)this->master()->logFileRawName("leg1EndTraj1"); //拿到第1条腿的末端位置，要得到腿坐标系下的
+
+                //a为给机器人缓冲落地的时间设置
+                int ret = 0, a = 500;
+                //末端为六个末端的三个坐标和身体的位姿矩阵 3*6+16=34
+                static double ee0[34];
+                double ee[34];
+
+
+                //落地缓冲时间
+                if (count() <= a)
+                {
+                   
+                    if (count() == 1)
+                    {
+                        model()->getOutputPos(ee0); //初始位置
+                        //s_vc好像是把ee0的数放到ee中，放34个数
+                        aris::dynamic::s_vc(34, ee0, ee);
+                    }
+
+
+                    aris::dynamic::s_vc(34, ee0, ee);
+                    model()->setOutputPos(ee);
+
+
+                    if (model()->inverseKinematics()) std::cout << "inverse failed " << std::endl;
+
+                    model()->setTime(0.001 * count());
+                    ret = 1;
+                }
+                else if (a  < count() && count()<= (a + 1000))
+                {
+                    //std::cout << "count = " << count() << std::endl;
+                    //函数1  根据输入腿1 坐标计算各腿函数末端
+                    double all_ee[18] = { 0 };
+                    double ee1[3] = { 0.4235,-0.4297,0 };
+                    //double ee1[3] = { 0.68249-0.335,-0.37252,0 };
+                    CalculateLegEE(ee1, all_ee); //all_ee中储存所有腿末端的位置
+
+                    //函数2 输入所有腿末端坐标，生成直线轨迹到达指定末端
+
+
+                    //coutMatrix18(foot_position_start_point);
+                    TCurve s1(4, 2);
+                    GenTrajToEE(all_ee, s1, count() - a);
+                    aris::dynamic::s_vc(16, body_position_start_point + 0, ee);
+                    aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
+                    model()->setOutputPos(ee);
+                    if (model()->inverseKinematics())
+                    {
+
+                        std::cout << "inverse failed!!!" << std::endl;
+                        //for (int i = 0; i < 34; ++i) {
+                        //    std::cout << ee[i] << std::endl;
+                        //}
+                        std::cout << "ret = " << ret << std::endl;
+                    }
+                    model()->setTime(0.001 * count());
+                    ret = 1;
+
+
+                }
+                else
+                {
+
+                    TCurve s1(3, 1.5);
+                    s1.getCurveParam();
+                    EllipseTrajectory e1(0.1, 0.03, 0, s1);
+                    BodyPose body_s(0, 0, 0, s1);
+
+                    if (count() == a  +1000+1)
+                    {
+                        aris::dynamic::s_vc(18, file_current_leg + 0, foot_position_start_point);
+                    }
+                    ret = tripodPlan(2, count() - 1 - a-1000, &e1, input_angle);
+                    aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
+                    aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
+                    ////末端位置
+                    //for (int i = 0; i < 34; ++i)
+                    //    lout() << ee[i] << "\t";
+                    //lout() << std::endl;
+
+
+                    //第一条腿电机的位置
+                    //double leg1MotorPos[3] = { 0 };
+                    //for (int i = 0; i < 3; ++i) {
+                    //    lout() << input_angle[i] << "\t";
+                    //}
+                    //lout() << std::endl;
+
+                    //解析解计算得到的输入的角度
+                    //for (int i = 0; i < 18; ++i)
+                    //    lout() << input_angle[i] << "\t";
+                    //lout() << std::endl;
+
+                    model()->setOutputPos(ee);
+                    //model()->setInputPos(input_angle);
+                    //if (model()->forwardKinematics()) {
+                    //    std::cout << "Forward failer!" << std::endl;
+                    //}
+
+
+                    if (model()->inverseKinematics())
+                    {
+
+                        std::cout << "inverse failed!!!" << std::endl;
+                        //for (int i = 0; i < 34; ++i) {
+                        //    std::cout << ee[i] << std::endl;
+                        //}
+                        std::cout << "ret = " << ret << std::endl;
+                    }
+                    // 数值解计算得到的输入的角度
+                     //double input[18];
+                     //model()->getInputPos(input);
+                     //for (int i = 0; i < 18; ++i)
+                     //    lout() << input[i] << "\t";
+                     //lout() << std::endl;
+
+                    model()->setTime(0.001 * count());
+
+
+                    if (ret == 0) std::cout << count() << std::endl;
+
+                }
+                //for (int i = 0; i < 34; ++i)
+                //    lout() << ee[i] << "\t";
+                //lout() << std::endl;
+                double input[18];
+                model()->getInputPos(input);
+                for (int i = 0; i < 18; ++i)
+                    lout() << input[i] << "\t";
+                lout() << std::endl;
+                
+                return ret;
+
+            }
+            HexWalkingPrmTest::HexWalkingPrmTest(const std::string& name)
+            {
+                aris::core::fromXmlString(command(),
+                    "<Command name=\"walk_prm\"/>");
+            }
+            HexWalkingPrmTest::~HexWalkingPrmTest() = default;
+
+
+            //设置行走初始时刻的姿态，与实机用法略有不同，注意别搞混了
+            //传入末端在腿坐标系下的坐标，leg1
+            auto SetInitPos(double x, double y, double z)->void
+            {
+                double ee[3] = { x,y,z };
+
+                foot_position_start_point[0] = ee[0] + FRONTX;
+                foot_position_start_point[1] = ee[1];
+                foot_position_start_point[2] = ee[2];
+                CalculateInitPos();
+                double mot[3] = { 0 };
+                legInverseKinematics2(ee, mot, ans);
+                legInverseKinematics(ee, mot);
+            }
+
+            //计算其他腿的初始位姿
+            auto CalculateInitPos()->void
+            {
+                double ry60[16] = { cos(PI / 3),0,sin(PI / 3),0,
+                                 0,1,0,0,
+                                 -sin(PI / 3),0,cos(PI / 3),0,
+                                 0,0,0,1 };
+
+                aris::dynamic::s_pp2pp(ry60, foot_position_start_point + 0 * 3, foot_position_start_point + 1 * 3); //leg2
+                aris::dynamic::s_pp2pp(ry60, foot_position_start_point + 1 * 3, foot_position_start_point + 2 * 3); //leg3
+                aris::dynamic::s_pp2pp(ry60, foot_position_start_point + 2 * 3, foot_position_start_point + 3 * 3); //leg4
+                aris::dynamic::s_pp2pp(ry60, foot_position_start_point + 3 * 3, foot_position_start_point + 4 * 3); //leg5
+                aris::dynamic::s_pp2pp(ry60, foot_position_start_point + 4 * 3, foot_position_start_point + 5 * 3); //leg6
+                std::copy(foot_position_start_point, foot_position_start_point + 18, foot_position_related_body);
+
+
+            }
+
+            //ee为腿1在腿坐标系下的坐标xyz
+            auto CalculateLegEE(double *ee1,double* all_ee)->void
+            {
+                const double ry60[16] = { cos(PI / 3),0,sin(PI / 3),0,
+                 0,1,0,0,
+                 -sin(PI / 3),0,cos(PI / 3),0,
+                 0,0,0,1 };
+
+                ee1[0] += FRONTX;
+                aris::dynamic::s_vc(3, ee1, all_ee); 
+                aris::dynamic::s_pp2pp(ry60, all_ee + 0 * 3, all_ee + 1 * 3); //leg2
+                aris::dynamic::s_pp2pp(ry60, all_ee + 1 * 3, all_ee + 2 * 3); //leg3
+                aris::dynamic::s_pp2pp(ry60, all_ee + 2 * 3, all_ee + 3 * 3); //leg4
+                aris::dynamic::s_pp2pp(ry60, all_ee + 3 * 3, all_ee + 4 * 3); //leg5
+                aris::dynamic::s_pp2pp(ry60, all_ee + 4 * 3, all_ee + 5 * 3); //leg6
+                //coutMatrix18(all_ee);
+            }
+
+
+            //产生腿移动到末端的轨迹
+            auto GenTrajToEE(double* all_ee, TCurve& s1, int count)->void //count从零开始
+            {
+                //做差计算当前末端和指定末端相差的距离
+                double ret = 0;
+                double rel_distance[18] = { 0 };
+                for (int i = 0; i < 18; i++) {
+                    rel_distance[i] = all_ee[i] - foot_position_start_point[i];
+                }
+     
+                s1.getCurveParam();
+                StraightTrajectory leg_s0(rel_distance[0], rel_distance[1], rel_distance[2], s1);//此处传入三个坐标要移动的距离
+                StraightTrajectory leg_s1(rel_distance[3], rel_distance[4], rel_distance[5], s1);
+                StraightTrajectory leg_s2(rel_distance[6], rel_distance[7], rel_distance[8], s1);
+                StraightTrajectory leg_s3(rel_distance[9], rel_distance[10], rel_distance[11], s1);
+                StraightTrajectory leg_s4(rel_distance[12], rel_distance[13], rel_distance[14], s1);
+                StraightTrajectory leg_s5(rel_distance[15], rel_distance[16], rel_distance[17], s1);
+
+                ret = legStaightMovePlan(count, 0, &leg_s0);//一条腿对应一次函数调用，对应一个leg_s,leg_num 是从0->5
+                ret = legStaightMovePlan(count, 1, &leg_s1);//一条腿对应一次函数调用，对应一个leg_s,leg_num 是从0->5
+                ret = legStaightMovePlan(count, 2, &leg_s2);//一条腿对应一次函数调用，对应一个leg_s,leg_num 是从0->5
+                ret = legStaightMovePlan(count, 3, &leg_s3);//一条腿对应一次函数调用，对应一个leg_s,leg_num 是从0->5
+                ret = legStaightMovePlan(count, 4, &leg_s4);//一条腿对应一次函数调用，对应一个leg_s,leg_num 是从0->5
+                ret = legStaightMovePlan(count, 5, &leg_s5);//一条腿对应一次函数调用，对应一个leg_s,leg_num 是从0->5
+
+            }
+
+
+
+
+            //侧移参数测试
+            auto HexLateralPrmTest::prepareNrt()->void
+            {
+
+            }
+            auto HexLateralPrmTest::executeRT()->int
+            {
+                //数值解和实际解xyr相差一个负号
+                //如果要输出cmd文件，则不能创建储存文件，需要注释掉
+                //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+                //if (count() == 1)this->master()->logFileRawName("inputTraj");
+                //if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
+                //if (count() == 1)this->master()->logFileRawName("numInput"); //数值解储存文件
+                //if (count() == 1)this->master()->logFileRawName("leg1MotorPos1"); //拿到第1条腿的电机位置
+                //if (count() == 1)this->master()->logFileRawName("leg1EndTraj1"); //拿到第1条腿的末端位置，要得到腿坐标系下的
+
+                //a为给机器人缓冲落地的时间设置
+                int ret = 0, a = 500;
+                //末端为六个末端的三个坐标和身体的位姿矩阵 3*6+16=34
+                static double ee0[34];
+                double ee[34];
+
+
+                //落地缓冲时间
+                if (count() <= a)
+                {
+
+                    if (count() == 1)
+                    {
+                        model()->getOutputPos(ee0); //初始位置
+                        //s_vc好像是把ee0的数放到ee中，放34个数
+                        aris::dynamic::s_vc(34, ee0, ee);
+                    }
+
+
+                    aris::dynamic::s_vc(34, ee0, ee);
+                    model()->setOutputPos(ee);
+
+
+                    if (model()->inverseKinematics()) std::cout << "inverse failed " << std::endl;
+
+                    model()->setTime(0.001 * count());
+                    ret = 1;
+                }
+                else if (a < count() && count() <= (a + 1000))
+                {
+                    //std::cout << "count = " << count() << std::endl;
+                    //函数1  根据输入腿1 坐标计算各腿函数末端
+                    double all_ee[18] = { 0 };
+                    double ee1[3] = { 0.4325,-0.4427,0 };
+                    //double ee1[3] = { 0.68249-0.335,-0.37252,0 };
+                    CalculateLegEE(ee1, all_ee); //all_ee中储存所有腿末端的位置
+
+                    //函数2 输入所有腿末端坐标，生成直线轨迹到达指定末端
+
+
+                    //coutMatrix18(foot_position_start_point);
+                    TCurve s1(4, 2);
+                    GenTrajToEE(all_ee, s1, count() - a);
+                    aris::dynamic::s_vc(16, body_position_start_point + 0, ee);
+                    aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
+                    model()->setOutputPos(ee);
+                    if (model()->inverseKinematics())
+                    {
+
+                        std::cout << "inverse failed!!!" << std::endl;
+                        //for (int i = 0; i < 34; ++i) {
+                        //    std::cout << ee[i] << std::endl;
+                        //}
+                        std::cout << "ret = " << ret << std::endl;
+                    }
+                    model()->setTime(0.001 * count());
+                    ret = 1;
+
+
+                }
+                else
+                {
+
+                    TCurve s1(3, 1.5);
+                    s1.getCurveParam();
+                    EllipseTrajectory e1(0., 0.03, 0.1, s1);
+                    BodyPose body_s(0, 0, 0, s1);
+
+                    if (count() == a + 1000 + 1)
+                    {
+                        aris::dynamic::s_vc(18, file_current_leg + 0, foot_position_start_point);
+                    }
+                    ret = tripodPlan(2, count() - 1 - a - 1000, &e1, input_angle);
+                    aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
+                    aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
+                    ////末端位置
+                    //for (int i = 0; i < 34; ++i)
+                    //    lout() << ee[i] << "\t";
+                    //lout() << std::endl;
+
+
+                    //第一条腿电机的位置
+                    //double leg1MotorPos[3] = { 0 };
+                    //for (int i = 0; i < 3; ++i) {
+                    //    lout() << input_angle[i] << "\t";
+                    //}
+                    //lout() << std::endl;
+
+                    //解析解计算得到的输入的角度
+                    //for (int i = 0; i < 18; ++i)
+                    //    lout() << input_angle[i] << "\t";
+                    //lout() << std::endl;
+
+                    model()->setOutputPos(ee);
+                    //model()->setInputPos(input_angle);
+                    //if (model()->forwardKinematics()) {
+                    //    std::cout << "Forward failer!" << std::endl;
+                    //}
+
+
+                    if (model()->inverseKinematics())
+                    {
+
+                        std::cout << "inverse failed!!!" << std::endl;
+                        //for (int i = 0; i < 34; ++i) {
+                        //    std::cout << ee[i] << std::endl;
+                        //}
+                        std::cout << "ret = " << ret << std::endl;
+                    }
+                    // 数值解计算得到的输入的角度
+                     //double input[18];
+                     //model()->getInputPos(input);
+                     //for (int i = 0; i < 18; ++i)
+                     //    lout() << input[i] << "\t";
+                     //lout() << std::endl;
+
+                    model()->setTime(0.001 * count());
+
+
+                    if (ret == 0) std::cout << count() << std::endl;
+
+                }
+                //for (int i = 0; i < 34; ++i)
+                //    lout() << ee[i] << "\t";
+                //lout() << std::endl;
+
+                return ret;
+
+            }
+            HexLateralPrmTest::HexLateralPrmTest(const std::string& name)
+            {
+                aris::core::fromXmlString(command(),
+                    "<Command name=\"lateral_prm\"/>");
+            }
+            HexLateralPrmTest::~HexLateralPrmTest() = default;
+
+
+
+
+            //右转向参数测试
+            auto HexTurnPrmTest::prepareNrt()->void
+            {
+
+            }
+            auto HexTurnPrmTest::executeRT()->int
+            {
+                //数值解和实际解xyr相差一个负号
+                //如果要输出cmd文件，则不能创建储存文件，需要注释掉
+                //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+                //if (count() == 1)this->master()->logFileRawName("inputTraj");
+                //if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
+                //if (count() == 1)this->master()->logFileRawName("numInput"); //数值解储存文件
+                //if (count() == 1)this->master()->logFileRawName("leg1MotorPos1"); //拿到第1条腿的电机位置
+                //if (count() == 1)this->master()->logFileRawName("leg1EndTraj1"); //拿到第1条腿的末端位置，要得到腿坐标系下的
+
+                //a为给机器人缓冲落地的时间设置
+                int ret = 0, a = 500;
+                //末端为六个末端的三个坐标和身体的位姿矩阵 3*6+16=34
+                static double ee0[34];
+                double ee[34];
+
+
+                //落地缓冲时间
+                if (count() <= a)
+                {
+
+                    if (count() == 1)
+                    {
+                        model()->getOutputPos(ee0); //初始位置
+                        //s_vc好像是把ee0的数放到ee中，放34个数
+                        aris::dynamic::s_vc(34, ee0, ee);
+                    }
+
+
+                    aris::dynamic::s_vc(34, ee0, ee);
+                    model()->setOutputPos(ee);
+
+
+                    if (model()->inverseKinematics()) std::cout << "inverse failed " << std::endl;
+
+                    model()->setTime(0.001 * count());
+                    ret = 1;
+                }
+                else if (a < count() && count() <= (a + 1000))
+                {
+                    //std::cout << "count = " << count() << std::endl;
+                    //函数1  根据输入腿1 坐标计算各腿函数末端
+                    double all_ee[18] = { 0 };
+                    double ee1[3] = { 0.4325,-0.4427,0 };
+                    //double ee1[3] = { 0.68249-0.335,-0.37252,0 };
+                    CalculateLegEE(ee1, all_ee); //all_ee中储存所有腿末端的位置
+
+                    //函数2 输入所有腿末端坐标，生成直线轨迹到达指定末端
+
+
+                    //coutMatrix18(foot_position_start_point);
+                    TCurve s1(4, 2);
+                    GenTrajToEE(all_ee, s1, count() - a);
+                    aris::dynamic::s_vc(16, body_position_start_point + 0, ee);
+                    aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
+                    model()->setOutputPos(ee);
+                    if (model()->inverseKinematics())
+                    {
+
+                        std::cout << "inverse failed!!!" << std::endl;
+                        //for (int i = 0; i < 34; ++i) {
+                        //    std::cout << ee[i] << std::endl;
+                        //}
+                        std::cout << "ret = " << ret << std::endl;
+                    }
+                    model()->setTime(0.001 * count());
+                    ret = 1;
+
+
+                }
+                else
+                {
+
+
+                    TCurve s1(3, 1.5);
+                    s1.getCurveParam();
+                    EllipseTrajectory e1(0, 0.05, 0, s1);
+                    BodyPose body_s(0, 15, 0, s1); //仿真时候看下动画方向是否一致（俯视图为逆时针，如果不是需要调整为逆时针）
+
+                    if (count() == a + 1000 + 1)
+                    {
+                        aris::dynamic::s_vc(18, file_current_leg + 0, foot_position_start_point);
+                    }
+
+
+                    ret = turnPlanTripod(2, count() - 1 - a-1000, &e1, &body_s, input_angle);
+                    aris::dynamic::s_vc(16, file_current_body + 0, ee + 0);
+                    aris::dynamic::s_vc(18, file_current_leg + 0, ee + 16);
+
+
+                    model()->setOutputPos(ee);
+
+                    //末端位置
+                    //for (int i = 0; i < 34; ++i)
+                    //    lout() << ee[i] << "\t";
+                    //lout() << std::endl;
+
+
+
+
+
+
+                    if (model()->inverseKinematics())
+                    {
+
+                        std::cout << "inverse failed!!!" << std::endl;
+                        //for (int i = 0; i < 34; ++i) {
+                        //    std::cout << ee[i] << std::endl;
+                        //}
+                        std::cout << "ret = " << ret << std::endl;
+                    }
+
+                    // 数值解计算得到的输入的角度
+                    //double input[18];
+                    //model()->getInputPos(input);
+                    //for (int i = 0; i < 18; ++i)
+                    //    lout() << input[i] << "\t";
+                    //lout() << std::endl;
+
+                    model()->setTime(0.001 * count());
+
+
+                    if (ret == 0) std::cout << count() << std::endl;
+
+
+
+
+                }
+                //for (int i = 0; i < 34; ++i)
+                //    lout() << ee[i] << "\t";
+                //lout() << std::endl;
+
+                return ret;
+
+            }
+            HexTurnPrmTest::HexTurnPrmTest(const std::string& name)
+            {
+                aris::core::fromXmlString(command(),
+                    "<Command name=\"turn_prm\"/>");
+            }
+            HexTurnPrmTest::~HexTurnPrmTest() = default;
+
+
+
+
 
 
             //后退
@@ -1459,7 +2009,7 @@ HexForward::~HexForward() = default;
 
 
 
-            auto createModelHexapod()->std::unique_ptr<aris::dynamic::Model>
+auto createModelHexapod()->std::unique_ptr<aris::dynamic::Model>
             {
                 std::unique_ptr<aris::dynamic::Model> hex = std::make_unique<aris::dynamic::Model>();
                 // set gravity //
@@ -2042,6 +2592,9 @@ auto createPlanHexapod()->std::unique_ptr<aris::plan::PlanRoot>
     plan_root->planPool().add<HexDynamicTurnRightTest>();
     plan_root->planPool().add<HexDynamicTurnLeftTest>();
     plan_root->planPool().add<HexDynamicTetrapodTest>();
+    plan_root->planPool().add<HexWalkingPrmTest>();
+    plan_root->planPool().add<HexLateralPrmTest>();
+    plan_root->planPool().add<HexTurnPrmTest>();
 
 
 

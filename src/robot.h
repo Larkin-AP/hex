@@ -3,7 +3,7 @@
 
 #include<memory>
 #include<aris.hpp>
-
+#include"plan.h"
 namespace robot
 {
 	//pos_offset记录的是极限位置上电后，prepare位置对应的电机位置
@@ -187,6 +187,43 @@ namespace robot
 		virtual ~HexDynamicForwardTest();
 		explicit HexDynamicForwardTest(const std::string& name = "hex_forward");
 	};
+
+
+	//行走参数测试
+	class HexWalkingPrmTest :public aris::core::CloneObject<HexWalkingPrmTest, aris::plan::Plan> {
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int override;
+
+		virtual ~HexWalkingPrmTest();
+		explicit HexWalkingPrmTest(const std::string& name = "walk_prm");
+	};
+
+
+	//行走参数侧移
+	class HexLateralPrmTest :public aris::core::CloneObject<HexLateralPrmTest, aris::plan::Plan> {
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int override;
+
+		virtual ~HexLateralPrmTest();
+		explicit HexLateralPrmTest(const std::string& name = "lateral_prm");
+	};
+
+	//行走参数转弯
+	class HexTurnPrmTest :public aris::core::CloneObject<HexTurnPrmTest, aris::plan::Plan> {
+	public:
+		auto virtual prepareNrt()->void;
+		auto virtual executeRT()->int override;
+
+		virtual ~HexTurnPrmTest();
+		explicit HexTurnPrmTest(const std::string& name = "turn_prm");
+	};
+
+
+
+
+
 	//后退
 	class HexDynamicBackTest :public aris::core::CloneObject<HexDynamicBackTest, aris::plan::Plan> {
 	public:
@@ -248,6 +285,9 @@ namespace robot
 	auto createModelHexapod()->std::unique_ptr<aris::dynamic::Model>;
 	auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>;
 	auto createPlanHexapod()->std::unique_ptr<aris::plan::PlanRoot>;
+	auto CalculateInitPos()->void;
+	auto CalculateLegEE(double* ee1,double* all_ee)->void;
+	auto GenTrajToEE(double* all_ee, TCurve& s1, int count)->void; //count 是从0开始
 
 }
 #endif
