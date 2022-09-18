@@ -725,11 +725,11 @@ for y=-0.5867:0.05:-0.2199
 end
 
 figure(h1);
-suptitle('Velocity distribution in the x direction');
+sgtitle('Velocity distribution in the x direction');
 set(gcf,'Units','centimeters','Position',[5 5 32 18]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 
 figure(h2);
-suptitle('Velocity distribution in the z direction');
+sgtitle('Velocity distribution in the z direction');
 set(gcf,'Units','centimeters','Position',[5 5 32 18]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 
 %% P5 分层画交集
@@ -846,7 +846,7 @@ for y=-0.5867:0.05:-0.2199
 end
 
 figure(h1);
-suptitle('Velocity distribution in the x direction');
+sgtitle('Velocity distribution in the x direction');
 set(gcf,'Units','centimeters','Position',[5 5 32 18]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 
 
@@ -1063,7 +1063,7 @@ colormap turbo;
 
 
 figure(h4);
-suptitle('Intersection space');
+sgtitle('Intersection space');
 set(gcf,'Units','centimeters','Position',[5 5 32 18]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 
 %% P7 尝试求一下极值

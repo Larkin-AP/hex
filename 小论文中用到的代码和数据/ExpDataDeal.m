@@ -267,8 +267,8 @@ set(lgd,'FontSize',28)
 
 %% 换一种画法，6*2  一组速度，一组加速度
 %速度
-h5 = figure;
-figure(h5)
+h4 = figure;
+figure(h4)
 tiledlayout(2,3); %两条腿的速度
 set(gcf,'Units','centimeters','Position',[5 5 28 14]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 
@@ -352,8 +352,8 @@ set(lgd,'FontSize',28)
 
 
 % 加速度
-h6 = figure;
-figure(h6)
+h5 = figure;
+figure(h5)
 tiledlayout(2,3); %两条腿的速度
 set(gcf,'Units','centimeters','Position',[5 5 28 14]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 
@@ -443,7 +443,8 @@ set(lgd,'FontSize',28)
 
 
 %% 画电机位置
-figure;
+h6=figure;
+figure(h6);
 tiledlayout(1,2); %两条腿的速度
 set(gcf,'Units','centimeters','Position',[5 5 28 14]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 
@@ -542,8 +543,8 @@ for i=1:size(screwpos2,1)
 
 end
 
-h4 = figure;
-figure(h3);
+h7 = figure;
+figure(h7);
 tiledlayout(1,2);
 set(gcf,'Units','centimeters','Position',[5 5 28 14]); %指定plot输出图片的尺寸，xmin，ymin，width，height
 nexttile
