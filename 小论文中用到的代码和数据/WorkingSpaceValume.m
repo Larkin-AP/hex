@@ -17,9 +17,9 @@ ds=0.01; %ds为步长，设为0.01m
 % num=((580.72-165.5)/ds * (-215.92+586.68)/ds * (444.48+444.86)/ds);
 
 %这个范围是怎么产生的
-coor_Scope = [0.2065,0.5765;
-    -0.5867,-0.2267;
-    -0.4419,0.4381];
+coor_Scope = [0.2065,0.5765;  %x坐标
+    -0.5867,-0.2267;  %y坐标
+    -0.4419,0.4381];  %z坐标范围
 
 
 c=zeros(142045000,3);
@@ -113,14 +113,51 @@ zlabel('y(m)','FontSize',32);
 
 
 
+face1 = [coor_Scope(3,1) coor_Scope(3,1) coor_Scope(3,1) coor_Scope(3,1); %z
+    coor_Scope(1,1) coor_Scope(1,2) coor_Scope(1,2) coor_Scope(1,1);  %x
+    coor_Scope(2,1) coor_Scope(2,1) coor_Scope(2,2) coor_Scope(2,2)]; %y
+
+face2 = [coor_Scope(3,1) coor_Scope(3,2) coor_Scope(3,2) coor_Scope(3,1); %z
+    coor_Scope(1,1) coor_Scope(1,1) coor_Scope(1,2) coor_Scope(1,2);  %x
+    coor_Scope(2,2) coor_Scope(2,2) coor_Scope(2,2) coor_Scope(2,2)]; %y
+
+face3 = [coor_Scope(3,2) coor_Scope(3,2) coor_Scope(3,2) coor_Scope(3,2); %z
+    coor_Scope(1,1) coor_Scope(1,2) coor_Scope(1,2) coor_Scope(1,1);  %x
+    coor_Scope(2,1) coor_Scope(2,1) coor_Scope(2,2) coor_Scope(2,2)]; %y
+
+face4 = [coor_Scope(3,1) coor_Scope(3,2) coor_Scope(3,2) coor_Scope(3,1); %z
+    coor_Scope(1,1) coor_Scope(1,1) coor_Scope(1,2) coor_Scope(1,2);  %x
+    coor_Scope(2,1) coor_Scope(2,1) coor_Scope(2,1) coor_Scope(2,1)]; %y
+
+face5 = [coor_Scope(3,1) coor_Scope(3,2) coor_Scope(3,2) coor_Scope(3,1); %z
+    coor_Scope(1,1) coor_Scope(1,1) coor_Scope(1,1) coor_Scope(1,1);  %x
+    coor_Scope(2,1) coor_Scope(2,1) coor_Scope(2,2) coor_Scope(2,2)]; %y
+
+face6 = [coor_Scope(3,1) coor_Scope(3,2) coor_Scope(3,2) coor_Scope(3,1); %z
+    coor_Scope(1,2) coor_Scope(1,2) coor_Scope(1,2) coor_Scope(1,2);  %x
+    coor_Scope(2,1) coor_Scope(2,1) coor_Scope(2,2) coor_Scope(2,2)]; %y
+
+
+patch([face1(1,:)], [face1(2,:)], [face1(3,:)], 'b', 'FaceAlpha',0.1) 
+patch([face2(1,:)], [face2(2,:)], [face2(3,:)], 'b', 'FaceAlpha',0.1) 
+patch([face3(1,:)], [face3(2,:)], [face3(3,:)], 'b', 'FaceAlpha',0.1) 
+patch([face4(1,:)], [face4(2,:)], [face4(3,:)], 'b', 'FaceAlpha',0.1) 
+patch([face5(1,:)], [face5(2,:)], [face5(3,:)], 'b', 'FaceAlpha',0.1) 
+patch([face6(1,:)], [face6(2,:)], [face6(3,:)], 'b', 'FaceAlpha',0.1) 
+
+% patch([X(1:6) flip(X(1:6))], [Y(1:6) flip(Y(1:6))], [Z(1:6) flip(Z(1:6))], 'b', 'FaceAlpha',0.1) %flip 为翻转目标中的元素  facealpha为0-1之间的透明度设置。
+% kp = 2;
+% patch([X((1:6)+kp) flip(X((1:6)+kp))], [Y((1:6)+kp) flip(Y((1:6)+kp))], [Z((1:6)+kp) flip(Z((1:6)+kp))], 'b', 'FaceAlpha',0.1) %X(1:4)为1-4，X((1:4)+2) 为(3:6)
+% kp = 10;
+% patch([X((1:6)+kp) flip(X((1:6)+kp))], [Y((1:6)+kp) flip(Y((1:6)+kp))], [Z((1:6)+kp) flip(Z((1:6)+kp))], 'b', 'FaceAlpha',0.1)
+
+
+
 set(gca,'XDir','reverse');        %将x轴方向设置为反向(从右到左递增)。
 set(gca,'YDir','reverse');        %将x轴方向设置为反向(从右到左递增)。
-
-
-
-
 set(gca,'ytick',[0.3 0.5]);
 set(gca,'ztick',[-0.5 -0.3]);
+
 
 % set(gca,'ytick',[]);
 % set(gca,'ztick',[]);
@@ -146,6 +183,17 @@ view([-135,30]);
 % view([-90,0]);
 % view([0,-90]);
 rotate3d;
+
+%%
+%尝试在三维平明使用patch函数
+X_try = [1 3 3 1]';
+Y_try = [1 2 3 4]';
+Z_try = -[1 2 2 1]';
+
+figure;
+patch(X_try,Y_try,Z_try, 'r', 'FaceAlpha',0.25)
+view([135,30]);
+
 
 
 
