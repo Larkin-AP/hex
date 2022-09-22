@@ -8,7 +8,7 @@ namespace robot
 {
 	//pos_offset记录的是极限位置上电后，prepare位置对应的电机位置
 	static const double pos_offset[18] = {
-            5,5,5,
+            0,0,0,
 			0,0,0,
 			0,0,0,
 			0,0,0,
@@ -122,9 +122,14 @@ namespace robot
 	};
 
 
+
+	auto createMasterROSHexTest()->std::unique_ptr<aris::control::Master>;
+	auto createControllerROSHexTest()->std::unique_ptr<aris::control::Controller>;
+	auto createPlanROSHexTest()->std::unique_ptr<aris::plan::PlanRoot>;
 	auto createModelHexapod()->std::unique_ptr<aris::dynamic::Model>;
-	auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>;
-	auto createPlanHexapod()->std::unique_ptr<aris::plan::PlanRoot>;
+
+//	auto createControllerHexapod()->std::unique_ptr<aris::control::Controller>;
+//	auto createPlanHexapod()->std::unique_ptr<aris::plan::PlanRoot>;
 	auto CalculateInitPos()->void;
 	auto CalculateLegEE(double* ee1,double* all_ee)->void;
 	auto GenTrajToEE(double* all_ee, TCurve& s1, int count)->void; //count 是从0开始
