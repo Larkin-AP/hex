@@ -16,6 +16,9 @@ double file_current_leg[18] = { 0 };
 double file_current_body[16] = { 0 };
 double time_test = 0;
 extern double PI;
+double log_yaw = 0;// 用于记录身体已转动的角度
+int n_count = 0;
+double log_yaw_leg[2] = { 0 }; //用于记录2组腿转动的角度
 
 using namespace aris::dynamic;
 using namespace aris::plan;
@@ -722,7 +725,7 @@ namespace robot
     {
         //数值解和实际解xyr相差一个负号
         //如果要输出cmd文件，则不能创建储存文件，需要注释掉
-        //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+        if (count() == 1)this->master()->logFileRawName("eeTraj");    
         //if (count() == 1)this->master()->logFileRawName("inputTraj");
         //if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
         //if (count() == 1)this->master()->logFileRawName("numInput"); //数值解储存文件
@@ -851,9 +854,9 @@ namespace robot
             if (ret == 0) std::cout << count() << std::endl;
 
         }
-        //for (int i = 0; i < 34; ++i)
-        //    lout() << ee[i] << "\t";
-        //lout() << std::endl;
+        for (int i = 0; i < 34; ++i)
+            lout() << ee[i] << "\t";
+        lout() << std::endl;
         double input[18];
         model()->getInputPos(input);
         //for (int i = 0; i < 18; ++i)
@@ -951,7 +954,7 @@ namespace robot
 
             TCurve s1(3, 1.5);
             s1.getCurveParam();
-            EllipseTrajectory e1(0., 0.03, 0.1, s1);
+            EllipseTrajectory e1(0., 0.03, -0.1, s1);
             BodyPose body_s(0, 0, 0, s1);
 
             if (count() == a + 1000 + 1)
@@ -1025,13 +1028,15 @@ namespace robot
     //右转向参数测试
     auto HexTurnPrmTest::prepareNrt()->void
     {
-
+        
     }
     auto HexTurnPrmTest::executeRT()->int
     {
         //数值解和实际解xyr相差一个负号
         //如果要输出cmd文件，则不能创建储存文件，需要注释掉
-        //if (count() == 1)this->master()->logFileRawName("eeTraj");    
+        if (count() == 1)this->master()->logFileRawName("eeTraj");  
+        //if (count() == 1)this->master()->logFileRawName("yawTraj");
+        //if (count() == 1)this->master()->logFileRawName("yawlegTraj");
         //if (count() == 1)this->master()->logFileRawName("inputTraj");
         //if (count() == 1)this->master()->logFileRawName("invInput"); //反解计算结果储存文件，即解析解
         //if (count() == 1)this->master()->logFileRawName("numInput"); //数值解储存文件
@@ -1095,6 +1100,7 @@ namespace robot
             }
             model()->setTime(0.001 * count());
             ret = 1;
+            
 
 
         }
@@ -1104,8 +1110,9 @@ namespace robot
 
             TCurve s1(3, 1.5);
             s1.getCurveParam();
-            EllipseTrajectory e1(0, 0.05, 0, s1);
+            EllipseTrajectory e1(0, 0.03, 0, s1);
             BodyPose body_s(0, 15, 0, s1); //仿真时候看下动画方向是否一致（俯视图为逆时针，如果不是需要调整为逆时针）
+            
 
             if (count() == a + 1000 + 1)
             {
@@ -1120,45 +1127,24 @@ namespace robot
 
             model()->setOutputPos(ee);
 
-            //末端位置
-            //for (int i = 0; i < 34; ++i)
-            //    lout() << ee[i] << "\t";
-            //lout() << std::endl;
-
-
-
-
-
-
             if (model()->inverseKinematics())
             {
 
                 std::cout << "inverse failed!!!" << std::endl;
-                //for (int i = 0; i < 34; ++i) {
-                //    std::cout << ee[i] << std::endl;
-                //}
                 std::cout << "ret = " << ret << std::endl;
+                std::cout << "count = " << count() << std::endl;
             }
-
-            // 数值解计算得到的输入的角度
-            //double input[18];
-            //model()->getInputPos(input);
-            //for (int i = 0; i < 18; ++i)
-            //    lout() << input[i] << "\t";
-            //lout() << std::endl;
 
             model()->setTime(0.001 * count());
 
 
             if (ret == 0) std::cout << count() << std::endl;
 
-
-
-
         }
-        //for (int i = 0; i < 34; ++i)
-        //    lout() << ee[i] << "\t";
-        //lout() << std::endl;
+
+        for (int i = 0; i < 34; ++i)
+            lout() << ee[i] << "\t";
+        lout() << std::endl;
 
         return ret;
 
