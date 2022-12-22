@@ -16,7 +16,8 @@ extern double file_current_leg[18];
 extern double file_current_body[16];
 
 extern double PI;
-
+extern double log_yaw;
+extern double log_yaw_leg[2];
 
 //-------------------------------------------------------梯形曲线----------------------------------------------------//
 
@@ -274,7 +275,8 @@ auto planLegTripod(int e_1, int n, double* current_leg, int count, EllipseTrajec
 //三角步态下原地旋转
 //规划脚竖直上下抬起。然后乘旋转矩阵？？
 //#注意：目前只适用于平地
-auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajectory* Ellipse, BodyPose* body_pose_param)->void
+
+auto planLegTripodTurn(int e_1, int n, double* current_leg, int count, EllipseTrajectory* Ellipse, BodyPose* body_pose_param)->void
 {
 
 	//count 是0 到 Tc 循环  //判断当前在走哪一步,腿走一步e1加1
@@ -291,20 +293,10 @@ auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajector
 	double temp_xyz_in_ground[18] = { 0 };
 	static double yaw = 0;
 	//每个梯形曲线开始时读取之前的值
-	if (count == 0)
-	{
-		yaw = 0;
-	}
+    if (count == 0) yaw = 0;
 
 	body_pose_param->getBodyRotationTrajectory(count); //得到随count变化的rpy
-	yaw = body_pose_param->getCurrentYaw(); //得到当前时刻的yaw
 
-	double R_y[16] = {
-						 std::cos(yaw), 0, std::sin(yaw), 0,
-								0, 1,        0, 0,
-						-std::sin(yaw), 0, std::cos(yaw), 0,
-								0, 0,        0, 1
-	};
 
 	//按正常规划，脚上下抬起
 	if (e_1 % 2 == 0)  //偶数135迈腿，246停
@@ -325,9 +317,28 @@ auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajector
 		temp_xyz_in_ground[13] = foot_position_start_point[13] + Ellipse->get_y();
 		temp_xyz_in_ground[14] = foot_position_start_point[14] + Ellipse->get_z();
 
+
+        if (e_1 == 0) //加速段
+        {
+            yaw = body_pose_param->getCurrentYaw() / 2;
+
+        }
+        else
+        {
+            yaw = body_pose_param->getCurrentYaw();
+        }
+
+        double R_y[16] = {
+         std::cos(yaw), 0, std::sin(yaw), 0,
+                0, 1,        0, 0,
+        -std::sin(yaw), 0, std::cos(yaw), 0,
+                0, 0,        0, 1
+        };
+
 		aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 0 * 3, current_leg + 0 * 3);
         aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 2 * 3, current_leg + 2 * 3);
 		aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 4 * 3, current_leg + 4 * 3);
+        log_yaw_leg[0] = yaw;
 
 	}
 	else if (e_1 % 2 == 1)  //奇数246迈腿135停
@@ -345,9 +356,29 @@ auto planLegTripodTurn(int e_1, double* current_leg, int count, EllipseTrajector
 		temp_xyz_in_ground[16] = foot_position_start_point[16] + Ellipse->get_y();
 		temp_xyz_in_ground[17] = foot_position_start_point[17] + Ellipse->get_z();
 
+
+        if (e_1 == (2 * n - 1)) //减速段
+        {
+            yaw = body_pose_param->getCurrentYaw() / 2;
+
+        }
+        else
+        {
+            yaw = body_pose_param->getCurrentYaw();
+        }
+
+        double R_y[16] = {
+         std::cos(yaw), 0, std::sin(yaw), 0,
+                0, 1,        0, 0,
+        -std::sin(yaw), 0, std::cos(yaw), 0,
+                0, 0,        0, 1
+        };
+
 		aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 1 * 3, current_leg + 1 * 3);
 		aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 3 * 3, current_leg + 3 * 3);
 		aris::dynamic::s_pp2pp(R_y, temp_xyz_in_ground + 5 * 3, current_leg + 5 * 3);
+
+        log_yaw_leg[1] = yaw;
 	}
 
 
@@ -573,10 +604,14 @@ auto planBodyTransformTripod(int e_1, int n, double* current_body, int count, El
 //本函数用于规划六足机器人原地旋转
 //每一个梯形曲线转过给定角度的一半，和tripod步态对应
 //count 是 0 -> count
-auto planBodyTurn(int count, double* current_body, BodyPose* body_pose_param)->void
+
+auto planBodyTurn(int e_1,int count, int n, double* current_body, BodyPose* body_pose_param)->void
 {
 	double yaw = 0;
-
+    int per_step_count = std::floor(body_pose_param->getTcurve().getTc() * 1000);
+    double  total_yaw = body_pose_param->getYawTotalAngle();
+    //std::cout << "total_yaw :" << total_yaw << std::endl;
+    //std::cout << "per_step_count:" << per_step_count << std::endl;
 
 	if (count == 0) //有用，不能删，否则算不出角度
 	{
@@ -587,13 +622,29 @@ auto planBodyTurn(int count, double* current_body, BodyPose* body_pose_param)->v
 	}
 	body_pose_param->getBodyRotationTrajectory(count); //由body设置的角度参数得到弧度制的旋转角（随时间）
 
-	yaw = body_pose_param->getCurrentYaw() / 2;
+    if (e_1 == 0)   //加速段
+    {
+        //规划身体
+        yaw = 0 + total_yaw * count * count / (4.0 * per_step_count * per_step_count); //初始角度为0°
+    }
+    else if (e_1 == (2 * n - 1))//减速段
+    {
+        int t = (2 * n - 1) * per_step_count + per_step_count;
+        yaw = 0 - total_yaw * (count - t) * (count - t) / (4.0 * per_step_count * per_step_count) + total_yaw * n - total_yaw / 2.0;
+
+    }
+    else //匀速段
+    {
+        yaw = 0 + total_yaw / 4.0 + total_yaw * (count - per_step_count) / per_step_count / 2;
+    }
+
+    yaw = yaw / 180 * PI;
 
 	double R_y[16] = {
-						 std::cos(yaw), 0, std::sin(yaw), 0,
-								0, 1,        0, 0,
-						-std::sin(yaw), 0, std::cos(yaw), 0,
-								0, 0,        0, 1
+        std::cos(yaw), 0, std::sin(yaw), 0,
+               0, 1,        0, 0,
+       -std::sin(yaw), 0, std::cos(yaw), 0,
+               0, 0,        0, 1
 	};
 
 	double tempy[16] = { 0 };
@@ -605,7 +656,7 @@ auto planBodyTurn(int count, double* current_body, BodyPose* body_pose_param)->v
 
 
 	//结束时保存变化之后的值
-	if (count + 1 == std::floor(body_pose_param->getTcurve().getTc() * 1000)) //std::floor 向下取整数
+    if (count + 1 >= 2 * n * per_step_count) //std::floor 向下取整数
 	{
 
 		for (int i = 0; i < 16; i++)
@@ -756,9 +807,9 @@ auto turnPlanTripod(int n, int count, EllipseTrajectory* Ellipse, BodyPose* body
 	int e_2 = count % per_step_count;  //0->Tc count
 
 	//规划腿
-	planLegTripodTurn(e_1, current_leg_in_ground, e_2, Ellipse, body_pose_param);
+    planLegTripodTurn(e_1, n, current_leg_in_ground, e_2, Ellipse, body_pose_param);
 	//规划身体
-	planBodyTurn(e_2, current_body_in_ground, body_pose_param);
+    planBodyTurn(e_1,count, n, current_body_in_ground, body_pose_param);
 
 
 	//模型测试使用

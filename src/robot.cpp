@@ -18,6 +18,9 @@ double time_test = 0;
 
 
 extern double PI;
+double log_yaw = 0;// 用于记录身体已转动的角度
+int n_count = 0;
+double log_yaw_leg[2] = { 0 }; //用于记录2组腿转动的角度
 
 
 using namespace aris::dynamic;
